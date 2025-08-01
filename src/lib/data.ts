@@ -23,6 +23,7 @@ export const employees = [
     manager: 'Jane Doe',
     employmentType: 'permanent',
     jobGrade: 'A1',
+    jobCategory: 'Professional',
     joinDate: '2020-01-15',
     probationEndDate: '2020-04-15',
     workEmail: 'alice.j@example.com',

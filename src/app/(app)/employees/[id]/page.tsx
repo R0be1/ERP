@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award } from "lucide-react"
+import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award, Layers } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
 
@@ -198,6 +198,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                             <InfoItem icon={Briefcase} label="Job Title" value={employee.position} />
                             <InfoItem icon={User} label="Manager" value={employee.manager} />
                             <InfoItem icon={Tag} label="Job Grade" value={employee.jobGrade} />
+                            <InfoItem icon={Layers} label="Job Category" value={employee.jobCategory} />
                             <InfoItem icon={Home} label="Work Location" value="Head Office" />
                              <InfoItem icon={BadgeInfo} label="Employment Type" value={employee.employmentType} />
                             <InfoItem icon={Calendar} label="Join Date" value={employee.joinDate} />

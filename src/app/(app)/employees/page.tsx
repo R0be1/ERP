@@ -87,6 +87,7 @@ const initialNewEmployeeState = {
   manager: '',
   employmentType: '',
   jobGrade: '',
+  jobCategory: '',
   joinDate: '',
   probationEndDate: '',
   // Contact
@@ -146,6 +147,13 @@ const jobTitles = [
     { value: 'marketing-manager', label: 'Marketing Manager' },
     { value: 'sales-representative', label: 'Sales Representative' },
     { value: 'hr-specialist', label: 'HR Specialist' },
+]
+
+const jobCategories = [
+    { value: 'managerial', label: 'Managerial' },
+    { value: 'professional', label: 'Professional' },
+    { value: 'clerical', label: 'Clerical' },
+    { value: 'non-clerical', label: 'Non-Clerical' },
 ]
 
 const educationAwards = [
@@ -519,6 +527,17 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                             <div className="grid gap-2">
                                 <Label htmlFor="jobGrade">Job Grade</Label>
                                 <Input id="jobGrade" name="jobGrade" value={employeeData.jobGrade} onChange={handleInputChange} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label>Job Category</Label>
+                                <Select name="jobCategory" onValueChange={(v) => handleSelectChange('jobCategory', v)} value={employeeData.jobCategory}>
+                                    <SelectTrigger id="jobCategory"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                    <SelectContent>
+                                        {jobCategories.map((cat) => (
+                                            <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="joinDate">Join Date</Label>
@@ -1148,6 +1167,7 @@ export default function EmployeesPage() {
       email: employeeData.workEmail,
       position: jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
       department: departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
+      jobCategory: jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
       status: 'Active',
       avatar: photo || `https://placehold.co/40x40.png?text=${employeeData.firstName[0]}${employeeData.lastName[0]}`,
     };
@@ -1167,6 +1187,7 @@ export default function EmployeesPage() {
            email: employeeData.workEmail,
            position: jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
            department: departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
+           jobCategory: jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
            avatar: photo || (emp as any).avatar,
         };
       }
