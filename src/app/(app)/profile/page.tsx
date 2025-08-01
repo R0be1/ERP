@@ -7,10 +7,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award, Layers, Download } from "lucide-react"
+import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award, Layers, Download, Loader2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { generateExperienceLetter } from "@/ai/flows/generate-experience-letter"
+import { useToast } from "@/hooks/use-toast"
+import { jsPDF } from "jspdf"
 
 // In a real app, you would fetch the logged-in user's data
 const loggedInEmployeeId = "EMP001"; // Mocking logged-in user
@@ -86,8 +89,10 @@ const DependentItem = ({ dependent }: { dependent: any }) => (
 
 export default function ProfilePage() {
     const router = useRouter();
+    const { toast } = useToast();
     const [employee, setEmployee] = useState<(typeof employees)[number] | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
         setIsLoading(true);
@@ -105,6 +110,38 @@ export default function ProfilePage() {
         setEmployee(foundEmployee || null);
         setIsLoading(false);
     }, []);
+    
+    const handleGenerateLetter = async () => {
+        if (!employee) return;
+        setIsGenerating(true);
+        try {
+            const result = await generateExperienceLetter(employee);
+            
+            const doc = new jsPDF();
+            doc.setFont('helvetica');
+            doc.setFontSize(12);
+
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 20;
+            const contentWidth = pageWidth - margin * 2;
+            
+            doc.text(result.letterContent, margin, margin, { maxWidth: contentWidth });
+            
+            doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
+
+        } catch (error) {
+            console.error("Failed to generate experience letter", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Failed to generate experience letter. Please try again.",
+            });
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
 
     if (isLoading) {
         return <div className="flex justify-center items-center h-full">Loading...</div>;
@@ -200,8 +237,12 @@ export default function ProfilePage() {
                  </TabsContent>
                 <TabsContent value="experience" className="mt-4">
                     <div className="flex justify-end mb-4">
-                        <Button variant="outline">
-                            <Download className="mr-2 h-4 w-4" />
+                        <Button variant="outline" onClick={handleGenerateLetter} disabled={isGenerating}>
+                            {isGenerating ? (
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            ) : (
+                                <Download className="mr-2 h-4 w-4" />
+                            )}
                             Generate Experience Letter
                         </Button>
                     </div>
