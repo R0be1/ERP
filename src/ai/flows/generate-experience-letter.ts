@@ -45,17 +45,17 @@ const prompt = ai.definePrompt({
   prompt: `You are an HR assistant tasked with writing a formal Work Experience Letter for an employee at "Nib International Bank".
   
   The letter must be structured as follows:
-  1.  Start with today's date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.
+  1.  Start with "Date: " followed by today's date in DD/MM/YYYY format.
   2.  Add the salutation "To Whom It May Concern,".
   3.  The opening paragraph must be: "This letter is to certify that {{{name}}} has been an employee at Nib International Bank. During their tenure with us, they have held the following positions:"
-  4.  Present the work history in a clean, table-like format with headers: "Job Position", "Start Date", and "End Date". Do not use markdown table syntax. Use spaces to align the columns.
-  5.  Conclude the letter professionally with "Sincerely," followed by "Nib International Bank HR Department".
+  4.  Present the work history in a clean, table-like format with headers: "Title", "Company", and "Dates". Do not use markdown table syntax. Use spaces for alignment. The company for all internal experience is "Nib International Bank".
+  5.  The closing paragraph must be: "We have found {{{name}}} to be a diligent, hardworking, and valuable member of our team. We wish them all the best in their future endeavors."
   
   Employee Name: {{{name}}}
   
   Internal Work Experience (for the table):
   {{#each internalExperience}}
-  - Position: {{{this.title}}}, Start: {{{this.startDate}}}, End: {{{this.endDate}}}
+  - Title: {{{this.title}}}, Company: Nib International Bank, Dates: {{{this.startDate}}} - {{{this.endDate}}}
   {{/each}}
   
   Do not include any information not provided above. The tone must be formal. The output should be plain text for a PDF.
@@ -73,3 +73,4 @@ const generateExperienceLetterFlow = ai.defineFlow(
     return output!;
   }
 );
+
