@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react"
@@ -111,6 +112,26 @@ export default function EmployeesPage() {
 
   const handleSelectChange = (name: string, value: string) => {
     setNewEmployee(prevState => ({ ...prevState, [name]: value }));
+  };
+
+  const handleNestedInputChange = (section: keyof typeof newEmployee, index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const list = newEmployee[section] as any[];
+    const updatedList = [...list];
+    updatedList[index] = { ...updatedList[index], [name]: value };
+    setNewEmployee(prevState => ({ ...prevState, [section]: updatedList }));
+  };
+
+  const addEmergencyContact = () => {
+    setNewEmployee(prevState => ({
+      ...prevState,
+      emergencyContacts: [...prevState.emergencyContacts, { name: '', relationship: '', phone: '' }]
+    }));
+  };
+
+  const removeEmergencyContact = (index: number) => {
+    const updatedContacts = newEmployee.emergencyContacts.filter((_, i) => i !== index);
+    setNewEmployee(prevState => ({ ...prevState, emergencyContacts: updatedContacts }));
   };
   
   const handleAddEmployee = () => {
@@ -318,9 +339,41 @@ export default function EmployeesPage() {
                                     <Input id="subcity" name="address.subcity" />
                                 </div>
                              </div>
-                             <Separator />
-                             <p className="font-medium text-sm">Emergency Contacts</p>
-                             {/* Emergency contacts fields here */}
+                            <Separator />
+                            <div className="flex items-center justify-between">
+                                <p className="font-medium text-sm">Emergency Contacts</p>
+                                <Button size="sm" variant="outline" type="button" onClick={addEmergencyContact}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Contact
+                                </Button>
+                            </div>
+                            <div className="grid gap-4">
+                                {newEmployee.emergencyContacts.map((contact, index) => (
+                                    <div key={index} className="grid md:grid-cols-4 items-end gap-4 p-4 border rounded-md relative">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`ec-name-${index}`}>Full Name</Label>
+                                            <Input id={`ec-name-${index}`} name="name" value={contact.name} onChange={(e) => handleNestedInputChange('emergencyContacts', index, e)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`ec-relationship-${index}`}>Relationship</Label>
+                                            <Input id={`ec-relationship-${index}`} name="relationship" value={contact.relationship} onChange={(e) => handleNestedInputChange('emergencyContacts', index, e)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`ec-phone-${index}`}>Phone Number</Label>
+                                            <Input id={`ec-phone-${index}`} name="phone" value={contact.phone} onChange={(e) => handleNestedInputChange('emergencyContacts', index, e)} />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => removeEmergencyContact(index)}
+                                            className="h-9 w-9"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>
