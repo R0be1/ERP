@@ -145,14 +145,14 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            <Tabs defaultValue="job">
+            <Tabs defaultValue="personal">
                 <TabsList className="flex-wrap h-auto">
                     <TabsTrigger value="personal">Personal</TabsTrigger>
                     <TabsTrigger value="job">Job</TabsTrigger>
-                    <TabsTrigger value="dependents">Dependents</TabsTrigger>
-                    <TabsTrigger value="financial">Financial</TabsTrigger>
                     <TabsTrigger value="experience">Experience</TabsTrigger>
                     <TabsTrigger value="education-training">Education &amp; Training</TabsTrigger>
+                    <TabsTrigger value="financial">Financial</TabsTrigger>
+                    <TabsTrigger value="dependents">Dependents</TabsTrigger>
                     <TabsTrigger value="guarantees">Guarantees</TabsTrigger>
                     <TabsTrigger value="activity">Activity Log</TabsTrigger>
                 </TabsList>
@@ -195,32 +195,6 @@ export default function ProfilePage() {
                             <InfoItem icon={Calendar} label="Join Date" value={employee.joinDate} />
                             <InfoItem icon={Calendar} label="Probation End Date" value={employee.probationEndDate} />
                             <InfoItem icon={Badge} label="Status" value={<Badge variant={employee.status === "Active" ? "secondary" : "destructive"}>{employee.status}</Badge>} />
-                        </CardContent>
-                    </Card>
-                 </TabsContent>
-                 <TabsContent value="dependents" className="mt-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Dependents</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid gap-4">
-                            {dependents.length > 0 ? dependents.map((dependent, i) => (
-                                <DependentItem key={i} dependent={dependent} />
-                            )) : <p className="text-muted-foreground text-sm">No dependents recorded.</p>}
-                        </CardContent>
-                    </Card>
-                 </TabsContent>
-                  <TabsContent value="financial" className="mt-4">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Financial Information</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-3 gap-6">
-                            <InfoItem icon={DollarSign} label="Basic Salary" value={`${employee.basicSalary} ${employee.currency}`} />
-                            <InfoItem icon={Building} label="Bank Name" value={employee.bankName} />
-                            <InfoItem icon={Hash} label="Account Number" value={employee.accountNumber} />
-                            <InfoItem icon={FileText} label="Tax ID" value={employee.taxId} />
-                            <InfoItem icon={FileText} label="Pension Number" value={employee.pensionNumber} />
                         </CardContent>
                     </Card>
                  </TabsContent>
@@ -300,6 +274,32 @@ export default function ProfilePage() {
                          </CardContent>
                     </Card>
                 </TabsContent>
+                 <TabsContent value="financial" className="mt-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Financial Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-3 gap-6">
+                            <InfoItem icon={DollarSign} label="Basic Salary" value={`${employee.basicSalary} ${employee.currency}`} />
+                            <InfoItem icon={Building} label="Bank Name" value={employee.bankName} />
+                            <InfoItem icon={Hash} label="Account Number" value={employee.accountNumber} />
+                            <InfoItem icon={FileText} label="Tax ID" value={employee.taxId} />
+                            <InfoItem icon={FileText} label="Pension Number" value={employee.pensionNumber} />
+                        </CardContent>
+                    </Card>
+                 </TabsContent>
+                 <TabsContent value="dependents" className="mt-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Dependents</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid gap-4">
+                            {dependents.length > 0 ? dependents.map((dependent, i) => (
+                                <DependentItem key={i} dependent={dependent} />
+                            )) : <p className="text-muted-foreground text-sm">No dependents recorded.</p>}
+                        </CardContent>
+                    </Card>
+                 </TabsContent>
                  <TabsContent value="guarantees" className="mt-4">
                     <Card>
                         <CardHeader><CardTitle>Guarantee Information</CardTitle></CardHeader>
