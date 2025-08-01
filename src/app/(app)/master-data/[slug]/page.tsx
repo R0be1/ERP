@@ -226,7 +226,7 @@ export default function MasterDataManagementPage() {
                             <DialogHeader>
                                 <DialogTitle>{editingItem ? `Edit ${categoryInfo.title}` : `Add New ${categoryInfo.title}`}</DialogTitle>
                             </DialogHeader>
-                            <div className="grid gap-4 py-4">
+                            <div className="grid md:grid-cols-2 gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
                                 {categoryInfo.fields.map(field => {
                                     if (slug === 'departments' && field.key === 'branchGrade' && formState.type !== 'branch') {
                                         return null;
