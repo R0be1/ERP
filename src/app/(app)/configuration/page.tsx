@@ -6,12 +6,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     Settings, GitBranch, ScrollText, Building, Briefcase, Tag, Layers, School, 
-    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star
+    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star, Search
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { masterData as initialMasterData } from "@/lib/master-data";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 
 const configAreas = [
     {
@@ -85,6 +86,7 @@ const MasterDataCard = ({ slug, title, description, icon: Icon, count }: { slug:
 
 export default function ConfigurationPage() {
     const [masterData, setMasterData] = useState(initialMasterData);
+    const [searchTerm, setSearchTerm] = useState("");
 
     useEffect(() => {
         const storedData = localStorage.getItem('masterData');
@@ -105,10 +107,30 @@ export default function ConfigurationPage() {
         return Array.isArray(data) ? data.length : 0;
     };
 
+    const filteredConfigAreas = configAreas.filter(area => 
+        area.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        area.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    const filteredDataCategories = dataCategories.filter(cat => 
+        cat.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        cat.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+
     return (
         <div className="flex flex-col gap-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <h1 className="text-lg font-semibold md:text-2xl">Configuration</h1>
+                 <div className="relative w-full md:max-w-md">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                        placeholder="Search configuration and master data..." 
+                        className="pl-8"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
             </div>
 
             <Card>
@@ -119,7 +141,7 @@ export default function ConfigurationPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {configAreas.map((area) => (
+                    {filteredConfigAreas.map((area) => (
                         <Card key={area.id}>
                             <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-4">
                                <area.icon className="h-8 w-8 text-primary" />
@@ -133,6 +155,9 @@ export default function ConfigurationPage() {
                             </CardContent>
                         </Card>
                     ))}
+                     {filteredConfigAreas.length === 0 && (
+                        <p className="text-muted-foreground col-span-full">No platform configurations match your search.</p>
+                    )}
                 </CardContent>
             </Card>
 
@@ -146,7 +171,7 @@ export default function ConfigurationPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                     {dataCategories.map((cat) => (
+                     {filteredDataCategories.map((cat) => (
                         <MasterDataCard
                             key={cat.key}
                             slug={cat.key}
@@ -156,6 +181,9 @@ export default function ConfigurationPage() {
                             count={getCount(cat.key)}
                         />
                     ))}
+                    {filteredDataCategories.length === 0 && (
+                        <p className="text-muted-foreground col-span-full">No master data categories match your search.</p>
+                    )}
                 </CardContent>
             </Card>
         </div>
