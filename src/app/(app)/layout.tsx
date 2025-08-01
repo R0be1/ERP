@@ -15,6 +15,7 @@ import {
   MessageSquareQuote,
   Clock,
   PanelLeft,
+  LogOut,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -50,6 +51,7 @@ export default function AppLayout({
     { href: "/performance", icon: TrendingUp, label: "Performance" },
     { href: "/benefits", icon: Heart, label: "Benefits" },
     { href: "/payslips", icon: Receipt, label: "Payslips" },
+    { href: "/offboarding", icon: LogOut, label: "Exit/Offboarding" },
   ]
   
   const bottomNavItems = [
