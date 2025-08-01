@@ -121,7 +121,7 @@ const regions = [
   { value: 'harari', label: 'Harari' },
   { value: 'oromia', label: 'Oromia' },
   { value: 'somali', label: 'Somali' },
-  { value: 'snnp', label: 'SNNP' },
+  { value: 'snnp', label: 'Southern Nations, Nationalities, and Peoples\'' },
   { value: 'tigray', label: 'Tigray' },
 ]
 
