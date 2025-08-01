@@ -3,7 +3,7 @@
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -146,222 +146,101 @@ const jobTitles = [
 ]
 
 type Employee = (typeof initialEmployees)[number];
+type FormEmployeeState = typeof initialNewEmployeeState;
 
-export default function EmployeesPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [employees, setEmployees] = useState(initialEmployees);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [newEmployee, setNewEmployee] = useState(initialNewEmployeeState);
-  const [isAddEmployeeDialogOpen, setAddEmployeeDialogOpen] = useState(false);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
-  const [isRegionPopoverOpen, setRegionPopoverOpen] = useState(false);
-  const [isDepartmentPopoverOpen, setDepartmentPopoverOpen] = useState(false);
-  const [isPositionPopoverOpen, setPositionPopoverOpen] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
-  const [isViewEmployeeDialogOpen, setViewEmployeeDialogOpen] = useState(false);
+interface EmployeeFormProps {
+    initialData: FormEmployeeState;
+    isEditMode?: boolean;
+    onSubmit: (employeeData: FormEmployeeState, photo: string | null) => void;
+    onCancel: () => void;
+}
 
-  useEffect(() => {
-    const editEmployeeId = searchParams.get('edit');
-    if (editEmployeeId) {
-        const employeeToEdit = employees.find(emp => emp.id === editEmployeeId);
-        if (employeeToEdit) {
-            handleOpenEditDialog(employeeToEdit);
+const EmployeeForm = ({ initialData, isEditMode = false, onSubmit, onCancel }: EmployeeFormProps) => {
+    const [employeeData, setEmployeeData] = useState(initialData);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(isEditMode ? (initialData as any).avatar : null);
+    const [isRegionPopoverOpen, setRegionPopoverOpen] = useState(false);
+    const [isDepartmentPopoverOpen, setDepartmentPopoverOpen] = useState(false);
+    const [isPositionPopoverOpen, setPositionPopoverOpen] = useState(false);
+
+    const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        if (name.startsWith('address.')) {
+            const addressField = name.split('.')[1];
+            setEmployeeData(prevState => ({
+                ...prevState,
+                address: { ...prevState.address, [addressField]: value }
+            }));
+        } else {
+            setEmployeeData(prevState => ({ ...prevState, [name]: value }));
         }
-    }
-  }, [searchParams, employees]);
+    }, []);
 
+    const handleSelectChange = useCallback((name: string, value: string) => {
+        if (name.startsWith('address.')) {
+            const addressField = name.split('.')[1];
+            setEmployeeData(prevState => ({
+                ...prevState,
+                address: { ...prevState.address, [addressField]: value }
+            }));
+        } else {
+            setEmployeeData(prevState => ({ ...prevState, [name]: value }));
+        }
+    }, []);
 
-  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    } else {
-        setPhotoPreview(null);
-    }
-  };
+    const handleNestedInputChange = useCallback((section: keyof FormEmployeeState, index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setEmployeeData(prevState => {
+            const list = prevState[section] as any[];
+            const updatedList = [...list];
+            updatedList[index] = { ...updatedList[index], [name]: value };
+            return { ...prevState, [section]: updatedList };
+        });
+    }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, isEditMode: boolean = false) => {
-    const { name, value } = e.target;
-    const formStateSetter = isEditMode ? setSelectedEmployee : setNewEmployee;
-    
-    if (name.startsWith('address.')) {
-        const addressField = name.split('.')[1];
-        formStateSetter((prevState: any) => ({
+    const addListItem = useCallback((section: keyof FormEmployeeState) => {
+        let newItem;
+        switch (section) {
+            case 'emergencyContacts': newItem = { name: '', relationship: '', phone: '' }; break;
+            case 'dependents': newItem = { name: '', relationship: '', dob: '' }; break;
+            case 'internalExperience': newItem = { title: '', department: '', startDate: '', endDate: '', responsibilities: '' }; break;
+            case 'externalExperience': newItem = { company: '', title: '', startDate: '', endDate: '', responsibilities: '' }; break;
+            case 'education': newItem = { degree: '', institution: '', field: '', completionDate: '', grade: '' }; break;
+            case 'training': newItem = { name: '', provider: '', completionDate: '', file: null }; break;
+            case 'incomingGuarantees': newItem = { guarantorName: '', relationship: '', organization: '', organizationPhone: '', guarantorPhone: '', issueDate: '', document: null }; break;
+            case 'outgoingGuarantees': newItem = { recipientName: '', recipientPhone: '', relationship: '', organization: '', organizationPhone: '', poBox: '', amount: '', issueDate: '', expiryDate: '', document: null }; break;
+            default: newItem = {};
+        }
+        setEmployeeData(prevState => ({
             ...prevState,
-            address: {
-                ...prevState.address,
-                [addressField]: value
-            }
+            [section]: [...(prevState[section] as any[]), newItem]
         }));
-    } else {
-        formStateSetter((prevState: any) => ({ ...prevState, [name]: value }));
-    }
-  };
+    }, []);
 
-  const handleSelectChange = (name: string, value: string, isEditMode: boolean = false) => {
-    const formStateSetter = isEditMode ? setSelectedEmployee : setNewEmployee;
-    
-    if (name === 'address.region') {
-        const addressField = name.split('.')[1];
-         formStateSetter((prevState: any) => ({
-            ...prevState,
-            address: {
-                ...prevState.address,
-                [addressField]: value
-            }
-        }));
-    } else {
-        formStateSetter((prevState: any) => ({ ...prevState, [name]: value }));
-    }
-  };
+    const removeListItem = useCallback((section: keyof FormEmployeeState, index: number) => {
+        setEmployeeData(prevState => {
+            const list = prevState[section] as any[];
+            return { ...prevState, [section]: list.filter((_, i) => i !== index) };
+        });
+    }, []);
 
-  const handleNestedInputChange = (section: keyof typeof initialNewEmployeeState, index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, isEditMode: boolean = false) => {
-    const { name, value } = e.target;
-    const formStateSetter = isEditMode ? setSelectedEmployee : setNewEmployee;
-    formStateSetter((prevState: any) => {
-        const list = prevState[section] as any[];
-        const updatedList = [...list];
-        updatedList[index] = { ...updatedList[index], [name]: value };
-        return { ...prevState, [section]: updatedList };
-    });
-  };
-  
-  const addListItem = (section: keyof typeof initialNewEmployeeState, isEditMode: boolean = false) => {
-      const formStateSetter = isEditMode ? setSelectedEmployee : setNewEmployee;
-      let newItem;
-      switch (section) {
-          case 'emergencyContacts':
-              newItem = { name: '', relationship: '', phone: '' };
-              break;
-          case 'dependents':
-              newItem = { name: '', relationship: '', dob: '' };
-              break;
-          case 'internalExperience':
-              newItem = { title: '', department: '', startDate: '', endDate: '', responsibilities: '' };
-              break;
-          case 'externalExperience':
-              newItem = { company: '', title: '', startDate: '', endDate: '', responsibilities: '' };
-              break;
-          case 'education':
-              newItem = { degree: '', institution: '', field: '', completionDate: '', grade: '' };
-              break;
-          case 'training':
-               newItem = { name: '', provider: '', completionDate: '', file: null };
-              break;
-          case 'incomingGuarantees':
-              newItem = { guarantorName: '', relationship: '', organization: '', organizationPhone: '', guarantorPhone: '', issueDate: '', document: null };
-              break;
-          case 'outgoingGuarantees':
-              newItem = { recipientName: '', recipientPhone: '', relationship: '', organization: '', organizationPhone: '', poBox: '', amount: '', issueDate: '', expiryDate: '', document: null };
-              break;
-          default:
-              newItem = {};
-      }
-      formStateSetter((prevState: any) => ({
-        ...prevState,
-        [section]: [...prevState[section], newItem]
-      }));
-  };
-
-  const removeListItem = (section: keyof typeof initialNewEmployeeState, index: number, isEditMode: boolean = false) => {
-    const formStateSetter = isEditMode ? setSelectedEmployee : setNewEmployee;
-    formStateSetter((prevState: any) => {
-        const list = prevState[section] as any[];
-        const updatedList = list.filter((_, i) => i !== index);
-        return { ...prevState, [section]: updatedList };
-    });
-  };
-
-  const handleAddEmployee = () => {
-    const newEmp: Employee = {
-      id: newEmployee.employeeId || `EMP${String(employees.length + 1).padStart(3, '0')}`,
-      name: `${newEmployee.title} ${newEmployee.firstName} ${newEmployee.lastName}`,
-      email: newEmployee.workEmail,
-      position: jobTitles.find(j => j.value === newEmployee.position)?.label || newEmployee.position,
-      department: departments.find(d => d.value === newEmployee.department)?.label || newEmployee.department,
-      status: 'Active',
-      avatar: photoPreview || 'https://placehold.co/40x40.png',
-      ...newEmployee, // Add all other fields
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onloadend = () => setPhotoPreview(reader.result as string);
+            reader.readAsDataURL(file);
+        } else {
+            setPhotoPreview(null);
+        }
     };
-    setEmployees([...employees, newEmp]);
-    setNewEmployee(initialNewEmployeeState);
-    setPhotoPreview(null);
-    setAddEmployeeDialogOpen(false);
-  };
-  
-  const handleUpdateEmployee = () => {
-    if (!selectedEmployee) return;
 
-    const updatedEmployees = employees.map(emp => {
-      if (emp.id === selectedEmployee.id) {
-        return {
-          ...selectedEmployee,
-           name: `${selectedEmployee.title} ${selectedEmployee.firstName} ${selectedEmployee.lastName}`,
-           email: selectedEmployee.workEmail,
-           position: jobTitles.find(j => j.value === selectedEmployee.position)?.label || selectedEmployee.position,
-           department: departments.find(d => d.value === selectedEmployee.department)?.label || selectedEmployee.department,
-           avatar: photoPreview || selectedEmployee.avatar,
-        };
-      }
-      return emp;
-    });
-
-    setEmployees(updatedEmployees);
-    setViewEmployeeDialogOpen(false);
-    setSelectedEmployee(null);
-    setPhotoPreview(null);
-  };
-  
-  const handleOpenEditDialog = (employee: Employee) => {
-      const employeeData = JSON.parse(JSON.stringify(employee));
-      const fullEmployeeData = { ...initialNewEmployeeState, ...employeeData };
-      setSelectedEmployee(fullEmployeeData);
-      setPhotoPreview(employee.avatar);
-      setViewEmployeeDialogOpen(true);
-  };
-
-  const handleCloseEditDialog = () => {
-    setViewEmployeeDialogOpen(false);
-    setSelectedEmployee(null);
-    const newUrl = window.location.pathname;
-    window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
-  };
-
-
-  const handleDeleteEmployee = (id: string) => {
-    setEmployees(employees.filter(employee => employee.id !== id));
-  };
-  
-  const exportToCsv = () => {
-    const headers = ["ID", "Name", "Email", "Position", "Department", "Status"];
-    const rows = employees.map(emp => [emp.id, emp.name, emp.email, emp.position, emp.department, emp.status].join(','));
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "employees.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  const filteredEmployees = employees.filter((employee) =>
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.department.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-  
-  const EmployeeForm = ({ isEditMode = false }: { isEditMode?: boolean }) => {
-    const employeeData = isEditMode ? selectedEmployee : newEmployee;
+    const handleSubmit = () => {
+        onSubmit(employeeData, photoPreview);
+    };
     
     return (
-       <Tabs defaultValue="personal-job">
+       <>
+        <Tabs defaultValue="personal-job">
             <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="personal-job">Personal & Job</TabsTrigger>
                 <TabsTrigger value="contact">Contact</TabsTrigger>
@@ -379,11 +258,11 @@ export default function EmployeesPage() {
                         <CardContent className="grid md:grid-cols-3 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="employeeId">Employee ID</Label>
-                                <Input id="employeeId" name="employeeId" value={employeeData.employeeId} onChange={(e) => handleInputChange(e, isEditMode)} disabled={isEditMode} />
+                                <Input id="employeeId" name="employeeId" value={employeeData.employeeId} onChange={handleInputChange} disabled={isEditMode} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="title">Title</Label>
-                                <Select name="title" onValueChange={(v) => handleSelectChange('title', v, isEditMode)} value={employeeData.title}>
+                                <Select name="title" onValueChange={(v) => handleSelectChange('title', v)} value={employeeData.title}>
                                     <SelectTrigger id="title"><SelectValue placeholder="Select..." /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Ato">Ato</SelectItem>
@@ -397,23 +276,23 @@ export default function EmployeesPage() {
                             <div className="grid gap-2"></div>
                            <div className="grid gap-2">
                                 <Label htmlFor="firstName">First Name</Label>
-                                <Input id="firstName" name="firstName" value={employeeData.firstName} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="firstName" name="firstName" value={employeeData.firstName} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="middleName">Middle Name</Label>
-                                <Input id="middleName" name="middleName" value={employeeData.middleName} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="middleName" name="middleName" value={employeeData.middleName} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="lastName">Last Name</Label>
-                                <Input id="lastName" name="lastName" value={employeeData.lastName} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="lastName" name="lastName" value={employeeData.lastName} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="dob">Date of Birth</Label>
-                                <Input id="dob" name="dob" type="date" value={employeeData.dob} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="dob" name="dob" type="date" value={employeeData.dob} onChange={handleInputChange} />
                             </div>
                              <div className="grid gap-2">
                                 <Label htmlFor="gender">Gender</Label>
-                                <Select name="gender" onValueChange={(v) => handleSelectChange('gender', v, isEditMode)} value={employeeData.gender}>
+                                <Select name="gender" onValueChange={(v) => handleSelectChange('gender', v)} value={employeeData.gender}>
                                     <SelectTrigger id="gender"><SelectValue placeholder="Select..." /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="male">Male</SelectItem>
@@ -424,7 +303,7 @@ export default function EmployeesPage() {
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="marital-status">Marital Status</Label>
-                                <Select name="maritalStatus" onValueChange={(v) => handleSelectChange('maritalStatus', v, isEditMode)} value={employeeData.maritalStatus}>
+                                <Select name="maritalStatus" onValueChange={(v) => handleSelectChange('maritalStatus', v)} value={employeeData.maritalStatus}>
                                     <SelectTrigger id="marital-status"><SelectValue placeholder="Select..." /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="single">Single</SelectItem>
@@ -434,7 +313,7 @@ export default function EmployeesPage() {
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="nationality">Nationality</Label>
-                                <Input id="nationality" name="nationality" value={employeeData.nationality} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="nationality" name="nationality" value={employeeData.nationality} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2 md:col-span-3">
                                 <Label htmlFor="photo">Photo</Label>
@@ -459,19 +338,19 @@ export default function EmployeesPage() {
                         <CardContent className="grid md:grid-cols-2 gap-4">
                            <div className="grid gap-2">
                                 <Label htmlFor="nationalId">National ID</Label>
-                                <Input id="nationalId" name="nationalId" value={employeeData.nationalId} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="nationalId" name="nationalId" value={employeeData.nationalId} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="kebeleId">Kebele ID</Label>
-                                <Input id="kebeleId" name="kebeleId" value={employeeData.kebeleId} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="kebeleId" name="kebeleId" value={employeeData.kebeleId} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="drivingLicense">Driving License</Label>
-                                <Input id="drivingLicense" name="drivingLicense" value={employeeData.drivingLicense} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="drivingLicense" name="drivingLicense" value={employeeData.drivingLicense} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="passportNo">Passport No.</Label>
-                                <Input id="passportNo" name="passportNo" value={employeeData.passportNo} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="passportNo" name="passportNo" value={employeeData.passportNo} onChange={handleInputChange} />
                             </div>
                         </CardContent>
                     </Card>
@@ -506,7 +385,7 @@ export default function EmployeesPage() {
                                             key={d.value}
                                             value={d.value}
                                             onSelect={(currentValue) => {
-                                                handleSelectChange('department', currentValue === employeeData.department ? "" : currentValue, isEditMode)
+                                                handleSelectChange('department', currentValue === employeeData.department ? "" : currentValue)
                                                 setDepartmentPopoverOpen(false)
                                             }}
                                             >
@@ -550,7 +429,7 @@ export default function EmployeesPage() {
                                             key={p.value}
                                             value={p.value}
                                             onSelect={(currentValue) => {
-                                                handleSelectChange('position', currentValue === employeeData.position ? "" : currentValue, isEditMode)
+                                                handleSelectChange('position', currentValue === employeeData.position ? "" : currentValue)
                                                 setPositionPopoverOpen(false)
                                             }}
                                             >
@@ -570,11 +449,11 @@ export default function EmployeesPage() {
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="manager">Manager</Label>
-                                <Input id="manager" name="manager" value={employeeData.manager} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="manager" name="manager" value={employeeData.manager} onChange={handleInputChange} />
                             </div>
                              <div className="grid gap-2">
                                 <Label htmlFor="employment-type">Employment Type</Label>
-                                 <Select name="employmentType" onValueChange={(v) => handleSelectChange('employmentType', v, isEditMode)} value={employeeData.employmentType}>
+                                 <Select name="employmentType" onValueChange={(v) => handleSelectChange('employmentType', v)} value={employeeData.employmentType}>
                                     <SelectTrigger id="employment-type"><SelectValue placeholder="Select..." /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="permanent">Permanent</SelectItem>
@@ -585,15 +464,15 @@ export default function EmployeesPage() {
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="jobGrade">Job Grade</Label>
-                                <Input id="jobGrade" name="jobGrade" value={employeeData.jobGrade} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="jobGrade" name="jobGrade" value={employeeData.jobGrade} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="joinDate">Join Date</Label>
-                                <Input id="joinDate" name="joinDate" type="date" value={employeeData.joinDate} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="joinDate" name="joinDate" type="date" value={employeeData.joinDate} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="probationEndDate">Probation End Date</Label>
-                                <Input id="probationEndDate" name="probationEndDate" type="date" value={employeeData.probationEndDate} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="probationEndDate" name="probationEndDate" type="date" value={employeeData.probationEndDate} onChange={handleInputChange} />
                             </div>
                         </CardContent>
                     </Card>
@@ -609,15 +488,15 @@ export default function EmployeesPage() {
                         <div className="grid md:grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="workEmail">Work Email</Label>
-                                <Input id="workEmail" name="workEmail" type="email" value={employeeData.workEmail} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="workEmail" name="workEmail" type="email" value={employeeData.workEmail} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="personalEmail">Personal Email</Label>
-                                <Input id="personalEmail" name="personalEmail" type="email" value={employeeData.personalEmail} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="personalEmail" name="personalEmail" type="email" value={employeeData.personalEmail} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="mobileNumber">Mobile Number</Label>
-                                <Input id="mobileNumber" name="mobileNumber" type="tel" value={employeeData.mobileNumber} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="mobileNumber" name="mobileNumber" type="tel" value={employeeData.mobileNumber} onChange={handleInputChange} />
                             </div>
                         </div>
                          <Separator />
@@ -625,7 +504,7 @@ export default function EmployeesPage() {
                         <div className="grid md:grid-cols-3 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="country">Country</Label>
-                                <Input id="country" name="address.country" value={employeeData.address.country} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="country" name="address.country" value={employeeData.address.country} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="region">Region</Label>
@@ -653,7 +532,7 @@ export default function EmployeesPage() {
                                             key={region.value}
                                             value={region.value}
                                             onSelect={(currentValue) => {
-                                                handleSelectChange('address.region', currentValue === employeeData.address.region ? "" : currentValue, isEditMode)
+                                                handleSelectChange('address.region', currentValue === employeeData.address.region ? "" : currentValue)
                                                 setRegionPopoverOpen(false)
                                             }}
                                             >
@@ -673,53 +552,53 @@ export default function EmployeesPage() {
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="city">City</Label>
-                                <Input id="city" name="address.city" value={employeeData.address.city} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="city" name="address.city" value={employeeData.address.city} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="subcity">Subcity</Label>
-                                <Input id="subcity" name="address.subcity" value={employeeData.address.subcity} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="subcity" name="address.subcity" value={employeeData.address.subcity} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="woreda">Woreda</Label>
-                                <Input id="woreda" name="address.woreda" value={employeeData.address.woreda} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="woreda" name="address.woreda" value={employeeData.address.woreda} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="kebele">Kebele</Label>
-                                <Input id="kebele" name="address.kebele" value={employeeData.address.kebele} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="kebele" name="address.kebele" value={employeeData.address.kebele} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="houseNo">House Number</Label>
-                                <Input id="houseNo" name="address.houseNo" value={employeeData.address.houseNo} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="houseNo" name="address.houseNo" value={employeeData.address.houseNo} onChange={handleInputChange} />
                             </div>
                         </div>
                         <Separator />
                         <div className="flex items-center justify-between">
                             <p className="font-medium text-sm">Emergency Contacts</p>
-                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('emergencyContacts', isEditMode)}>
+                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('emergencyContacts')}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Contact
                             </Button>
                         </div>
                         <div className="grid gap-4">
-                            {employeeData.emergencyContacts.map((contact: any, index: number) => (
+                            {(employeeData.emergencyContacts || []).map((contact: any, index: number) => (
                                 <div key={index} className="grid md:grid-cols-4 items-end gap-4 p-4 border rounded-md relative">
                                     <div className="grid gap-2">
                                         <Label htmlFor={`ec-name-${index}`}>Full Name</Label>
-                                        <Input id={`ec-name-${index}`} name="name" value={contact.name} onChange={(e) => handleNestedInputChange('emergencyContacts', index, e, isEditMode)} />
+                                        <Input id={`ec-name-${index}`} name="name" value={contact.name} onChange={(e) => handleNestedInputChange('emergencyContacts', index, e)} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`ec-relationship-${index}`}>Relationship</Label>
-                                        <Input id={`ec-relationship-${index}`} name="relationship" value={contact.relationship} onChange={(e) => handleNestedInputChange('emergencyContacts', index, e, isEditMode)} />
+                                        <Input id={`ec-relationship-${index}`} name="relationship" value={contact.relationship} onChange={(e) => handleNestedInputChange('emergencyContacts', index, e)} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`ec-phone-${index}`}>Phone Number</Label>
-                                        <Input id={`ec-phone-${index}`} name="phone" value={contact.phone} onChange={(e) => handleNestedInputChange('emergencyContacts', index, e, isEditMode)} />
+                                        <Input id={`ec-phone-${index}`} name="phone" value={contact.phone} onChange={(e) => handleNestedInputChange('emergencyContacts', index, e)} />
                                     </div>
                                     <Button
                                         type="button"
                                         variant="destructive"
                                         size="icon"
-                                        onClick={() => removeListItem('emergencyContacts', index, isEditMode)}
+                                        onClick={() => removeListItem('emergencyContacts', index)}
                                         className="h-9 w-9"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -740,19 +619,19 @@ export default function EmployeesPage() {
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="contractStartDate">Contract Start Date</Label>
-                                <Input id="contractStartDate" name="contractStartDate" type="date" value={employeeData.contractStartDate} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="contractStartDate" name="contractStartDate" type="date" value={employeeData.contractStartDate} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="contractEndDate">Contract End Date</Label>
-                                <Input id="contractEndDate" name="contractEndDate" type="date" value={employeeData.contractEndDate} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="contractEndDate" name="contractEndDate" type="date" value={employeeData.contractEndDate} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="basicSalary">Basic Salary</Label>
-                                <Input id="basicSalary" name="basicSalary" value={employeeData.basicSalary} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="basicSalary" name="basicSalary" value={employeeData.basicSalary} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="currency">Currency</Label>
-                                <Select name="currency" onValueChange={(v) => handleSelectChange('currency', v, isEditMode)} value={employeeData.currency}>
+                                <Select name="currency" onValueChange={(v) => handleSelectChange('currency', v)} value={employeeData.currency}>
                                     <SelectTrigger id="currency"><SelectValue placeholder="Select..." /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="ETB">ETB</SelectItem>
@@ -769,19 +648,19 @@ export default function EmployeesPage() {
                          <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="grid gap-2">
                                 <Label htmlFor="bankName">Bank Name</Label>
-                                <Input id="bankName" name="bankName" value={employeeData.bankName} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="bankName" name="bankName" value={employeeData.bankName} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="accountNumber">Account Number</Label>
-                                <Input id="accountNumber" name="accountNumber" value={employeeData.accountNumber} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="accountNumber" name="accountNumber" value={employeeData.accountNumber} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="taxId">Tax ID</Label>
-                                <Input id="taxId" name="taxId" value={employeeData.taxId} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="taxId" name="taxId" value={employeeData.taxId} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="pensionNumber">Pension Number</Label>
-                                <Input id="pensionNumber" name="pensionNumber" value={employeeData.pensionNumber} onChange={(e) => handleInputChange(e, isEditMode)} />
+                                <Input id="pensionNumber" name="pensionNumber" value={employeeData.pensionNumber} onChange={handleInputChange} />
                             </div>
                         </CardContent>
                     </Card>
@@ -796,32 +675,32 @@ export default function EmployeesPage() {
                                 <CardTitle>Dependents</CardTitle>
                                 <CardDescription>Manage dependent information.</CardDescription>
                             </div>
-                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('dependents', isEditMode)}>
+                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('dependents')}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Dependent
                             </Button>
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.dependents.map((dependent: any, index: number) => (
+                            {(employeeData.dependents || []).map((dependent: any, index: number) => (
                                 <div key={index} className="grid md:grid-cols-4 items-end gap-4 p-4 border rounded-md relative">
                                     <div className="grid gap-2">
                                         <Label htmlFor={`dep-name-${index}`}>Full Name</Label>
-                                        <Input id={`dep-name-${index}`} name="name" value={dependent.name} onChange={(e) => handleNestedInputChange('dependents', index, e, isEditMode)} />
+                                        <Input id={`dep-name-${index}`} name="name" value={dependent.name} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`dep-relationship-${index}`}>Relationship</Label>
-                                        <Input id={`dep-relationship-${index}`} name="relationship" value={dependent.relationship} onChange={(e) => handleNestedInputChange('dependents', index, e, isEditMode)} />
+                                        <Input id={`dep-relationship-${index}`} name="relationship" value={dependent.relationship} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`dep-dob-${index}`}>Date of Birth</Label>
-                                        <Input id={`dep-dob-${index}`} name="dob" type="date" value={dependent.dob} onChange={(e) => handleNestedInputChange('dependents', index, e, isEditMode)} />
+                                        <Input id={`dep-dob-${index}`} name="dob" type="date" value={dependent.dob} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
                                     </div>
                                     <Button
                                         type="button"
                                         variant="destructive"
                                         size="icon"
-                                        onClick={() => removeListItem('dependents', index, isEditMode)}
+                                        onClick={() => removeListItem('dependents', index)}
                                         className="h-9 w-9"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -836,42 +715,42 @@ export default function EmployeesPage() {
                             <div className="grid gap-1">
                                 <CardTitle>Internal Work Experience</CardTitle>
                             </div>
-                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('internalExperience', isEditMode)}>
+                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('internalExperience')}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Experience
                             </Button>
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.internalExperience.map((exp: any, index: number) => (
+                            {(employeeData.internalExperience || []).map((exp: any, index: number) => (
                                 <div key={index} className="grid gap-4 p-4 border rounded-md relative">
                                     <div className="grid md:grid-cols-2 gap-4">
                                         <div className="grid gap-2">
                                             <Label htmlFor={`int-title-${index}`}>Job Title</Label>
-                                            <Input id={`int-title-${index}`} name="title" value={exp.title} onChange={(e) => handleNestedInputChange('internalExperience', index, e, isEditMode)} />
+                                            <Input id={`int-title-${index}`} name="title" value={exp.title} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`int-department-${index}`}>Department</Label>
-                                            <Input id={`int-department-${index}`} name="department" value={exp.department} onChange={(e) => handleNestedInputChange('internalExperience', index, e, isEditMode)} />
+                                            <Input id={`int-department-${index}`} name="department" value={exp.department} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`int-startDate-${index}`}>Start Date</Label>
-                                            <Input id={`int-startDate-${index}`} name="startDate" type="date" value={exp.startDate} onChange={(e) => handleNestedInputChange('internalExperience', index, e, isEditMode)} />
+                                            <Input id={`int-startDate-${index}`} name="startDate" type="date" value={exp.startDate} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`int-endDate-${index}`}>End Date</Label>
-                                            <Input id={`int-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('internalExperience', index, e, isEditMode)} />
+                                            <Input id={`int-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
                                         </div>
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`int-responsibilities-${index}`}>Key Responsibilities</Label>
-                                        <Textarea id={`int-responsibilities-${index}`} name="responsibilities" value={exp.responsibilities} onChange={(e) => handleNestedInputChange('internalExperience', index, e, isEditMode)} />
+                                        <Textarea id={`int-responsibilities-${index}`} name="responsibilities" value={exp.responsibilities} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
                                     </div>
                                     <Button
                                         type="button"
                                         variant="destructive"
                                         size="icon"
-                                        onClick={() => removeListItem('internalExperience', index, isEditMode)}
+                                        onClick={() => removeListItem('internalExperience', index)}
                                         className="absolute top-4 right-4 h-8 w-8"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -886,42 +765,42 @@ export default function EmployeesPage() {
                             <div className="grid gap-1">
                                 <CardTitle>External Work Experience</CardTitle>
                             </div>
-                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('externalExperience', isEditMode)}>
+                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('externalExperience')}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Experience
                             </Button>
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.externalExperience.map((exp: any, index: number) => (
+                            {(employeeData.externalExperience || []).map((exp: any, index: number) => (
                                 <div key={index} className="grid gap-4 p-4 border rounded-md relative">
                                     <div className="grid md:grid-cols-2 gap-4">
                                          <div className="grid gap-2">
                                             <Label htmlFor={`ext-company-${index}`}>Company Name</Label>
-                                            <Input id={`ext-company-${index}`} name="company" value={exp.company} onChange={(e) => handleNestedInputChange('externalExperience', index, e, isEditMode)} />
+                                            <Input id={`ext-company-${index}`} name="company" value={exp.company} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`ext-title-${index}`}>Job Title</Label>
-                                            <Input id={`ext-title-${index}`} name="title" value={exp.title} onChange={(e) => handleNestedInputChange('externalExperience', index, e, isEditMode)} />
+                                            <Input id={`ext-title-${index}`} name="title" value={exp.title} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`ext-startDate-${index}`}>Start Date</Label>
-                                            <Input id={`ext-startDate-${index}`} name="startDate" type="date" value={exp.startDate} onChange={(e) => handleNestedInputChange('externalExperience', index, e, isEditMode)} />
+                                            <Input id={`ext-startDate-${index}`} name="startDate" type="date" value={exp.startDate} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`ext-endDate-${index}`}>End Date</Label>
-                                            <Input id={`ext-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('externalExperience', index, e, isEditMode)} />
+                                            <Input id={`ext-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
                                         </div>
                                     </div>
                                      <div className="grid gap-2">
                                         <Label htmlFor={`ext-responsibilities-${index}`}>Key Responsibilities</Label>
-                                        <Textarea id={`ext-responsibilities-${index}`} name="responsibilities" value={exp.responsibilities} onChange={(e) => handleNestedInputChange('externalExperience', index, e, isEditMode)} />
+                                        <Textarea id={`ext-responsibilities-${index}`} name="responsibilities" value={exp.responsibilities} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
                                     </div>
                                     <Button
                                         type="button"
                                         variant="destructive"
                                         size="icon"
-                                        onClick={() => removeListItem('externalExperience', index, isEditMode)}
+                                        onClick={() => removeListItem('externalExperience', index)}
                                         className="absolute top-4 right-4 h-8 w-8"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -936,40 +815,40 @@ export default function EmployeesPage() {
                             <div className="grid gap-1">
                                 <CardTitle>Education Qualifications</CardTitle>
                             </div>
-                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('education', isEditMode)}>
+                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('education')}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Qualification
                             </Button>
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.education.map((edu: any, index: number) => (
+                            {(employeeData.education || []).map((edu: any, index: number) => (
                                 <div key={index} className="grid md:grid-cols-2 gap-4 p-4 border rounded-md relative">
                                     <div className="grid gap-2">
                                         <Label htmlFor={`edu-degree-${index}`}>Degree/Certificate</Label>
-                                        <Input id={`edu-degree-${index}`} name="degree" value={edu.degree} onChange={(e) => handleNestedInputChange('education', index, e, isEditMode)} />
+                                        <Input id={`edu-degree-${index}`} name="degree" value={edu.degree} onChange={(e) => handleNestedInputChange('education', index, e)} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`edu-institution-${index}`}>Institution</Label>
-                                        <Input id={`edu-institution-${index}`} name="institution" value={edu.institution} onChange={(e) => handleNestedInputChange('education', index, e, isEditMode)} />
+                                        <Input id={`edu-institution-${index}`} name="institution" value={edu.institution} onChange={(e) => handleNestedInputChange('education', index, e)} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`edu-field-${index}`}>Field of Study</Label>
-                                        <Input id={`edu-field-${index}`} name="field" value={edu.field} onChange={(e) => handleNestedInputChange('education', index, e, isEditMode)} />
+                                        <Input id={`edu-field-${index}`} name="field" value={edu.field} onChange={(e) => handleNestedInputChange('education', index, e)} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`edu-completionDate-${index}`}>Completion Date</Label>
-                                        <Input id={`edu-completionDate-${index}`} name="completionDate" type="date" value={edu.completionDate} onChange={(e) => handleNestedInputChange('education', index, e, isEditMode)} />
+                                        <Input id={`edu-completionDate-${index}`} name="completionDate" type="date" value={edu.completionDate} onChange={(e) => handleNestedInputChange('education', index, e)} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`edu-grade-${index}`}>Grade/Result (Optional)</Label>
-                                        <Input id={`edu-grade-${index}`} name="grade" value={edu.grade} onChange={(e) => handleNestedInputChange('education', index, e, isEditMode)} />
+                                        <Input id={`edu-grade-${index}`} name="grade" value={edu.grade} onChange={(e) => handleNestedInputChange('education', index, e)} />
                                     </div>
                                     <Button
                                         type="button"
                                         variant="destructive"
                                         size="icon"
-                                        onClick={() => removeListItem('education', index, isEditMode)}
+                                        onClick={() => removeListItem('education', index)}
                                         className="absolute top-4 right-4 h-8 w-8"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -984,26 +863,26 @@ export default function EmployeesPage() {
                             <div className="grid gap-1">
                                 <CardTitle>Training & Certificates</CardTitle>
                             </div>
-                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('training', isEditMode)}>
+                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('training')}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Training
                             </Button>
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.training.map((train: any, index: number) => (
+                            {(employeeData.training || []).map((train: any, index: number) => (
                                 <div key={index} className="grid md:grid-cols-2 gap-4 p-4 border rounded-md relative">
                                     <div className="grid gap-2">
                                         <Label htmlFor={`train-name-${index}`}>Program/Certificate Name</Label>
-                                        <Input id={`train-name-${index}`} name="name" value={train.name} onChange={(e) => handleNestedInputChange('training', index, e, isEditMode)} />
+                                        <Input id={`train-name-${index}`} name="name" value={train.name} onChange={(e) => handleNestedInputChange('training', index, e)} />
                                     </div>
                                     <div className="grid gap-2">
                                         <Label htmlFor={`train-provider-${index}`}>Provider</Label>
-                                        <Input id={`train-provider-${index}`} name="provider" value={train.provider} onChange={(e) => handleNestedInputChange('training', index, e, isEditMode)} />
+                                        <Input id={`train-provider-${index}`} name="provider" value={train.provider} onChange={(e) => handleNestedInputChange('training', index, e)} />
                                     </div>
                                      <div className="grid gap-2">
                                         <Label htmlFor={`train-completionDate-${index}`}>Completion Date</Label>
-                                        <Input id={`train-completionDate-${index}`} name="completionDate" type="date" value={train.completionDate} onChange={(e) => handleNestedInputChange('training', index, e, isEditMode)} />
+                                        <Input id={`train-completionDate-${index}`} name="completionDate" type="date" value={train.completionDate} onChange={(e) => handleNestedInputChange('training', index, e)} />
                                     </div>
                                      <div className="grid gap-2">
                                         <Label htmlFor={`train-file-${index}`}>Certificate File</Label>
@@ -1013,7 +892,7 @@ export default function EmployeesPage() {
                                         type="button"
                                         variant="destructive"
                                         size="icon"
-                                        onClick={() => removeListItem('training', index, isEditMode)}
+                                        onClick={() => removeListItem('training', index)}
                                         className="absolute top-4 right-4 h-8 w-8"
                                     >
                                         <Trash2 className="h-4 w-4" />
@@ -1034,45 +913,45 @@ export default function EmployeesPage() {
                                 <CardTitle>Incoming Guarantee</CardTitle>
                                 <CardDescription>Guarantees provided to the employee by a third party.</CardDescription>
                             </div>
-                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('incomingGuarantees', isEditMode)}>
+                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('incomingGuarantees')}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Incoming
                             </Button>
                         </CardHeader>
                         <CardContent className="grid gap-4">
-                            {employeeData.incomingGuarantees.map((guarantee: any, index: number) => (
+                            {(employeeData.incomingGuarantees || []).map((guarantee: any, index: number) => (
                                 <div key={index} className="grid gap-4 p-4 border rounded-md relative">
                                     <div className="grid md:grid-cols-3 gap-4">
                                         <div className="grid gap-2">
                                             <Label htmlFor={`ig-name-${index}`}>Guarantor Name</Label>
-                                            <Input id={`ig-name-${index}`} name="guarantorName" value={guarantee.guarantorName} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`ig-name-${index}`} name="guarantorName" value={guarantee.guarantorName} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`ig-relationship-${index}`}>Relationship</Label>
-                                            <Input id={`ig-relationship-${index}`} name="relationship" value={guarantee.relationship} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`ig-relationship-${index}`} name="relationship" value={guarantee.relationship} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`ig-organization-${index}`}>Organization</Label>
-                                            <Input id={`ig-organization-${index}`} name="organization" value={guarantee.organization} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`ig-organization-${index}`} name="organization" value={guarantee.organization} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`ig-org-phone-${index}`}>Organization Phone</Label>
-                                            <Input id={`ig-org-phone-${index}`} name="organizationPhone" value={guarantee.organizationPhone} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`ig-org-phone-${index}`} name="organizationPhone" value={guarantee.organizationPhone} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`ig-guarantor-phone-${index}`}>Guarantor Phone</Label>
-                                            <Input id={`ig-guarantor-phone-${index}`} name="guarantorPhone" value={guarantee.guarantorPhone} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`ig-guarantor-phone-${index}`} name="guarantorPhone" value={guarantee.guarantorPhone} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`ig-issueDate-${index}`}>Issue Date</Label>
-                                            <Input id={`ig-issueDate-${index}`} name="issueDate" type="date" value={guarantee.issueDate} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`ig-issueDate-${index}`} name="issueDate" type="date" value={guarantee.issueDate} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
                                         </div>
                                     </div>
                                      <div className="grid gap-2">
                                         <Label htmlFor={`ig-document-${index}`}>Supporting Document</Label>
                                         <Input id={`ig-document-${index}`} name="document" type="file" />
                                     </div>
-                                    <Button type="button" variant="destructive" size="icon" onClick={() => removeListItem('incomingGuarantees', index, isEditMode)} className="absolute top-4 right-4 h-8 w-8">
+                                    <Button type="button" variant="destructive" size="icon" onClick={() => removeListItem('incomingGuarantees', index)} className="absolute top-4 right-4 h-8 w-8">
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -1085,57 +964,57 @@ export default function EmployeesPage() {
                                 <CardTitle>Outgoing Guarantee</CardTitle>
                                 <CardDescription>Guarantees provided by the employee to a third party.</CardDescription>
                             </div>
-                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('outgoingGuarantees', isEditMode)}>
+                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('outgoingGuarantees')}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
                                 Add Outgoing
                             </Button>
                         </CardHeader>
                         <CardContent className="grid gap-4">
-                            {employeeData.outgoingGuarantees.map((guarantee: any, index: number) => (
+                            {(employeeData.outgoingGuarantees || []).map((guarantee: any, index: number) => (
                                 <div key={index} className="grid gap-4 p-4 border rounded-md relative">
                                     <div className="grid md:grid-cols-3 gap-4">
                                         <div className="grid gap-2">
                                             <Label htmlFor={`og-recipientName-${index}`}>Recipient Name</Label>
-                                            <Input id={`og-recipientName-${index}`} name="recipientName" value={guarantee.recipientName} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`og-recipientName-${index}`} name="recipientName" value={guarantee.recipientName} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`og-recipientPhone-${index}`}>Recipient Phone</Label>
-                                            <Input id={`og-recipientPhone-${index}`} name="recipientPhone" value={guarantee.recipientPhone} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`og-recipientPhone-${index}`} name="recipientPhone" value={guarantee.recipientPhone} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`og-relationship-${index}`}>Relationship</Label>
-                                            <Input id={`og-relationship-${index}`} name="relationship" value={guarantee.relationship} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`og-relationship-${index}`} name="relationship" value={guarantee.relationship} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`og-organization-${index}`}>Organization</Label>
-                                            <Input id={`og-organization-${index}`} name="organization" value={guarantee.organization} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`og-organization-${index}`} name="organization" value={guarantee.organization} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`og-org-phone-${index}`}>Organization Phone</Label>
-                                            <Input id={`og-org-phone-${index}`} name="organizationPhone" value={guarantee.organizationPhone} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`og-org-phone-${index}`} name="organizationPhone" value={guarantee.organizationPhone} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`og-poBox-${index}`}>P.O. Box</Label>
-                                            <Input id={`og-poBox-${index}`} name="poBox" value={guarantee.poBox} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`og-poBox-${index}`} name="poBox" value={guarantee.poBox} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`og-amount-${index}`}>Guarantee Amount (ETB)</Label>
-                                            <Input id={`og-amount-${index}`} name="amount" value={guarantee.amount} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`og-amount-${index}`} name="amount" value={guarantee.amount} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`og-issueDate-${index}`}>Issue Date</Label>
-                                            <Input id={`og-issueDate-${index}`} name="issueDate" type="date" value={guarantee.issueDate} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`og-issueDate-${index}`} name="issueDate" type="date" value={guarantee.issueDate} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
                                         </div>
                                         <div className="grid gap-2">
                                             <Label htmlFor={`og-expiryDate-${index}`}>Expiry Date</Label>
-                                            <Input id={`og-expiryDate-${index}`} name="expiryDate" type="date" value={guarantee.expiryDate} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e, isEditMode)} />
+                                            <Input id={`og-expiryDate-${index}`} name="expiryDate" type="date" value={guarantee.expiryDate} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
                                         </div>
                                     </div>
                                      <div className="grid gap-2">
                                         <Label htmlFor={`og-document-${index}`}>Supporting Document</Label>
                                         <Input id={`og-document-${index}`} name="document" type="file" />
                                     </div>
-                                    <Button type="button" variant="destructive" size="icon" onClick={() => removeListItem('outgoingGuarantees', index, isEditMode)} className="absolute top-4 right-4 h-8 w-8">
+                                    <Button type="button" variant="destructive" size="icon" onClick={() => removeListItem('outgoingGuarantees', index)} className="absolute top-4 right-4 h-8 w-8">
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 </div>
@@ -1145,9 +1024,113 @@ export default function EmployeesPage() {
                 </div>
             </TabsContent>
         </Tabs>
+        <DialogFooter>
+            <DialogClose asChild>
+                <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
+            </DialogClose>
+            <Button type="button" onClick={handleSubmit}>
+                {isEditMode ? 'Save Changes' : 'Add Employee'}
+            </Button>
+        </DialogFooter>
+       </>
     );
+};
+
+export default function EmployeesPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [employees, setEmployees] = useState(initialEmployees);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isAddEmployeeDialogOpen, setAddEmployeeDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<FormEmployeeState | null>(null);
+  const [isEditEmployeeDialogOpen, setEditEmployeeDialogOpen] = useState(false);
+
+
+  useEffect(() => {
+    const editEmployeeId = searchParams.get('edit');
+    if (editEmployeeId) {
+        const employeeToEdit = employees.find(emp => emp.id === editEmployeeId);
+        if (employeeToEdit) {
+            handleOpenEditDialog(employeeToEdit);
+        }
+    }
+  }, [searchParams, employees]);
+
+  const handleAddEmployee = (employeeData: FormEmployeeState, photo: string | null) => {
+    const newEmp: Employee = {
+      id: employeeData.employeeId || `EMP${String(employees.length + 1).padStart(3, '0')}`,
+      name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
+      email: employeeData.workEmail,
+      position: jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
+      department: departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
+      status: 'Active',
+      avatar: photo || 'https://placehold.co/40x40.png',
+      ...employeeData, // Add all other fields
+    };
+    setEmployees([...employees, newEmp]);
+    setAddEmployeeDialogOpen(false);
+  };
+  
+  const handleUpdateEmployee = (employeeData: FormEmployeeState, photo: string | null) => {
+    if (!selectedEmployee) return;
+
+    const updatedEmployees = employees.map(emp => {
+      if (emp.id === (selectedEmployee as any).id) {
+        return {
+          ...(emp as any),
+          ...employeeData,
+           name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
+           email: employeeData.workEmail,
+           position: jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
+           department: departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
+           avatar: photo || (emp as any).avatar,
+        };
+      }
+      return emp;
+    });
+
+    setEmployees(updatedEmployees as any);
+    handleCloseEditDialog();
+  };
+  
+  const handleOpenEditDialog = (employee: Employee) => {
+      const employeeData = JSON.parse(JSON.stringify(employee));
+      const fullEmployeeData = { ...initialNewEmployeeState, ...employeeData };
+      setSelectedEmployee(fullEmployeeData);
+      setEditEmployeeDialogOpen(true);
   };
 
+  const handleCloseEditDialog = () => {
+    setEditEmployeeDialogOpen(false);
+    setSelectedEmployee(null);
+    const newUrl = window.location.pathname;
+    window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+  };
+
+
+  const handleDeleteEmployee = (id: string) => {
+    setEmployees(employees.filter(employee => employee.id !== id));
+  };
+  
+  const exportToCsv = () => {
+    const headers = ["ID", "Name", "Email", "Position", "Department", "Status"];
+    const rows = employees.map(emp => [emp.id, emp.name, emp.email, emp.position, emp.department, emp.status].join(','));
+    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "employees.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  const filteredEmployees = employees.filter((employee) =>
+    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employee.department.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -1159,7 +1142,7 @@ export default function EmployeesPage() {
           </Button>
           <Dialog open={isAddEmployeeDialogOpen} onOpenChange={setAddEmployeeDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" onClick={() => { setNewEmployee(initialNewEmployeeState); setPhotoPreview(null); }}>
+              <Button size="sm">
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Add Employee
               </Button>
@@ -1171,13 +1154,11 @@ export default function EmployeesPage() {
                   Enter the details for the new employee across the different sections.
                 </DialogDescription>
               </DialogHeader>
-              <EmployeeForm />
-              <DialogFooter>
-                 <DialogClose asChild>
-                    <Button type="button" variant="ghost">Cancel</Button>
-                </DialogClose>
-                <Button type="button" onClick={handleAddEmployee}>Add Employee</Button>
-              </DialogFooter>
+              <EmployeeForm 
+                initialData={initialNewEmployeeState} 
+                onSubmit={handleAddEmployee}
+                onCancel={() => setAddEmployeeDialogOpen(false)}
+              />
             </DialogContent>
           </Dialog>
         </div>
@@ -1244,7 +1225,7 @@ export default function EmployeesPage() {
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}`)}>View Details</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleOpenEditDialog(employee)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleOpenEditDialog(employee as any)}>Edit</DropdownMenuItem>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
@@ -1277,7 +1258,7 @@ export default function EmployeesPage() {
         </CardFooter>
       </Card>
       
-       <Dialog open={isViewEmployeeDialogOpen} onOpenChange={handleCloseEditDialog}>
+       <Dialog open={isEditEmployeeDialogOpen} onOpenChange={setEditEmployeeDialogOpen}>
             <DialogContent className="sm:max-w-4xl">
               <DialogHeader>
                 <DialogTitle>Edit Employee</DialogTitle>
@@ -1285,17 +1266,16 @@ export default function EmployeesPage() {
                   Update the details for the employee.
                 </DialogDescription>
               </DialogHeader>
-              {selectedEmployee && <EmployeeForm isEditMode={true} />}
-              <DialogFooter>
-                 <DialogClose asChild>
-                    <Button type="button" variant="ghost" onClick={handleCloseEditDialog}>Cancel</Button>
-                </DialogClose>
-                <Button type="button" onClick={handleUpdateEmployee}>Save Changes</Button>
-              </DialogFooter>
+              {selectedEmployee && (
+                <EmployeeForm 
+                    initialData={selectedEmployee} 
+                    isEditMode={true}
+                    onSubmit={handleUpdateEmployee}
+                    onCancel={handleCloseEditDialog}
+                />
+              )}
             </DialogContent>
           </Dialog>
     </div>
   )
 }
-
-    
