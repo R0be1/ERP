@@ -86,7 +86,7 @@ const initialNewEmployeeState = {
   workEmail: '',
   personalEmail: '',
   mobileNumber: '',
-  address: { region: '', city: '', subcity: '', woreda: '', kebele: '', houseNo: '' },
+  address: { country: 'Ethiopia', region: '', city: '', subcity: '', woreda: '', kebele: '', houseNo: '' },
   emergencyContacts: [{ name: '', relationship: '', phone: '' }],
   // Financial
   contractStartDate: '',
@@ -131,11 +131,33 @@ export default function EmployeesPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setNewEmployee(prevState => ({ ...prevState, [name]: value }));
+    if (name.startsWith('address.')) {
+        const addressField = name.split('.')[1];
+        setNewEmployee(prevState => ({
+            ...prevState,
+            address: {
+                ...prevState.address,
+                [addressField]: value
+            }
+        }));
+    } else {
+        setNewEmployee(prevState => ({ ...prevState, [name]: value }));
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
-    setNewEmployee(prevState => ({ ...prevState, [name]: value }));
+    if (name === 'address.region') {
+        const addressField = name.split('.')[1];
+         setNewEmployee(prevState => ({
+            ...prevState,
+            address: {
+                ...prevState.address,
+                [addressField]: value
+            }
+        }));
+    } else {
+        setNewEmployee(prevState => ({ ...prevState, [name]: value }));
+    }
   };
 
   const handleNestedInputChange = (section: keyof typeof newEmployee, index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -430,21 +452,51 @@ export default function EmployeesPage() {
                             </div>
                              <Separator />
                             <p className="font-medium text-sm">Address</p>
-                             {/* Address fields here - simplified for brevity */}
-                             <div className="grid md:grid-cols-3 gap-4">
-                               <div className="grid gap-2">
+                            <div className="grid md:grid-cols-3 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="country">Country</Label>
+                                    <Input id="country" name="address.country" value={newEmployee.address.country} onChange={handleInputChange} />
+                                </div>
+                                <div className="grid gap-2">
                                     <Label htmlFor="region">Region</Label>
-                                    <Input id="region" name="address.region" />
+                                    <Select name="address.region" onValueChange={(v) => handleSelectChange('address.region', v)} value={newEmployee.address.region}>
+                                        <SelectTrigger id="region"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="addis-ababa">Addis Ababa</SelectItem>
+                                            <SelectItem value="afar">Afar</SelectItem>
+                                            <SelectItem value="amhara">Amhara</SelectItem>
+                                            <SelectItem value="benishangul-gumuz">Benishangul-Gumuz</SelectItem>
+                                            <SelectItem value="dire-dawa">Dire Dawa</SelectItem>
+                                            <SelectItem value="gambela">Gambela</SelectItem>
+                                            <SelectItem value="harari">Harari</SelectItem>
+                                            <SelectItem value="oromia">Oromia</SelectItem>
+                                            <SelectItem value="somali">Somali</SelectItem>
+                                            <SelectItem value="snnp">SNNP</SelectItem>
+                                            <SelectItem value="tigray">Tigray</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="city">City</Label>
-                                    <Input id="city" name="address.city" />
+                                    <Input id="city" name="address.city" value={newEmployee.address.city} onChange={handleInputChange} />
                                 </div>
-                                 <div className="grid gap-2">
+                                <div className="grid gap-2">
                                     <Label htmlFor="subcity">Subcity</Label>
-                                    <Input id="subcity" name="address.subcity" />
+                                    <Input id="subcity" name="address.subcity" value={newEmployee.address.subcity} onChange={handleInputChange} />
                                 </div>
-                             </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="woreda">Woreda</Label>
+                                    <Input id="woreda" name="address.woreda" value={newEmployee.address.woreda} onChange={handleInputChange} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="kebele">Kebele</Label>
+                                    <Input id="kebele" name="address.kebele" value={newEmployee.address.kebele} onChange={handleInputChange} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="houseNo">House Number</Label>
+                                    <Input id="houseNo" name="address.houseNo" value={newEmployee.address.houseNo} onChange={handleInputChange} />
+                                </div>
+                            </div>
                             <Separator />
                             <div className="flex items-center justify-between">
                                 <p className="font-medium text-sm">Emergency Contacts</p>
