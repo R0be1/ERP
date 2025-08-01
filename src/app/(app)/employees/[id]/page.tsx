@@ -80,6 +80,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
     
     // This state will hold all employees, including newly added ones.
     const [employees, setEmployees] = useState(initialEmployees);
+    const [isLoading, setIsLoading] = useState(true);
 
     // In a real app, you'd likely fetch this from a global state or an API
     // For now, we'll check local storage for simplicity.
@@ -88,13 +89,18 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
         if (storedEmployees) {
             setEmployees(JSON.parse(storedEmployees));
         }
+        setIsLoading(false);
     }, []);
 
     const employee = employees.find(e => e.id === employeeId);
 
-    if (!employee) {
-        // You can render a loading state here while waiting for the effect
+    if (isLoading) {
         return <div>Loading...</div>;
+    }
+
+    if (!employee) {
+        notFound();
+        return null;
     }
     
     // Fallback for missing nested data

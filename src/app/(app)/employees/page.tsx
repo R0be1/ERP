@@ -3,7 +3,7 @@
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit } from "lucide-react"
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -149,19 +149,18 @@ const jobTitles = [
 type Employee = (typeof initialEmployees)[number];
 type FormEmployeeState = typeof initialNewEmployeeState;
 
-interface EmployeeFormProps {
-    initialData: FormEmployeeState;
-    isEditMode?: boolean;
-    onSubmit: (employeeData: FormEmployeeState, photo: string | null) => void;
-    onCancel: () => void;
-}
-
-const EmployeeForm = ({ initialData, isEditMode = false, onSubmit, onCancel }: EmployeeFormProps) => {
-    const [employeeData, setEmployeeData] = useState(initialData);
-    const [photoPreview, setPhotoPreview] = useState<string | null>(isEditMode ? (initialData as any).avatar : null);
+const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubmit, onCancel }: { initialData: FormEmployeeState, isEditMode?: boolean, onSubmit: (employeeData: FormEmployeeState, photo: string | null) => void, onCancel: () => void }) => {
+    const [employeeData, setEmployeeData] = useState(initialDataProp);
+    const [photoPreview, setPhotoPreview] = useState<string | null>(isEditMode ? (initialDataProp as any).avatar : null);
     const [isRegionPopoverOpen, setRegionPopoverOpen] = useState(false);
     const [isDepartmentPopoverOpen, setDepartmentPopoverOpen] = useState(false);
     const [isPositionPopoverOpen, setPositionPopoverOpen] = useState(false);
+    
+    useEffect(() => {
+        setEmployeeData(initialDataProp);
+        setPhotoPreview(isEditMode ? (initialDataProp as any).avatar : null);
+    }, [initialDataProp, isEditMode]);
+
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -1046,6 +1045,20 @@ export default function EmployeesPage() {
   const [selectedEmployee, setSelectedEmployee] = useState<FormEmployeeState | null>(null);
   const [isEditEmployeeDialogOpen, setEditEmployeeDialogOpen] = useState(false);
 
+  useEffect(() => {
+    const storedEmployees = localStorage.getItem('employees');
+    if (storedEmployees) {
+        setEmployees(JSON.parse(storedEmployees));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Only run on client
+    if (typeof window !== 'undefined') {
+        localStorage.setItem('employees', JSON.stringify(employees));
+    }
+  }, [employees]);
+
 
   useEffect(() => {
     const editEmployeeId = searchParams.get('edit');
@@ -1059,14 +1072,14 @@ export default function EmployeesPage() {
 
   const handleAddEmployee = (employeeData: FormEmployeeState, photo: string | null) => {
     const newEmp: Employee = {
-      id: employeeData.employeeId || `EMP${String(employees.length + 1).padStart(3, '0')}`,
+      id: employeeData.employeeId || `EMP${String(Date.now()).slice(-4)}`,
       name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
       email: employeeData.workEmail,
       position: jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
       department: departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
       status: 'Active',
       avatar: photo || 'https://placehold.co/40x40.png',
-      ...employeeData, // Add all other fields
+      ...(employeeData as any),
     };
     setEmployees(prev => [...prev, newEmp]);
     setAddEmployeeDialogOpen(false);
@@ -1127,10 +1140,10 @@ export default function EmployeesPage() {
   }
 
   const filteredEmployees = employees.filter((employee) =>
-    employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.position.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employee.department.toLowerCase().includes(searchTerm.toLowerCase())
+    (employee.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (employee.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (employee.position || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (employee.department || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -1143,7 +1156,7 @@ export default function EmployeesPage() {
           </Button>
           <Dialog open={isAddEmployeeDialogOpen} onOpenChange={setAddEmployeeDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setAddEmployeeDialogOpen(true)}>
                 <PlusCircle className="h-4 w-4 mr-2" />
                 Add Employee
               </Button>
@@ -1200,7 +1213,7 @@ export default function EmployeesPage() {
                     <div className="flex items-center gap-3">
                       <Avatar className="hidden h-9 w-9 sm:flex">
                          <AvatarImage src={employee.avatar} alt="Avatar" data-ai-hint="person portrait" />
-                         <AvatarFallback>{employee.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                         <AvatarFallback>{(employee.name || '').split(' ').map(n => n[0]).join('')}</AvatarFallback>
                       </Avatar>
                       <div className="grid gap-0.5">
                         <p className="font-medium">{employee.name}</p>
@@ -1259,7 +1272,7 @@ export default function EmployeesPage() {
         </CardFooter>
       </Card>
       
-       <Dialog open={isEditEmployeeDialogOpen} onOpenChange={setEditEmployeeDialogOpen}>
+       <Dialog open={isEditEmployeeDialogOpen} onOpenChange={handleCloseEditDialog}>
             <DialogContent className="sm:max-w-4xl">
               <DialogHeader>
                 <DialogTitle>Edit Employee</DialogTitle>
