@@ -61,6 +61,7 @@ import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 
 const initialNewEmployeeState = {
@@ -105,7 +106,7 @@ const initialNewEmployeeState = {
   // History & Development
   dependents: [{ name: '', relationship: '', dob: '' }],
   internalExperience: [{ title: '', department: '', startDate: '', endDate: '', responsibilities: '' }],
-  externalExperience: [{ company: '', title: '', startDate: '', endDate: '', responsibilities: '' }],
+  externalExperience: [{ company: '', title: '', startDate: '', endDate: '', responsibilities: '', managerialRole: false }],
   education: [{ degree: '', institution: '', field: '', completionDate: '', grade: '' }],
   training: [{ name: '', provider: '', completionDate: '', file: null }],
   // Guarantees
@@ -186,6 +187,15 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
             setEmployeeData(prevState => ({ ...prevState, [name]: value }));
         }
     }, []);
+    
+    const handleNestedCheckboxChange = useCallback((section: keyof FormEmployeeState, index: number, name: string, checked: boolean) => {
+        setEmployeeData(prevState => {
+            const list = prevState[section] as any[];
+            const updatedList = [...list];
+            updatedList[index] = { ...updatedList[index], [name]: checked };
+            return { ...prevState, [section]: updatedList };
+        });
+    }, []);
 
     const handleNestedInputChange = useCallback((section: keyof FormEmployeeState, index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -203,7 +213,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
             case 'emergencyContacts': newItem = { name: '', relationship: '', phone: '' }; break;
             case 'dependents': newItem = { name: '', relationship: '', dob: '' }; break;
             case 'internalExperience': newItem = { title: '', department: '', startDate: '', endDate: '', responsibilities: '' }; break;
-            case 'externalExperience': newItem = { company: '', title: '', startDate: '', endDate: '', responsibilities: '' }; break;
+            case 'externalExperience': newItem = { company: '', title: '', startDate: '', endDate: '', responsibilities: '', managerialRole: false }; break;
             case 'education': newItem = { degree: '', institution: '', field: '', completionDate: '', grade: '' }; break;
             case 'training': newItem = { name: '', provider: '', completionDate: '', file: null }; break;
             case 'incomingGuarantees': newItem = { guarantorName: '', relationship: '', organization: '', organizationPhone: '', guarantorPhone: '', issueDate: '', document: null }; break;
@@ -792,9 +802,13 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                             <Input id={`ext-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
                                         </div>
                                     </div>
-                                     <div className="grid gap-2">
+                                    <div className="grid gap-2">
                                         <Label htmlFor={`ext-responsibilities-${index}`}>Key Responsibilities</Label>
                                         <Textarea id={`ext-responsibilities-${index}`} name="responsibilities" value={exp.responsibilities} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
+                                    </div>
+                                     <div className="flex items-center space-x-2 pt-2">
+                                        <Checkbox id={`ext-managerial-${index}`} checked={exp.managerialRole} onCheckedChange={(checked) => handleNestedCheckboxChange('externalExperience', index, 'managerialRole', !!checked)} />
+                                        <Label htmlFor={`ext-managerial-${index}`}>Managerial Role</Label>
                                     </div>
                                     <Button
                                         type="button"
@@ -1048,7 +1062,12 @@ export default function EmployeesPage() {
   useEffect(() => {
     const storedEmployees = localStorage.getItem('employees');
     if (storedEmployees) {
-        setEmployees(JSON.parse(storedEmployees));
+        try {
+            setEmployees(JSON.parse(storedEmployees));
+        } catch(e) {
+            console.error("Failed to parse employees from localStorage", e);
+            setEmployees(initialEmployees);
+        }
     }
   }, []);
 
@@ -1060,15 +1079,22 @@ export default function EmployeesPage() {
   }, [employees]);
 
 
+  const handleOpenEditDialog = useCallback((employee: Employee) => {
+      const employeeData = JSON.parse(JSON.stringify(employee));
+      const fullEmployeeData = { ...initialNewEmployeeState, ...employeeData };
+      setSelectedEmployee(fullEmployeeData);
+      setEditEmployeeDialogOpen(true);
+  }, []);
+
   useEffect(() => {
     const editEmployeeId = searchParams.get('edit');
     if (editEmployeeId) {
         const employeeToEdit = employees.find(emp => emp.id === editEmployeeId);
         if (employeeToEdit) {
-            handleOpenEditDialog(employeeToEdit);
+            handleOpenEditDialog(employeeToEdit as any);
         }
     }
-  }, [searchParams, employees]);
+  }, [searchParams, employees, handleOpenEditDialog]);
 
   const handleAddEmployee = (employeeData: FormEmployeeState, photo: string | null) => {
     const newEmp: Employee = {
@@ -1107,13 +1133,6 @@ export default function EmployeesPage() {
     handleCloseEditDialog();
   };
   
-  const handleOpenEditDialog = (employee: Employee) => {
-      const employeeData = JSON.parse(JSON.stringify(employee));
-      const fullEmployeeData = { ...initialNewEmployeeState, ...employeeData };
-      setSelectedEmployee(fullEmployeeData);
-      setEditEmployeeDialogOpen(true);
-  };
-
   const handleCloseEditDialog = () => {
     setEditEmployeeDialogOpen(false);
     setSelectedEmployee(null);
@@ -1293,3 +1312,5 @@ export default function EmployeesPage() {
     </div>
   )
 }
+
+    

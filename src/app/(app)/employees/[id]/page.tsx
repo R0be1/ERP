@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck } from "lucide-react"
+import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
 
@@ -25,7 +25,7 @@ const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label
     )
 }
 
-const ExperienceItem = ({ title, entity, duration, description }: { title: string, entity: string, duration: string, description?: string }) => (
+const ExperienceItem = ({ title, entity, duration, description, managerialRole }: { title: string, entity: string, duration: string, description?: string, managerialRole?: boolean }) => (
     <div className="flex gap-4">
         <div className="flex flex-col items-center">
             <div className="bg-primary/20 text-primary rounded-full p-2">
@@ -34,7 +34,10 @@ const ExperienceItem = ({ title, entity, duration, description }: { title: strin
             <div className="flex-grow w-px bg-border my-2"></div>
         </div>
         <div>
-            <h4 className="font-semibold">{title}</h4>
+            <div className="flex items-center gap-2">
+                 <h4 className="font-semibold">{title}</h4>
+                 {managerialRole && <Badge variant="outline" className="flex items-center gap-1"><CheckSquare className="h-3 w-3" /> Managerial</Badge>}
+            </div>
             <p className="text-muted-foreground text-sm">{entity}</p>
             <p className="text-muted-foreground text-xs mb-1">{duration}</p>
             {description && <p className="text-sm">{description}</p>}
@@ -218,7 +221,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                             <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ChevronsRight className="h-5 w-5" /> External Experience</h3>
                                 {externalExperience.length > 0 ? externalExperience.map((exp, i) => (
-                                    <ExperienceItem key={`ext-${i}`} title={exp.title} entity={exp.company} duration={`${exp.startDate} - ${exp.endDate}`} description={exp.responsibilities} />
+                                    <ExperienceItem key={`ext-${i}`} title={exp.title} entity={exp.company} duration={`${exp.startDate} - ${exp.endDate}`} description={exp.responsibilities} managerialRole={exp.managerialRole} />
                                 )) : <p className="text-muted-foreground text-sm">No external experience recorded.</p>}
                             </div>
                         </CardContent>
@@ -264,3 +267,5 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
         </div>
     )
 }
+
+    
