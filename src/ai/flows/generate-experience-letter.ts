@@ -51,9 +51,11 @@ const prompt = ai.definePrompt({
   4.  Add two newlines.
   5.  The opening paragraph must be exactly: "This letter is to certify that {{{name}}} has been an employee at Nib International Bank. During their tenure with us, they have held the following positions:"
   6.  Add two newlines.
-  7.  Present the work history in a table format with the headers "Title", "Company", and "Date". Use spaces, not tabs or markdown, to align the columns.
-      - The "Company" for all internal experience is "Nib International Bank".
-      - The "Date" should be the range from start to end date (e.g., "YYYY-MM-DD to YYYY-MM-DD" or "YYYY-MM-DD to Present").
+  7.  Present the work history in a table format. Use spaces to create three aligned columns with the headers: "Title", "Company", and "Date".
+      - Under the "Title" header, list the job titles from the employee's internal experience.
+      - Under the "Company" header, list "Nib International Bank" for each role.
+      - Under the "Date" header, list the date range for each role (e.g., "YYYY-MM-DD to YYYY-MM-DD" or "YYYY-MM-DD to Present").
+      - Ensure the columns are properly aligned with even spacing. Do not use markdown or any special characters for the table.
   8.  Add two newlines after the table.
   9.  The closing paragraph must be exactly: "We have found {{{name}}} to be a diligent, hardworking, and valuable member of our team. We wish them all the best in their future endeavors."
   10. Add four newlines for a signature space.
