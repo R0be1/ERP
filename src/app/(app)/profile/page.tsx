@@ -76,6 +76,14 @@ const GuaranteeItem = ({ guarantee, type }: { guarantee: any, type: 'incoming' |
     )
 }
 
+const DependentItem = ({ dependent }: { dependent: any }) => (
+    <div className="grid md:grid-cols-3 gap-4 border p-4 rounded-md">
+        <InfoItem icon={User} label="Name" value={dependent.name} />
+        <InfoItem icon={Users} label="Relationship" value={dependent.relationship} />
+        <InfoItem icon={Calendar} label="Date of Birth" value={dependent.dob} />
+    </div>
+)
+
 export default function ProfilePage() {
     const router = useRouter();
     const [employee, setEmployee] = useState<(typeof employees)[number] | null>(null);
@@ -137,9 +145,12 @@ export default function ProfilePage() {
                 </div>
             </div>
 
-            <Tabs defaultValue="experience">
-                <TabsList>
+            <Tabs defaultValue="job">
+                <TabsList className="flex-wrap h-auto">
                     <TabsTrigger value="personal">Personal</TabsTrigger>
+                    <TabsTrigger value="job">Job</TabsTrigger>
+                    <TabsTrigger value="dependents">Dependents</TabsTrigger>
+                    <TabsTrigger value="financial">Financial</TabsTrigger>
                     <TabsTrigger value="experience">Experience</TabsTrigger>
                     <TabsTrigger value="education">Education</TabsTrigger>
                     <TabsTrigger value="training">Training</TabsTrigger>
@@ -170,6 +181,51 @@ export default function ProfilePage() {
                         </CardContent>
                     </Card>
                 </TabsContent>
+                 <TabsContent value="job" className="mt-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Job Details</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-3 gap-6">
+                            <InfoItem icon={Building} label="Department" value={employee.department} />
+                            <InfoItem icon={Briefcase} label="Job Title" value={employee.position} />
+                            <InfoItem icon={User} label="Manager" value={employee.manager} />
+                            <InfoItem icon={Tag} label="Job Grade" value={employee.jobGrade} />
+                            <InfoItem icon={Layers} label="Job Category" value={employee.jobCategory} />
+                            <InfoItem icon={Home} label="Work Location" value="Head Office" />
+                             <InfoItem icon={BadgeInfo} label="Employment Type" value={employee.employmentType} />
+                            <InfoItem icon={Calendar} label="Join Date" value={employee.joinDate} />
+                            <InfoItem icon={Calendar} label="Probation End Date" value={employee.probationEndDate} />
+                            <InfoItem icon={Badge} label="Status" value={<Badge variant={employee.status === "Active" ? "secondary" : "destructive"}>{employee.status}</Badge>} />
+                        </CardContent>
+                    </Card>
+                 </TabsContent>
+                 <TabsContent value="dependents" className="mt-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Dependents</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid gap-4">
+                            {dependents.length > 0 ? dependents.map((dependent, i) => (
+                                <DependentItem key={i} dependent={dependent} />
+                            )) : <p className="text-muted-foreground text-sm">No dependents recorded.</p>}
+                        </CardContent>
+                    </Card>
+                 </TabsContent>
+                  <TabsContent value="financial" className="mt-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Financial Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-3 gap-6">
+                            <InfoItem icon={DollarSign} label="Basic Salary" value={`${employee.basicSalary} ${employee.currency}`} />
+                            <InfoItem icon={Building} label="Bank Name" value={employee.bankName} />
+                            <InfoItem icon={Hash} label="Account Number" value={employee.accountNumber} />
+                            <InfoItem icon={FileText} label="Tax ID" value={employee.taxId} />
+                            <InfoItem icon={FileText} label="Pension Number" value={employee.pensionNumber} />
+                        </CardContent>
+                    </Card>
+                 </TabsContent>
                 <TabsContent value="experience" className="mt-4">
                     <div className="flex justify-end mb-4">
                         <Button variant="outline">
