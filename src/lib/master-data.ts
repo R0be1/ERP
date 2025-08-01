@@ -18,13 +18,13 @@ const initialMasterData = {
         { value: 'tigray', label: 'Tigray' },
     ],
     departments: [
-        { value: '001', label: 'Engineering', type: 'department', parent: '', capacity: '50', region: 'addis-ababa', location: 'head-office' },
-        { value: '002', label: 'Marketing', type: 'department', parent: '', capacity: '20', region: 'addis-ababa', location: 'head-office' },
-        { value: '003', label: 'Sales', type: 'department', parent: '', capacity: '30', region: 'addis-ababa', location: 'head-office' },
-        { value: '004', label: 'Human Resources', type: 'department', parent: '', capacity: '15', region: 'addis-ababa', location: 'head-office' },
-        { value: '005', label: 'Product', type: 'department', parent: '', capacity: '25', region: 'addis-ababa', location: 'head-office' },
-        { value: '006', label: 'Finance', type: 'department', parent: '', capacity: '10', region: 'addis-ababa', location: 'head-office' },
-        { value: '007', label: 'Operations', type: 'department', parent: '', capacity: '40', region: 'addis-ababa', location: 'head-office' },
+        { value: '001', label: 'Engineering', type: 'department', parent: '', capacity: '50', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
+        { value: '002', label: 'Marketing', type: 'department', parent: '', capacity: '20', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
+        { value: '003', label: 'Sales', type: 'department', parent: '', capacity: '30', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
+        { value: '004', label: 'Human Resources', type: 'department', parent: '', capacity: '15', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
+        { value: '005', label: 'Product', type: 'department', parent: '', capacity: '25', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
+        { value: '006', label: 'Finance', type: 'department', parent: '', capacity: '10', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
+        { value: '007', label: 'Operations', type: 'department', parent: '', capacity: '40', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
     ],
     jobTitles: [
         { value: 'software-engineer', label: 'Software Engineer' },
@@ -80,13 +80,23 @@ const initialMasterData = {
         { value: 'dco-office', label: 'Office of Deputy Chief Officer' },
         { value: 'department', label: 'Department' },
         { value: 'division', label: 'Division' },
-        { value: 'branch-district', label: 'Branch District' },
+        { value: 'branch', label: 'Branch' },
+        { value: 'district', label: 'District' },
     ],
     workLocations: [
         { value: 'head-office', label: 'Head Office' },
         { value: 'district', label: 'District' },
         { value: 'city-branch', label: 'City Branch' },
         { value: 'outline-branch', label: 'Outline Branch' },
+    ],
+    branchGrades: [
+        { value: 'premium-branch', label: 'Premium Branch' },
+        { value: 'special-branch', label: 'Special Branch' },
+        { value: 'i', label: 'I' },
+        { value: 'ii', label: 'II' },
+        { value: 'iii', label: 'III' },
+        { value: 'iv', label: 'IV' },
+        { value: 'v', label: 'V' }
     ]
 };
 

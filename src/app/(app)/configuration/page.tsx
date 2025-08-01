@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     Settings, GitBranch, ScrollText, Building, Briefcase, Tag, Layers, School, 
-    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2
+    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ const dataCategories = [
     { key: 'jobTitles', title: 'Job Titles', description: 'Manage job titles and codes.', icon: Briefcase },
     { key: 'jobCategories', title: 'Job Categories', description: 'Configure job types.', icon: Layers },
     { key: 'jobGrades', title: 'Job Grades', description: 'Define grading structure.', icon: Tag },
+    { key: 'branchGrades', title: 'Branch Grades', description: 'Define branch grading.', icon: Star },
     { key: 'employmentTypes', title: 'Employment Types', description: 'Manage employment statuses.', icon: User },
     { key: 'regions', title: 'Regions/Zones/Woredas', description: 'Geographical classifications.', icon: Map },
     { key: 'fieldsOfStudy', title: 'Fields of Study', description: 'Manage education fields.', icon: Library },

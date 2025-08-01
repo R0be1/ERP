@@ -41,6 +41,7 @@ const dataCategoryDetails: { [key: string]: { title: string, fields: { key: stri
     departments: { title: 'Departments', fields: [
         { key: 'label', label: 'Department Name', type: 'text' },
         { key: 'type', label: 'Department Type', type: 'select', options: 'departmentTypes' },
+        { key: 'branchGrade', label: 'Branch Grade', type: 'select', options: 'branchGrades' },
         { key: 'parent', label: 'Parent Department', type: 'select', options: 'departments' },
         { key: 'capacity', label: 'Max Staff Capacity', type: 'number' },
         { key: 'region', label: 'Region', type: 'select', options: 'regions' },
@@ -51,6 +52,7 @@ const dataCategoryDetails: { [key: string]: { title: string, fields: { key: stri
     jobTitles: { title: 'Job Titles', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     jobCategories: { title: 'Job Categories', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     jobGrades: { title: 'Job Grades', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    branchGrades: { title: 'Branch Grades', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     employmentTypes: { title: 'Employment Types', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     regions: { title: 'Regions', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     fieldsOfStudy: { title: 'Fields of Study', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
@@ -225,7 +227,11 @@ export default function MasterDataManagementPage() {
                                 <DialogTitle>{editingItem ? `Edit ${categoryInfo.title}` : `Add New ${categoryInfo.title}`}</DialogTitle>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
-                                {categoryInfo.fields.map(field => (
+                                {categoryInfo.fields.map(field => {
+                                    if (slug === 'departments' && field.key === 'branchGrade' && formState.type !== 'branch') {
+                                        return null;
+                                    }
+                                    return (
                                     <div className="grid gap-2" key={field.key}>
                                         <Label htmlFor={field.key}>{field.label}</Label>
                                         {field.type === 'text' && (
@@ -243,7 +249,7 @@ export default function MasterDataManagementPage() {
                                             />
                                         )}
                                     </div>
-                                ))}
+                                )})}
                             </div>
                             <DialogFooter>
                                 <DialogClose asChild>
