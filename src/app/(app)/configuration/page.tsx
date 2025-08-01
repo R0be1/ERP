@@ -49,9 +49,19 @@ const dataCategories = [
 
 type MasterDataCategoryKey = keyof typeof initialMasterData;
 
-const MasterDataCard = ({ title, description, icon: Icon, count }: { title: string; description: string; icon: React.ElementType, count: number }) => {
+const MasterDataCard = ({ slug, title, description, icon: Icon, count }: { slug: string; title: string; description: string; icon: React.ElementType, count: number }) => {
+    const router = useRouter();
+    
+    const handleManageClick = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent card click event from firing
+        router.push(`/master-data/${slug}`);
+    };
+
     return (
-        <Card className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow">
+        <Card 
+            className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+            onClick={() => router.push(`/master-data/${slug}`)}
+        >
             <CardHeader className="flex-row items-start gap-4 space-y-0 pb-4">
                 <div className="bg-muted p-3 rounded-md">
                     <Icon className="h-6 w-6 text-primary" />
@@ -64,7 +74,7 @@ const MasterDataCard = ({ title, description, icon: Icon, count }: { title: stri
             <CardContent className="flex-grow"></CardContent>
             <CardFooter className="flex justify-between items-center">
                 <p className="text-xs text-muted-foreground">{count} Records</p>
-                <Button variant="outline" size="sm">Manage</Button>
+                <Button variant="outline" size="sm" onClick={handleManageClick}>Manage</Button>
             </CardFooter>
         </Card>
     );
@@ -77,7 +87,9 @@ export default function ConfigurationPage() {
         const storedData = localStorage.getItem('masterData');
         if (storedData) {
             try {
-                setMasterData(JSON.parse(storedData));
+                // Merge to ensure new categories from initialMasterData are included
+                const parsedData = JSON.parse(storedData);
+                setMasterData(prev => ({ ...prev, ...parsedData }));
             } catch (e) {
                 console.error("Failed to parse master data from localStorage", e);
             }
@@ -133,6 +145,7 @@ export default function ConfigurationPage() {
                      {dataCategories.map((cat) => (
                         <MasterDataCard
                             key={cat.key}
+                            slug={cat.key}
                             title={cat.title}
                             description={cat.description}
                             icon={cat.icon}
