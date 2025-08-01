@@ -25,7 +25,7 @@ const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label
     )
 }
 
-const ExperienceItem = ({ title, entity, duration, description, managerialRole }: { title: string, entity: string, duration: string, description?: string, managerialRole?: boolean }) => (
+const ExperienceItem = ({ title, entity, duration, managerialRole }: { title: string, entity: string, duration: string, managerialRole?: boolean }) => (
     <div className="flex gap-4">
         <div className="flex flex-col items-center">
             <div className="bg-primary/20 text-primary rounded-full p-2">
@@ -40,7 +40,6 @@ const ExperienceItem = ({ title, entity, duration, description, managerialRole }
             </div>
             <p className="text-muted-foreground text-sm">{entity}</p>
             <p className="text-muted-foreground text-xs mb-1">{duration}</p>
-            {description && <p className="text-sm">{description}</p>}
         </div>
     </div>
 )
@@ -214,14 +213,14 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                              <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ChevronsRight className="h-5 w-5" /> Internal Experience</h3>
                                 {internalExperience.length > 0 ? internalExperience.map((exp, i) => (
-                                    <ExperienceItem key={`int-${i}`} title={exp.title} entity={exp.department} duration={`${exp.startDate} - ${exp.endDate || 'Present'}`} description={exp.responsibilities} />
+                                    <ExperienceItem key={`int-${i}`} title={exp.title} entity={exp.department} duration={`${exp.startDate} - ${exp.endDate || 'Present'}`} />
                                 )) : <p className="text-muted-foreground text-sm">No internal experience recorded.</p>}
                             </div>
                             <Separator />
                             <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ChevronsRight className="h-5 w-5" /> External Experience</h3>
                                 {externalExperience.length > 0 ? externalExperience.map((exp, i) => (
-                                    <ExperienceItem key={`ext-${i}`} title={exp.title} entity={exp.company} duration={`${exp.startDate} - ${exp.endDate}`} description={exp.responsibilities} managerialRole={exp.managerialRole} />
+                                    <ExperienceItem key={`ext-${i}`} title={exp.title} entity={exp.company} duration={`${exp.startDate} - ${exp.endDate}`} managerialRole={exp.managerialRole} />
                                 )) : <p className="text-muted-foreground text-sm">No external experience recorded.</p>}
                             </div>
                         </CardContent>
@@ -232,7 +231,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                              <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Education</h3>
                                 {education.length > 0 ? education.map((edu, i) => (
-                                     <ExperienceItem key={`edu-${i}`} title={edu.degree} entity={`${edu.institution} - ${edu.field}`} duration={`Completed: ${edu.completionDate}`} description={`Grade: ${edu.grade || 'N/A'}`} />
+                                     <ExperienceItem key={`edu-${i}`} title={edu.degree} entity={`${edu.institution} - ${edu.field}`} duration={`Completed: ${edu.completionDate}`} />
                                 )) : <p className="text-muted-foreground text-sm">No education history recorded.</p>}
                             </div>
                             <Separator />
@@ -267,5 +266,3 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
         </div>
     )
 }
-
-    

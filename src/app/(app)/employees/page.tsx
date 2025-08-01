@@ -105,8 +105,8 @@ const initialNewEmployeeState = {
   pensionNumber: '',
   // History & Development
   dependents: [{ name: '', relationship: '', dob: '' }],
-  internalExperience: [{ title: '', department: '', startDate: '', endDate: '', responsibilities: '' }],
-  externalExperience: [{ company: '', title: '', startDate: '', endDate: '', responsibilities: '', managerialRole: false }],
+  internalExperience: [{ title: '', department: '', startDate: '', endDate: '' }],
+  externalExperience: [{ company: '', title: '', startDate: '', endDate: '', managerialRole: false }],
   education: [{ degree: '', institution: '', field: '', completionDate: '', grade: '' }],
   training: [{ name: '', provider: '', completionDate: '', file: null }],
   // Guarantees
@@ -212,8 +212,8 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
         switch (section) {
             case 'emergencyContacts': newItem = { name: '', relationship: '', phone: '' }; break;
             case 'dependents': newItem = { name: '', relationship: '', dob: '' }; break;
-            case 'internalExperience': newItem = { title: '', department: '', startDate: '', endDate: '', responsibilities: '' }; break;
-            case 'externalExperience': newItem = { company: '', title: '', startDate: '', endDate: '', responsibilities: '', managerialRole: false }; break;
+            case 'internalExperience': newItem = { title: '', department: '', startDate: '', endDate: '' }; break;
+            case 'externalExperience': newItem = { company: '', title: '', startDate: '', endDate: '', managerialRole: false }; break;
             case 'education': newItem = { degree: '', institution: '', field: '', completionDate: '', grade: '' }; break;
             case 'training': newItem = { name: '', provider: '', completionDate: '', file: null }; break;
             case 'incomingGuarantees': newItem = { guarantorName: '', relationship: '', organization: '', organizationPhone: '', guarantorPhone: '', issueDate: '', document: null }; break;
@@ -752,10 +752,6 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                             <Input id={`int-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
                                         </div>
                                     </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`int-responsibilities-${index}`}>Key Responsibilities</Label>
-                                        <Textarea id={`int-responsibilities-${index}`} name="responsibilities" value={exp.responsibilities} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
-                                    </div>
                                     <Button
                                         type="button"
                                         variant="destructive"
@@ -801,10 +797,6 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                             <Label htmlFor={`ext-endDate-${index}`}>End Date</Label>
                                             <Input id={`ext-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
                                         </div>
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`ext-responsibilities-${index}`}>Key Responsibilities</Label>
-                                        <Textarea id={`ext-responsibilities-${index}`} name="responsibilities" value={exp.responsibilities} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
                                     </div>
                                      <div className="flex items-center space-x-2 pt-2">
                                         <Checkbox id={`ext-managerial-${index}`} checked={exp.managerialRole} onCheckedChange={(checked) => handleNestedCheckboxChange('externalExperience', index, 'managerialRole', !!checked)} />
@@ -1312,5 +1304,3 @@ export default function EmployeesPage() {
     </div>
   )
 }
-
-    
