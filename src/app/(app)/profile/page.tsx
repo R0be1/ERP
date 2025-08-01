@@ -159,42 +159,65 @@ export default function ProfilePage() {
         setIsGenerating(true);
         try {
             const doc = new jsPDF() as jsPDFWithAutoTable;
-            const today = new Date();
-            const date = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
-
-            doc.setFontSize(12);
-            doc.text(date, doc.internal.pageSize.getWidth() - 20, 20, { align: 'right' });
             
-            doc.text("To Whom It May Concern,", 20, 40);
+            const addContent = () => {
+                const today = new Date();
+                const date = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
 
-            const introText = `This letter is to certify that ${employee.name} has been an employee at Nib International Bank. During their tenure with us, they have held the following positions:`;
-            doc.text(introText, 20, 60, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+                doc.setFontSize(12);
+                doc.text(date, doc.internal.pageSize.getWidth() - 20, 20, { align: 'right' });
+                
+                doc.text("To Whom It May Concern,", 20, 50);
 
-            const tableData = employee.internalExperience.map(exp => [
-                exp.title,
-                "Nib International Bank",
-                `${exp.startDate} to ${exp.endDate || 'Present'}`
-            ]);
+                const introText = `This letter is to certify that ${employee.name} has been an employee at Nib International Bank. During their tenure with us, they have held the following positions:`;
+                doc.text(introText, 20, 70, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
 
-            doc.autoTable({
-                head: [['Title', 'Company', 'Date']],
-                body: tableData,
-                startY: 70,
-                headStyles: { fillColor: [70, 130, 180] }, // Soft blue
-            });
-            
-            const lastTableY = doc.autoTable.previous.finalY;
+                const tableData = employee.internalExperience.map(exp => [
+                    exp.startDate,
+                    exp.endDate || 'Present',
+                    exp.title,
+                ]);
 
-            const salaryInWords = numberToWords(Number(employee.basicSalary));
-            const salaryText = `He is entitled a monthly basic salary of Birr ${employee.basicSalary} (${salaryInWords}).`;
-            const closingText = "This certificate is issued upon their request and does not serve as a release.";
+                doc.autoTable({
+                    head: [['Start Date', 'End Date', 'Job Titles']],
+                    body: tableData,
+                    startY: 80,
+                    headStyles: { fillColor: [70, 130, 180] }, // Soft blue
+                });
+                
+                const lastTableY = doc.autoTable.previous.finalY;
 
-            doc.text(salaryText, 20, lastTableY + 20, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
-            doc.text(closingText, 20, lastTableY + 30, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
-            
-            doc.text("Nib International Bank", 20, lastTableY + 60);
+                const salaryInWords = numberToWords(Number(employee.basicSalary));
+                const salaryText = `He is entitled a monthly basic salary of Birr ${employee.basicSalary} (${salaryInWords}).`;
+                const closingText = "This certificate is issued upon their request and does not serve as a release.";
 
-            doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
+                doc.text(salaryText, 20, lastTableY + 20, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+                doc.text(closingText, 20, lastTableY + 30, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+                
+                doc.text("Nib International Bank", 20, lastTableY + 60);
+
+                doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
+                setIsGenerating(false);
+            };
+
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.src = employee.avatar;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(img, 0, 0);
+                const dataURL = canvas.toDataURL('image/png');
+                doc.addImage(dataURL, 'PNG', 20, 10, 30, 30);
+                addContent();
+            };
+            img.onerror = () => {
+                console.error("Failed to load image for PDF");
+                // Proceed without image if it fails to load
+                addContent();
+            }
 
         } catch (error) {
             console.error("Failed to generate experience letter", error);
@@ -203,7 +226,6 @@ export default function ProfilePage() {
                 title: "Error",
                 description: "Failed to generate experience letter. Please try again.",
             });
-        } finally {
             setIsGenerating(false);
         }
     };
@@ -441,3 +463,6 @@ export default function ProfilePage() {
         </div>
     )
 }
+
+
+    
