@@ -1,7 +1,7 @@
 
 "use client"
 
-import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit, List, LayoutGrid } from "lucide-react"
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
@@ -1129,6 +1129,7 @@ export default function EmployeesPage() {
   const [isAddEmployeeDialogOpen, setAddEmployeeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<FormEmployeeState | null>(null);
   const [isEditEmployeeDialogOpen, setEditEmployeeDialogOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
   useEffect(() => {
     const storedEmployees = localStorage.getItem('employees');
@@ -1282,11 +1283,25 @@ export default function EmployeesPage() {
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Employee Directory</CardTitle>
-          <CardDescription>
-            Manage your employees and view their information.
-          </CardDescription>
-          <div className="relative">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Employee Directory</CardTitle>
+              <CardDescription>
+                Manage your employees and view their information.
+              </CardDescription>
+            </div>
+             <div className="flex items-center gap-2">
+                <Button variant={viewMode === 'table' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('table')}>
+                    <List className="h-4 w-4" />
+                    <span className="sr-only">Table View</span>
+                </Button>
+                <Button variant={viewMode === 'card' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('card')}>
+                    <LayoutGrid className="h-4 w-4" />
+                    <span className="sr-only">Card View</span>
+                </Button>
+            </div>
+          </div>
+          <div className="relative mt-4">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
               placeholder="Search employees..." 
@@ -1297,76 +1312,136 @@ export default function EmployeesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="hidden md:table-cell">Position</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">Department</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEmployees.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="hidden h-9 w-9 sm:flex">
-                         <AvatarImage src={employee.avatar} alt="Avatar" data-ai-hint="person portrait" />
-                         <AvatarFallback>{(employee.name || '').split(' ').map(n => n[0]).join('')}</AvatarFallback>
-                      </Avatar>
-                      <div className="grid gap-0.5">
-                        <p className="font-medium">{employee.name}</p>
-                        <p className="text-xs text-muted-foreground">{employee.email}</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">{employee.position}</TableCell>
-                  <TableCell>
-                    <Badge variant={employee.status === "Active" ? "secondary" : employee.status === 'On Leave' ? 'outline' : 'destructive'}>
-                      {employee.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="hidden md:table-cell">{employee.department}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}`)}>View Details</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleOpenEditDialog(employee as any)}>Edit</DropdownMenuItem>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the employee record.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={() => handleDeleteEmployee(employee.id)}>Delete</AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          {viewMode === 'table' ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead className="hidden md:table-cell">Position</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="hidden md:table-cell">Department</TableHead>
+                  <TableHead>
+                    <span className="sr-only">Actions</span>
+                  </TableHead>
                 </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEmployees.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell className="font-medium">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="hidden h-9 w-9 sm:flex">
+                           <AvatarImage src={employee.avatar} alt="Avatar" data-ai-hint="person portrait" />
+                           <AvatarFallback>{(employee.name || '').split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div className="grid gap-0.5">
+                          <p className="font-medium">{employee.name}</p>
+                          <p className="text-xs text-muted-foreground">{employee.email}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{employee.position}</TableCell>
+                    <TableCell>
+                      <Badge variant={employee.status === "Active" ? "secondary" : employee.status === 'On Leave' ? 'outline' : 'destructive'}>
+                        {employee.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{employee.department}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Toggle menu</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}`)}>View Details</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleOpenEditDialog(employee as any)}>Edit</DropdownMenuItem>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This action cannot be undone. This will permanently delete the employee record.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleDeleteEmployee(employee.id)}>Delete</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {filteredEmployees.map((employee) => (
+                <Card key={employee.id} className="flex flex-col">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <Avatar className="h-12 w-12">
+                        <AvatarImage src={employee.avatar} alt="Avatar" data-ai-hint="person portrait" />
+                        <AvatarFallback>{(employee.name || '').split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                      </Avatar>
+                       <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}`)}>View Details</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleOpenEditDialog(employee as any)}>Edit</DropdownMenuItem>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                   <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                  <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                      This action cannot be undone. This will permanently delete the employee record.
+                                    </AlertDialogDescription>
+                                  </AlertDialogHeader>
+                                  <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDeleteEmployee(employee.id)}>Delete</AlertDialogAction>
+                                  </AlertDialogFooter>
+                                </AlertDialogContent>
+                              </AlertDialog>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+                     <CardTitle className="mt-4">{employee.name}</CardTitle>
+                    <CardDescription>{employee.position}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                     <div className="text-sm text-muted-foreground grid gap-2">
+                        <p>{employee.department}</p>
+                        <p>{employee.email}</p>
+                     </div>
+                  </CardContent>
+                  <CardFooter>
+                     <Badge variant={employee.status === "Active" ? "secondary" : employee.status === 'On Leave' ? 'outline' : 'destructive'}>
+                        {employee.status}
+                      </Badge>
+                  </CardFooter>
+                </Card>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          )}
         </CardContent>
         <CardFooter>
           <div className="text-xs text-muted-foreground">
