@@ -11,6 +11,16 @@ import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award, Layers } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
+import { format } from "date-fns"
+
+const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    try {
+        return format(new Date(dateString), "dd-MMM-yyyy");
+    } catch (e) {
+        return dateString;
+    }
+}
 
 const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => {
     if (!value) return null;
@@ -52,7 +62,7 @@ const GuaranteeItem = ({ guarantee, type }: { guarantee: any, type: 'incoming' |
                 <InfoItem icon={Building} label="Organization" value={guarantee.organization} />
                 <InfoItem icon={Phone} label="Organization Phone" value={guarantee.organizationPhone} />
                 <InfoItem icon={Phone} label="Guarantor Phone" value={guarantee.guarantorPhone} />
-                <InfoItem icon={Calendar} label="Issue Date" value={guarantee.issueDate} />
+                <InfoItem icon={Calendar} label="Issue Date" value={formatDate(guarantee.issueDate)} />
                 <InfoItem icon={FileText} label="Document" value={guarantee.document ? "Attached" : "Not available"} />
             </div>
         )
@@ -66,8 +76,8 @@ const GuaranteeItem = ({ guarantee, type }: { guarantee: any, type: 'incoming' |
             <InfoItem icon={Phone} label="Organization Phone" value={guarantee.organizationPhone} />
             <InfoItem icon={Mail} label="P.O. Box" value={guarantee.poBox} />
             <InfoItem icon={DollarSign} label="Guarantee Amount" value={`${guarantee.amount} ETB`} />
-            <InfoItem icon={Calendar} label="Issue Date" value={guarantee.issueDate} />
-            <InfoItem icon={Calendar} label="Expiry Date" value={guarantee.expiryDate} />
+            <InfoItem icon={Calendar} label="Issue Date" value={formatDate(guarantee.issueDate)} />
+            <InfoItem icon={Calendar} label="Expiry Date" value={formatDate(guarantee.expiryDate)} />
             <InfoItem icon={FileText} label="Document" value={guarantee.document ? "Attached" : "Not available"} />
         </div>
     )
@@ -167,7 +177,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                            <InfoItem icon={Phone} label="Mobile Number" value={employee.mobileNumber} />
                            <InfoItem icon={Venus} label="Gender" value={employee.gender} />
                            <InfoItem icon={Globe} label="Nationality" value={employee.nationality} />
-                           <InfoItem icon={Calendar} label="Date of Birth" value={employee.dob} />
+                           <InfoItem icon={Calendar} label="Date of Birth" value={formatDate(employee.dob)} />
                            <InfoItem icon={Heart} label="Marital Status" value={employee.maritalStatus} />
                            <InfoItem icon={Users} label="Dependents" value={dependents.length > 0 ? dependents.length : 'None'} />
                         </CardContent>
@@ -201,8 +211,8 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                             <InfoItem icon={Layers} label="Job Category" value={employee.jobCategory} />
                             <InfoItem icon={Home} label="Work Location" value="Head Office" />
                              <InfoItem icon={BadgeInfo} label="Employment Type" value={employee.employmentType} />
-                            <InfoItem icon={Calendar} label="Join Date" value={employee.joinDate} />
-                            <InfoItem icon={Calendar} label="Probation End Date" value={employee.probationEndDate} />
+                            <InfoItem icon={Calendar} label="Join Date" value={formatDate(employee.joinDate)} />
+                            <InfoItem icon={Calendar} label="Probation End Date" value={formatDate(employee.probationEndDate)} />
                             <InfoItem icon={DollarSign} label="Basic Salary" value={`${employee.basicSalary} ${employee.currency}`} />
                             <InfoItem icon={Badge} label="Status" value={<Badge variant={employee.status === "Active" ? "secondary" : "destructive"}>{employee.status}</Badge>} />
                         </CardContent>
@@ -226,7 +236,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                                                 {exp.managerialRole && <Badge variant="outline" className="flex items-center gap-1"><CheckSquare className="h-3 w-3" /> Managerial</Badge>}
                                             </div>
                                             <p className="text-muted-foreground text-sm">{exp.department}</p>
-                                            <p className="text-muted-foreground text-xs mb-1">{`${exp.startDate} - ${exp.endDate || 'Present'}`}</p>
+                                            <p className="text-muted-foreground text-xs mb-1">{`${formatDate(exp.startDate)} - ${exp.endDate ? formatDate(exp.endDate) : 'Present'}`}</p>
                                         </div>
                                     </div>
                                 )) : <p className="text-muted-foreground text-sm">No internal experience recorded.</p>}
@@ -248,7 +258,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                                                 {exp.managerialRole && <Badge variant="outline" className="flex items-center gap-1"><CheckSquare className="h-3 w-3" /> Managerial</Badge>}
                                             </div>
                                             <p className="text-muted-foreground text-sm">{exp.company}</p>
-                                            <p className="text-muted-foreground text-xs mb-1">{`${exp.startDate} - ${exp.endDate}`}</p>
+                                            <p className="text-muted-foreground text-xs mb-1">{`${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}`}</p>
                                         </div>
                                     </div>
                                 )) : <p className="text-muted-foreground text-sm">No external experience recorded.</p>}
@@ -272,7 +282,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                                             key={`edu-${i}`} 
                                             title={edu.award} 
                                             entity={`${edu.institution} - ${edu.fieldOfStudy}`} 
-                                            duration={`Completed: ${edu.completionDate}`}
+                                            duration={`Completed: ${formatDate(edu.completionDate)}`}
                                             details={details}
                                         />
                                     )
@@ -282,7 +292,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                             <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><Award className="h-5 w-5" /> Training</h3>
                                 {training.length > 0 ? training.map((trn, i) => (
-                                     <ExperienceItem key={`trn-${i}`} title={trn.name} entity={trn.provider} duration={`Completed: ${trn.completionDate}`} />
+                                     <ExperienceItem key={`trn-${i}`} title={trn.name} entity={trn.provider} duration={`Completed: ${formatDate(trn.completionDate)}`} />
                                 )) : <p className="text-muted-foreground text-sm">No training history recorded.</p>}
                             </div>
                          </CardContent>

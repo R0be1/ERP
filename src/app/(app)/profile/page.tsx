@@ -16,6 +16,7 @@ import { generateExperienceLetter } from "@/ai/flows/generate-experience-letter"
 import { useToast } from "@/hooks/use-toast"
 import { jsPDF } from "jspdf"
 import 'jspdf-autotable';
+import { format } from "date-fns"
 
 // In a real app, you would fetch the logged-in user's data
 const loggedInEmployeeId = "EMP001"; // Mocking logged-in user
@@ -129,6 +130,14 @@ const numberToWords = (num: number): string => {
     return words.trim().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
+const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    try {
+        return format(new Date(dateString), "dd-MMM-yyyy");
+    } catch (e) {
+        return dateString;
+    }
+}
 
 export default function ProfilePage() {
     const router = useRouter();
@@ -162,7 +171,7 @@ export default function ProfilePage() {
             
             const addContent = () => {
                 const today = new Date();
-                const date = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+                const date = format(today, "MMMM dd, yyyy");
 
                 doc.setFontSize(12);
                 doc.text(date, doc.internal.pageSize.getWidth() - 20, 20, { align: 'right' });
@@ -173,12 +182,13 @@ export default function ProfilePage() {
                 doc.setFont('helvetica', 'normal');
 
                 doc.setFontSize(12);
-                const introText = `This is to certify that ${employee.name} has been in the service of Nib International Bank since ${employee.joinDate}. During this period, the captioned employee has been serving on the following job position(s):`;
+                const joinDate = formatDate(employee.joinDate);
+                const introText = `This is to certify that ${employee.name} has been in the service of Nib International Bank since ${joinDate}. During this period, the captioned employee has been serving on the following job position(s):`;
                 doc.text(introText, 20, 70, { maxWidth: doc.internal.pageSize.getWidth() - 40, align: 'justify' });
 
                 const tableData = employee.internalExperience.map(exp => [
-                    exp.startDate,
-                    exp.endDate || 'Present',
+                    formatDate(exp.startDate),
+                    exp.endDate ? formatDate(exp.endDate) : 'Present',
                     exp.title,
                 ]);
 
@@ -300,7 +310,7 @@ export default function ProfilePage() {
                            <InfoItem icon={Phone} label="Mobile Number" value={employee.mobileNumber} />
                            <InfoItem icon={Venus} label="Gender" value={employee.gender} />
                            <InfoItem icon={Globe} label="Nationality" value={employee.nationality} />
-                           <InfoItem icon={Calendar} label="Date of Birth" value={employee.dob} />
+                           <InfoItem icon={Calendar} label="Date of Birth" value={formatDate(employee.dob)} />
                            <InfoItem icon={Heart} label="Marital Status" value={employee.maritalStatus} />
                            <InfoItem icon={MapPin} label="Current Address" value={fullAddress} />
                            <InfoItem icon={UserCheck} label="National ID" value={employee.nationalId} />
@@ -323,8 +333,8 @@ export default function ProfilePage() {
                             <InfoItem icon={Layers} label="Job Category" value={employee.jobCategory} />
                             <InfoItem icon={Home} label="Work Location" value="Head Office" />
                              <InfoItem icon={BadgeInfo} label="Employment Type" value={employee.employmentType} />
-                            <InfoItem icon={Calendar} label="Join Date" value={employee.joinDate} />
-                            <InfoItem icon={Calendar} label="Probation End Date" value={employee.probationEndDate} />
+                            <InfoItem icon={Calendar} label="Join Date" value={formatDate(employee.joinDate)} />
+                            <InfoItem icon={Calendar} label="Probation End Date" value={formatDate(employee.probationEndDate)} />
                             <InfoItem icon={Badge} label="Status" value={<Badge variant={employee.status === "Active" ? "secondary" : "destructive"}>{employee.status}</Badge>} />
                         </CardContent>
                     </Card>
@@ -351,7 +361,7 @@ export default function ProfilePage() {
                                         key={`int-${i}`}
                                         title={exp.title}
                                         entity={exp.department}
-                                        duration={`${exp.startDate} - ${exp.endDate || 'Present'}`}
+                                        duration={`${formatDate(exp.startDate)} - ${exp.endDate ? formatDate(exp.endDate) : 'Present'}`}
                                         description={exp.managerialRole ? 'Managerial Role' : ''}
                                     />
                                 )) : <p className="text-muted-foreground text-sm">No internal experience recorded.</p>}
@@ -366,7 +376,7 @@ export default function ProfilePage() {
                                         key={`ext-${i}`}
                                         title={exp.title}
                                         entity={exp.company}
-                                        duration={`${exp.startDate} - ${exp.endDate}`}
+                                        duration={`${formatDate(exp.startDate)} - ${formatDate(exp.endDate)}`}
                                         description={exp.managerialRole ? 'Managerial Role' : ''}
                                     />
                                 )) : <p className="text-muted-foreground text-sm">No external experience recorded.</p>}
@@ -393,7 +403,7 @@ export default function ProfilePage() {
                                             key={`edu-${i}`} 
                                             title={edu.award} 
                                             entity={`${edu.institution} - ${edu.fieldOfStudy}`} 
-                                            duration={`Completed: ${edu.completionDate}`}
+                                            duration={`Completed: ${formatDate(edu.completionDate)}`}
                                             details={details}
                                         />
                                     )
@@ -403,7 +413,7 @@ export default function ProfilePage() {
                             <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><Award className="h-5 w-5" /> Training</h3>
                                 {training.length > 0 ? training.map((trn, i) => (
-                                     <ExperienceItem key={`trn-${i}`} title={trn.name} entity={trn.provider} duration={`Completed: ${trn.completionDate}`} />
+                                     <ExperienceItem key={`trn-${i}`} title={trn.name} entity={trn.provider} duration={`Completed: ${formatDate(trn.completionDate)}`} />
                                 )) : <p className="text-muted-foreground text-sm">No training history recorded.</p>}
                             </div>
                          </CardContent>
