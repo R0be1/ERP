@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -52,12 +53,12 @@ export default function AppLayout({
     { href: "/performance", icon: TrendingUp, label: "Performance" },
     { href: "/benefits", icon: Heart, label: "Benefits" },
     { href: "/payslips", icon: Receipt, label: "Payslips" },
-    { href: "/offboarding", icon: LogOut, label: "Exit/Offboarding" },
   ]
   
   const bottomNavItems = [
     { href: "/profile", icon: UserCircle, label: "My Profile" },
     { href: "/feedback", icon: MessageSquareQuote, label: "Feedback" },
+    { href: "/offboarding", icon: LogOut, label: "Exit/Offboarding" },
     { href: "/configuration", icon: Settings, label: "Configuration" },
   ]
 
@@ -104,12 +105,16 @@ export default function AppLayout({
                 <NavLink key={item.href} {...item} />
               ))}
             </nav>
-            <nav className="mt-auto grid items-start px-2 text-sm font-medium lg:px-4">
+          </TooltipProvider>
+        </div>
+         <div className="mt-auto p-4">
+           <TooltipProvider>
+             <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                {bottomNavItems.map((item) => (
                 <NavLink key={item.href} {...item} />
               ))}
-            </nav>
-          </TooltipProvider>
+             </nav>
+           </TooltipProvider>
         </div>
       </div>
     </div>
