@@ -212,14 +212,29 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                         <CardContent className="grid gap-6">
                              <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ChevronsRight className="h-5 w-5" /> Internal Experience</h3>
-                                {internalExperience.length > 0 ? internalExperience.map((exp, i) => (
-                                    <ExperienceItem key={`int-${i}`} title={exp.title} entity={exp.department} duration={`${exp.startDate} - ${exp.endDate || 'Present'}`} />
+                                {internalExperience.length > 0 ? internalExperience.map((exp: any, i) => (
+                                    <div key={`int-${i}`} className="flex gap-4">
+                                        <div className="flex flex-col items-center">
+                                            <div className="bg-primary/20 text-primary rounded-full p-2">
+                                                <Briefcase className="h-5 w-5" />
+                                            </div>
+                                            <div className="flex-grow w-px bg-border my-2"></div>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h4 className="font-semibold">{exp.title}</h4>
+                                                {exp.managerialRole && <Badge variant="outline" className="flex items-center gap-1"><CheckSquare className="h-3 w-3" /> Managerial</Badge>}
+                                            </div>
+                                            <p className="text-muted-foreground text-sm">{exp.department}</p>
+                                            <p className="text-muted-foreground text-xs mb-1">{`${exp.startDate} - ${exp.endDate || 'Present'}`}</p>
+                                        </div>
+                                    </div>
                                 )) : <p className="text-muted-foreground text-sm">No internal experience recorded.</p>}
                             </div>
                             <Separator />
                             <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ChevronsRight className="h-5 w-5" /> External Experience</h3>
-                                {externalExperience.length > 0 ? externalExperience.map((exp, i) => (
+                                {externalExperience.length > 0 ? externalExperience.map((exp: any, i) => (
                                      <div key={`ext-${i}`} className="flex gap-4">
                                         <div className="flex flex-col items-center">
                                             <div className="bg-primary/20 text-primary rounded-full p-2">
@@ -245,7 +260,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                          <CardContent className="grid gap-6">
                              <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Education</h3>
-                                {education.length > 0 ? education.map((edu, i) => {
+                                {education.length > 0 ? education.map((edu: any, i) => {
                                     const details = [
                                         edu.programType,
                                         edu.cgpa ? `CGPA: ${edu.cgpa}`: null,

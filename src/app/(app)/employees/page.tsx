@@ -106,7 +106,7 @@ const initialNewEmployeeState = {
   pensionNumber: '',
   // History & Development
   dependents: [{ name: '', relationship: '', dob: '' }],
-  internalExperience: [{ title: '', department: '', startDate: '', endDate: '' }],
+  internalExperience: [{ title: '', department: '', startDate: '', endDate: '', managerialRole: false }],
   externalExperience: [{ company: '', title: '', startDate: '', endDate: '', managerialRole: false }],
   education: [{ award: '', institution: '', fieldOfStudy: '', completionDate: '', programType: '', cgpa: '', result: '' }],
   training: [{ name: '', provider: '', completionDate: '', file: null }],
@@ -329,7 +329,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
         switch (section) {
             case 'emergencyContacts': newItem = { name: '', relationship: '', phone: '' }; break;
             case 'dependents': newItem = { name: '', relationship: '', dob: '' }; break;
-            case 'internalExperience': newItem = { title: '', department: '', startDate: '', endDate: '' }; break;
+            case 'internalExperience': newItem = { title: '', department: '', startDate: '', endDate: '', managerialRole: false }; break;
             case 'externalExperience': newItem = { company: '', title: '', startDate: '', endDate: '', managerialRole: false }; break;
             case 'education': newItem = { award: '', institution: '', fieldOfStudy: '', completionDate: '', programType: '', cgpa: '', result: '' }; break;
             case 'training': newItem = { name: '', provider: '', completionDate: '', file: null }; break;
@@ -787,6 +787,10 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                             <Label htmlFor={`int-endDate-${index}`}>End Date</Label>
                                             <Input id={`int-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
                                         </div>
+                                        <div className="flex items-center space-x-2 pt-2 md:col-span-2">
+                                            <Checkbox id={`int-managerial-${index}`} checked={exp.managerialRole} onCheckedChange={(checked) => handleNestedCheckboxChange('internalExperience', index, 'managerialRole', !!checked)} />
+                                            <Label htmlFor={`int-managerial-${index}`}>Managerial Role</Label>
+                                        </div>
                                     </div>
                                     <Button
                                         type="button"
@@ -1167,6 +1171,12 @@ export default function EmployeesPage() {
   }, [searchParams, employees, handleOpenEditDialog]);
 
   const handleAddEmployee = (employeeData: FormEmployeeState, photo: string | null) => {
+    
+    let internalExperience = employeeData.internalExperience;
+    if (employeeData.jobCategory === 'managerial' && internalExperience.length > 0) {
+        internalExperience[0].managerialRole = true;
+    }
+      
     const newEmp: Employee = {
       ...({} as Employee),
       ...(employeeData as any),
@@ -1178,6 +1188,7 @@ export default function EmployeesPage() {
       jobCategory: jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
       status: 'Active',
       avatar: photo || `https://placehold.co/40x40.png?text=${employeeData.firstName[0]}${employeeData.lastName[0]}`,
+      internalExperience,
     };
     setEmployees(prev => [...prev, newEmp]);
     setAddEmployeeDialogOpen(false);
