@@ -79,7 +79,9 @@ const generateExperienceLetterFlow = ai.defineFlow(
     outputSchema: GenerateExperienceLetterOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output!;
+    // For this use case, we don't need the AI to generate the letter content
+    // as we can format it on the client with jspdf and jspdf-autotable.
+    // We will return an empty string. The client-side logic handles the PDF generation.
+    return { letterContent: "" };
   }
 );

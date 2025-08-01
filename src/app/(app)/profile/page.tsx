@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { generateExperienceLetter } from "@/ai/flows/generate-experience-letter"
 import { useToast } from "@/hooks/use-toast"
 import { jsPDF } from "jspdf"
+import 'jspdf-autotable';
 
 // In a real app, you would fetch the logged-in user's data
 const loggedInEmployeeId = "EMP001"; // Mocking logged-in user
@@ -87,6 +88,10 @@ const DependentItem = ({ dependent }: { dependent: any }) => (
     </div>
 )
 
+interface jsPDFWithAutoTable extends jsPDF {
+  autoTable: (options: any) => jsPDF;
+}
+
 export default function ProfilePage() {
     const router = useRouter();
     const { toast } = useToast();
@@ -115,19 +120,38 @@ export default function ProfilePage() {
         if (!employee) return;
         setIsGenerating(true);
         try {
-            const result = await generateExperienceLetter(employee);
-            
-            const doc = new jsPDF();
-            doc.setFont('helvetica');
-            doc.setFontSize(12);
+            const doc = new jsPDF() as jsPDFWithAutoTable;
+            const today = new Date();
+            const date = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
 
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const margin = 20;
-            const contentWidth = pageWidth - margin * 2;
+            doc.setFontSize(12);
+            doc.text(date, doc.internal.pageSize.getWidth() - 20, 20, { align: 'right' });
             
-            doc.text(result.letterContent, margin, margin, { maxWidth: contentWidth });
+            doc.text("To Whom It May Concern,", 20, 40);
+
+            const introText = `This letter is to certify that ${employee.name} has been an employee at Nib International Bank. During their tenure with us, they have held the following positions:`;
+            doc.text(introText, 20, 60, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+
+            const tableData = employee.internalExperience.map(exp => [
+                exp.title,
+                "Nib International Bank",
+                `${exp.startDate} to ${exp.endDate || 'Present'}`
+            ]);
+
+            doc.autoTable({
+                head: [['Title', 'Company', 'Date']],
+                body: tableData,
+                startY: 70,
+                headStyles: { fillColor: [70, 130, 180] }, // Soft blue
+            });
             
+            const lastTableY = doc.autoTable.previous.finalY;
+
+            const closingText = `We have found ${employee.name} to be a diligent, hardworking, and valuable member of our team. We wish them all the best in their future endeavors.`;
+            doc.text(closingText, 20, lastTableY + 20, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+            
+            doc.text("Nib International Bank", 20, lastTableY + 60);
+
             doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
 
         } catch (error) {
