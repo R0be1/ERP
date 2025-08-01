@@ -35,7 +35,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { UserNav } from "@/components/user-nav"
-import Image from "next/image"
+import { useEffect, useState } from "react"
 
 const navItems = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
@@ -56,8 +56,31 @@ const bottomNavItems = [
   { href: "/configuration", icon: Settings, label: "Configuration" },
 ]
 
-const NavLink = ({ href, icon: Icon, label, isActive, isMobile = false }: { href: string; icon: React.ElementType; label: string; isActive: boolean; isMobile?: boolean }) => {
-  if (isMobile) {
+const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+  return (
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={href}
+            className={cn(
+              "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-primary md:h-8 md:w-8",
+              isActive && "bg-accent text-accent-foreground"
+            )}
+          >
+            <Icon className="h-5 w-5" />
+            <span className="sr-only">{label}</span>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent side="right">{label}</TooltipContent>
+      </Tooltip>
+  )
+}
+
+const MobileNavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
+    const pathname = usePathname();
+    const isActive = pathname === href;
     return (
       <Link
         href={href}
@@ -70,29 +93,9 @@ const NavLink = ({ href, icon: Icon, label, isActive, isMobile = false }: { href
         {label}
       </Link>
     );
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Link
-          href={href}
-          className={cn(
-            "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-primary md:h-8 md:w-8",
-            isActive && "bg-accent text-accent-foreground"
-          )}
-        >
-          <Icon className="h-5 w-5" />
-          <span className="sr-only">{label}</span>
-        </Link>
-      </TooltipTrigger>
-      <TooltipContent side="right">{label}</TooltipContent>
-    </Tooltip>
-  )
 }
 
 const DesktopNav = () => {
-    const pathname = usePathname();
     return (
         <div className="hidden border-r bg-muted/40 md:block">
             <div className="flex h-full max-h-screen flex-col gap-2">
@@ -106,7 +109,7 @@ const DesktopNav = () => {
                     <TooltipProvider>
                         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                             {navItems.map((item) => (
-                                <NavLink key={item.href} {...item} isActive={pathname === item.href} />
+                                <NavLink key={item.href} {...item} />
                             ))}
                         </nav>
                     </TooltipProvider>
@@ -115,7 +118,7 @@ const DesktopNav = () => {
                     <TooltipProvider>
                         <nav className="grid items-start px-2 text-sm font-medium lg:px-4">
                             {bottomNavItems.map((item) => (
-                                <NavLink key={item.href} {...item} isActive={pathname === item.href} />
+                                <NavLink key={item.href} {...item} />
                             ))}
                         </nav>
                     </TooltipProvider>
@@ -126,7 +129,6 @@ const DesktopNav = () => {
 };
 
 const MobileNav = () => {
-    const pathname = usePathname();
     return (
         <Sheet>
             <SheetTrigger asChild>
@@ -149,12 +151,12 @@ const MobileNav = () => {
                         <span >HCM Express</span>
                     </Link>
                     {navItems.map((item) => (
-                        <NavLink key={item.href} {...item} isMobile={true} isActive={pathname === item.href} />
+                        <MobileNavLink key={item.href} {...item} />
                     ))}
                 </nav>
                 <nav className="mt-auto grid gap-2 text-lg font-medium">
                     {bottomNavItems.map((item) => (
-                        <NavLink key={item.href} {...item} isMobile={true} isActive={pathname === item.href} />
+                        <MobileNavLink key={item.href} {...item} />
                     ))}
                 </nav>
             </SheetContent>
@@ -169,12 +171,17 @@ export default function AppLayout({
   children: React.ReactNode
 }) {
 
+  const [isClient, setIsClient] = useState(false)
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   return (
     <div className="grid min-h-screen w-full md:grid-cols-[auto_1fr] lg:grid-cols-[auto_1fr]">
       <DesktopNav />
       <div className="flex flex-col">
         <header className="flex h-14 items-center gap-4 border-b bg-muted/40 px-4 lg:h-[60px] lg:px-6">
-          <MobileNav />
+          {isClient && <MobileNav />}
           <div className="w-full flex-1">
             {/* Can add search or page title here */}
           </div>
