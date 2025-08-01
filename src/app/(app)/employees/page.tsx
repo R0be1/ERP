@@ -55,6 +55,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { employees as initialEmployees } from "@/lib/data"
+import { masterData as initialMasterData } from "@/lib/master-data";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
@@ -116,73 +117,6 @@ const initialNewEmployeeState = {
   outgoingGuarantees: [{ recipientName: '', recipientPhone: '', relationship: '', organization: '', organizationPhone: '', poBox: '', amount: '', issueDate: '', expiryDate: '', document: null }],
 };
 
-const regions = [
-  { value: 'addis-ababa', label: 'Addis Ababa' },
-  { value: 'afar', label: 'Afar' },
-  { value: 'amhara', label: 'Amhara' },
-  { value: 'benishangul-gumuz', label: 'Benishangul-Gumuz' },
-  { value: 'dire-dawa', label: 'Dire Dawa' },
-  { value: 'gambela', label: 'Gambela' },
-  { value: 'harari', label: 'Harari' },
-  { value: 'oromia', label: 'Oromia' },
-  { value: 'somali', label: 'Somali' },
-  { value: 'snnp', label: 'Southern Nations, Nationalities, and Peoples\'' },
-  { value: 'tigray', label: 'Tigray' },
-]
-
-const departments = [
-  { value: 'engineering', label: 'Engineering' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'sales', label: 'Sales' },
-  { value: 'human-resources', label: 'Human Resources' },
-  { value: 'product', label: 'Product' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'operations', label: 'Operations' },
-]
-
-const jobTitles = [
-    { value: 'software-engineer', label: 'Software Engineer' },
-    { value: 'senior-software-engineer', label: 'Senior Software Engineer' },
-    { value: 'product-manager', label: 'Product Manager' },
-    { value: 'marketing-manager', label: 'Marketing Manager' },
-    { value: 'sales-representative', label: 'Sales Representative' },
-    { value: 'hr-specialist', label: 'HR Specialist' },
-]
-
-const jobGrades = Array.from({ length: 22 }, (_, i) => ({ value: `${i + 1}`, label: `Grade ${i + 1}` }));
-
-const jobCategories = [
-    { value: 'managerial', label: 'Managerial' },
-    { value: 'professional', label: 'Professional' },
-    { value: 'clerical', label: 'Clerical' },
-    { value: 'non-clerical', label: 'Non-Clerical' },
-]
-
-const educationAwards = [
-    { value: 'certificate', label: 'Certificate' },
-    { value: 'diploma', label: 'Diploma' },
-    { value: 'bachelors-degree', label: 'Bachelor\'s Degree' },
-    { value: 'masters-degree', label: 'Master\'s Degree' },
-    { value: 'phd', label: 'PhD' },
-]
-
-const fieldsOfStudy = [
-    { value: 'accounting', label: 'Accounting' },
-    { value: 'management', label: 'Management' },
-    { value: 'economics', label: 'Economics' },
-    { value: 'law', label: 'Law' },
-    { value: 'computer-science', label: 'Computer Science' },
-    { value: 'business-administration', label: 'Business Administration' },
-]
-
-const institutions = [
-    { value: 'addis-ababa-university', label: 'Addis Ababa University' },
-    { value: 'mekelle-university', label: 'Mekelle University' },
-    { value: 'unity-university', label: 'Unity University' },
-    { value: 'admas-university', label: 'Admas University' },
-]
-
-
 type Employee = (typeof initialEmployees)[number];
 type FormEmployeeState = typeof initialNewEmployeeState;
 
@@ -236,7 +170,7 @@ const Combobox = ({ items, value, onChange, placeholder }: { items: {value: stri
     )
 }
 
-const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubmit, onCancel }: { initialData: FormEmployeeState, isEditMode?: boolean, onSubmit: (employeeData: FormEmployeeState, photo: string | null) => void, onCancel: () => void }) => {
+const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubmit, onCancel, masterData }: { initialData: FormEmployeeState, isEditMode?: boolean, onSubmit: (employeeData: FormEmployeeState, photo: string | null) => void, onCancel: () => void, masterData: typeof initialMasterData }) => {
     const [employeeData, setEmployeeData] = useState(initialDataProp);
     const [photoPreview, setPhotoPreview] = useState<string | null>(isEditMode ? (initialDataProp as any).avatar : null);
     
@@ -475,7 +409,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                             <div className="grid gap-2">
                                 <Label>Department</Label>
                                 <Combobox
-                                    items={departments}
+                                    items={masterData.departments}
                                     value={employeeData.department}
                                     onChange={(value) => handleSelectChange('department', value)}
                                     placeholder="Select department..."
@@ -484,7 +418,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                             <div className="grid gap-2">
                                 <Label>Job Title</Label>
                                  <Combobox
-                                    items={jobTitles}
+                                    items={masterData.jobTitles}
                                     value={employeeData.position}
                                     onChange={(value) => handleSelectChange('position', value)}
                                     placeholder="Select job title..."
@@ -508,7 +442,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                             <div className="grid gap-2">
                                 <Label>Job Grade</Label>
                                 <Combobox
-                                    items={jobGrades}
+                                    items={masterData.jobGrades}
                                     value={employeeData.jobGrade}
                                     onChange={(value) => handleSelectChange('jobGrade', value)}
                                     placeholder="Select job grade..."
@@ -519,7 +453,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                 <Select name="jobCategory" onValueChange={(v) => handleSelectChange('jobCategory', v)} value={employeeData.jobCategory}>
                                     <SelectTrigger id="jobCategory"><SelectValue placeholder="Select..." /></SelectTrigger>
                                     <SelectContent>
-                                        {jobCategories.map((cat) => (
+                                        {masterData.jobCategories.map((cat) => (
                                             <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
                                         ))}
                                     </SelectContent>
@@ -632,7 +566,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                            <div className="grid gap-2">
                                 <Label>Region</Label>
                                 <Combobox
-                                    items={regions}
+                                    items={masterData.regions}
                                     value={employeeData.address.region}
                                     onChange={(value) => handleSelectChange('address.region', value)}
                                     placeholder="Select region..."
@@ -875,7 +809,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                         <div className="grid gap-2">
                                             <Label>Award</Label>
                                             <Combobox 
-                                                items={educationAwards}
+                                                items={masterData.educationAwards}
                                                 value={edu.award}
                                                 onChange={(value) => handleNestedSelectChange('education', index, 'award', value)}
                                                 placeholder="Select award..."
@@ -884,7 +818,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                         <div className="grid gap-2">
                                             <Label>Field of Study</Label>
                                             <Combobox 
-                                                items={fieldsOfStudy}
+                                                items={masterData.fieldsOfStudy}
                                                 value={edu.fieldOfStudy}
                                                 onChange={(value) => handleNestedSelectChange('education', index, 'fieldOfStudy', value)}
                                                 placeholder="Select field..."
@@ -893,7 +827,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                          <div className="grid gap-2">
                                             <Label>Institution</Label>
                                              <Combobox 
-                                                items={institutions}
+                                                items={masterData.institutions}
                                                 value={edu.institution}
                                                 onChange={(value) => handleNestedSelectChange('education', index, 'institution', value)}
                                                 placeholder="Select institution..."
@@ -1126,6 +1060,7 @@ export default function EmployeesPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [employees, setEmployees] = useState(initialEmployees);
+  const [masterData, setMasterData] = useState(initialMasterData);
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddEmployeeDialogOpen, setAddEmployeeDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<FormEmployeeState | null>(null);
@@ -1140,6 +1075,15 @@ export default function EmployeesPage() {
         } catch(e) {
             console.error("Failed to parse employees from localStorage", e);
             setEmployees(initialEmployees);
+        }
+    }
+    const storedMasterData = localStorage.getItem('masterData');
+    if (storedMasterData) {
+        try {
+            setMasterData(JSON.parse(storedMasterData));
+        } catch(e) {
+            console.error("Failed to parse master data from localStorage", e);
+            setMasterData(initialMasterData);
         }
     }
   }, []);
@@ -1185,9 +1129,9 @@ export default function EmployeesPage() {
       id: employeeData.employeeId || `EMP${String(Date.now()).slice(-4)}`,
       name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
       email: employeeData.workEmail,
-      position: jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
-      department: departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
-      jobCategory: jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
+      position: masterData.jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
+      department: masterData.departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
+      jobCategory: masterData.jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
       status: 'Active',
       avatar: photo || `https://placehold.co/40x40.png?text=${employeeData.firstName[0]}${employeeData.lastName[0]}`,
       internalExperience,
@@ -1206,9 +1150,9 @@ export default function EmployeesPage() {
           ...employeeData,
            name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
            email: employeeData.workEmail,
-           position: jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
-           department: departments.find(j => j.value === employeeData.department)?.label || employeeData.department,
-           jobCategory: jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
+           position: masterData.jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
+           department: masterData.departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
+           jobCategory: masterData.jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
            avatar: photo || (emp as any).avatar,
         };
       }
@@ -1277,6 +1221,7 @@ export default function EmployeesPage() {
                 initialData={initialNewEmployeeState} 
                 onSubmit={handleAddEmployee}
                 onCancel={() => setAddEmployeeDialogOpen(false)}
+                masterData={masterData}
               />
             </DialogContent>
           </Dialog>
@@ -1469,6 +1414,7 @@ export default function EmployeesPage() {
                     isEditMode={true}
                     onSubmit={handleUpdateEmployee}
                     onCancel={handleCloseEditDialog}
+                    masterData={masterData}
                 />
               )}
             </DialogContent>
