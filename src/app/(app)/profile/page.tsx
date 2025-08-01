@@ -198,7 +198,7 @@ export default function ProfilePage() {
                 
                 doc.text(salaryText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40, align: 'justify' });
 
-                const closingText = "This certificate is issued upon their request and does not serve as a release.";
+                const closingText = "Please note that this work experience letter does not serve as a release paper.";
                 doc.text(closingText, 20, lastTableY + 35, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
                 
                 doc.text("Nib International Bank", 20, lastTableY + 60);
