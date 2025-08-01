@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState } from "react";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { masterData, setMasterData } from "@/lib/master-data";
 import { useToast } from "@/hooks/use-toast";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 const configAreas = [
     {
@@ -98,6 +100,7 @@ const EditItemDialog = ({
 
 
 const MasterDataSection = () => {
+    const { toast } = useToast();
     const [data, setData] = useState(masterData);
     const [newItem, setNewItem] = useState<{ [key in MasterDataCategory]?: string }>({});
     const [editingItem, setEditingItem] = useState<{ category: MasterDataCategory; item: DataItem } | null>(null);
@@ -165,39 +168,42 @@ const MasterDataSection = () => {
                    </div>
                 </div>
             </CardHeader>
-            <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {dataCategories.map(({ key, title }) => (
-                    <Card key={key}>
-                        <CardHeader>
-                            <CardTitle className="text-base">{title}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="flex flex-col gap-2">
-                             <div className="flex gap-2">
-                                <Input 
-                                    placeholder={`New ${title.slice(0, -1)}...`} 
-                                    value={newItem[key] || ''}
-                                    onChange={(e) => handleNewItemChange(key, e.target.value)}
-                                />
-                                <Button size="icon" onClick={() => handleAddItem(key)}><PlusCircle className="h-4 w-4" /></Button>
-                            </div>
-                            <div className="max-h-48 overflow-y-auto pr-2">
-                            {(data[key] as DataItem[]).map((item) => (
-                                <div key={item.value} className="flex items-center justify-between gap-2 py-1">
-                                    <span className="text-sm">{item.label}</span>
-                                    <div className="flex items-center">
-                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingItem({ category: key, item })}>
-                                            <Edit className="h-4 w-4" />
-                                        </Button>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleRemoveItem(key, item)}>
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
+            <CardContent>
+                <Accordion type="single" collapsible className="w-full">
+                    {dataCategories.map(({ key, title }) => (
+                         <AccordionItem value={key} key={key}>
+                            <AccordionTrigger>{title}</AccordionTrigger>
+                            <AccordionContent>
+                                 <div className="flex flex-col gap-4 p-4 border rounded-lg">
+                                    <div className="flex gap-2">
+                                        <Input 
+                                            placeholder={`New ${title.slice(0, -1)}...`} 
+                                            value={newItem[key] || ''}
+                                            onChange={(e) => handleNewItemChange(key, e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAddItem(key)}
+                                        />
+                                        <Button size="icon" onClick={() => handleAddItem(key)}><PlusCircle className="h-4 w-4" /></Button>
+                                    </div>
+                                    <div className="max-h-60 overflow-y-auto pr-2 flex flex-col gap-2">
+                                        {(data[key] as DataItem[]).map((item) => (
+                                            <div key={item.value} className="flex items-center justify-between gap-2 p-2 rounded-md bg-muted/50">
+                                                <span className="text-sm font-medium">{item.label}</span>
+                                                <div className="flex items-center">
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingItem({ category: key, item })}>
+                                                        <Edit className="h-4 w-4" />
+                                                    </Button>
+                                                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleRemoveItem(key, item)}>
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </div>
-                            ))}
-                            </div>
-                        </CardContent>
-                    </Card>
-                ))}
+                            </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
             </CardContent>
             {editingItem && (
               <EditItemDialog
