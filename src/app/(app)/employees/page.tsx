@@ -149,6 +149,8 @@ const jobTitles = [
     { value: 'hr-specialist', label: 'HR Specialist' },
 ]
 
+const jobGrades = Array.from({ length: 22 }, (_, i) => ({ value: `${i + 1}`, label: `Grade ${i + 1}` }));
+
 const jobCategories = [
     { value: 'managerial', label: 'Managerial' },
     { value: 'professional', label: 'Professional' },
@@ -525,8 +527,13 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                 </Select>
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="jobGrade">Job Grade</Label>
-                                <Input id="jobGrade" name="jobGrade" value={employeeData.jobGrade} onChange={handleInputChange} />
+                                <Label>Job Grade</Label>
+                                <Combobox
+                                    items={jobGrades}
+                                    value={employeeData.jobGrade}
+                                    onChange={(value) => handleSelectChange('jobGrade', value)}
+                                    placeholder="Select job grade..."
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Job Category</Label>
