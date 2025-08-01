@@ -436,6 +436,8 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                     <SelectContent>
                                         <SelectItem value="single">Single</SelectItem>
                                         <SelectItem value="married">Married</SelectItem>
+                                        <SelectItem value="divorced">Divorced</SelectItem>
+                                        <SelectItem value="widowed">Widowed</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
