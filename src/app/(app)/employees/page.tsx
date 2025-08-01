@@ -57,6 +57,7 @@ import { employees as initialEmployees } from "@/lib/data"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
+import { Textarea } from "@/components/ui/textarea"
 
 const initialNewEmployeeState = {
   // Profile
@@ -92,10 +93,10 @@ const initialNewEmployeeState = {
   pensionNumber: '',
   // History & Development
   dependents: [{ name: '', relationship: '', dob: '' }],
-  internalExperience: [{ title: '', department: '', startDate: '', endDate: '' }],
-  externalExperience: [{ company: '', title: '', startDate: '', endDate: '' }],
-  education: [{ degree: '', institution: '', field: '', completionDate: '' }],
-  training: [{ name: '', provider: '', completionDate: '' }],
+  internalExperience: [{ title: '', department: '', startDate: '', endDate: '', responsibilities: '' }],
+  externalExperience: [{ company: '', title: '', startDate: '', endDate: '', responsibilities: '' }],
+  education: [{ degree: '', institution: '', field: '', completionDate: '', grade: '' }],
+  training: [{ name: '', provider: '', completionDate: '', file: null }],
 };
 
 
@@ -114,38 +115,51 @@ export default function EmployeesPage() {
     setNewEmployee(prevState => ({ ...prevState, [name]: value }));
   };
 
-  const handleNestedInputChange = (section: keyof typeof newEmployee, index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleNestedInputChange = (section: keyof typeof newEmployee, index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     const list = newEmployee[section] as any[];
     const updatedList = [...list];
     updatedList[index] = { ...updatedList[index], [name]: value };
     setNewEmployee(prevState => ({ ...prevState, [section]: updatedList }));
   };
-
-  const addEmergencyContact = () => {
-    setNewEmployee(prevState => ({
-      ...prevState,
-      emergencyContacts: [...prevState.emergencyContacts, { name: '', relationship: '', phone: '' }]
-    }));
-  };
-
-  const removeEmergencyContact = (index: number) => {
-    const updatedContacts = newEmployee.emergencyContacts.filter((_, i) => i !== index);
-    setNewEmployee(prevState => ({ ...prevState, emergencyContacts: updatedContacts }));
-  };
-
-  const addDependent = () => {
-    setNewEmployee(prevState => ({
-      ...prevState,
-      dependents: [...prevState.dependents, { name: '', relationship: '', dob: '' }]
-    }));
-  };
-
-  const removeDependent = (index: number) => {
-    const updatedDependents = newEmployee.dependents.filter((_, i) => i !== index);
-    setNewEmployee(prevState => ({ ...prevState, dependents: updatedDependents }));
-  };
   
+  const addListItem = (section: keyof typeof newEmployee) => {
+    const list = newEmployee[section] as any[];
+    let newItem;
+    switch (section) {
+        case 'emergencyContacts':
+            newItem = { name: '', relationship: '', phone: '' };
+            break;
+        case 'dependents':
+            newItem = { name: '', relationship: '', dob: '' };
+            break;
+        case 'internalExperience':
+            newItem = { title: '', department: '', startDate: '', endDate: '', responsibilities: '' };
+            break;
+        case 'externalExperience':
+            newItem = { company: '', title: '', startDate: '', endDate: '', responsibilities: '' };
+            break;
+        case 'education':
+            newItem = { degree: '', institution: '', field: '', completionDate: '', grade: '' };
+            break;
+        case 'training':
+             newItem = { name: '', provider: '', completionDate: '', file: null };
+            break;
+        default:
+            newItem = {};
+    }
+    setNewEmployee(prevState => ({
+      ...prevState,
+      [section]: [...list, newItem]
+    }));
+  };
+
+  const removeListItem = (section: keyof typeof newEmployee, index: number) => {
+    const list = newEmployee[section] as any[];
+    const updatedList = list.filter((_, i) => i !== index);
+    setNewEmployee(prevState => ({ ...prevState, [section]: updatedList }));
+  };
+
   const handleAddEmployee = () => {
     const newEmp = {
       id: `EMP${String(employees.length + 1).padStart(3, '0')}`,
@@ -354,7 +368,7 @@ export default function EmployeesPage() {
                             <Separator />
                             <div className="flex items-center justify-between">
                                 <p className="font-medium text-sm">Emergency Contacts</p>
-                                <Button size="sm" variant="outline" type="button" onClick={addEmergencyContact}>
+                                <Button size="sm" variant="outline" type="button" onClick={() => addListItem('emergencyContacts')}>
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Add Contact
                                 </Button>
@@ -378,7 +392,7 @@ export default function EmployeesPage() {
                                             type="button"
                                             variant="destructive"
                                             size="icon"
-                                            onClick={() => removeEmergencyContact(index)}
+                                            onClick={() => removeListItem('emergencyContacts', index)}
                                             className="h-9 w-9"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -455,7 +469,7 @@ export default function EmployeesPage() {
                                     <CardTitle>Dependents</CardTitle>
                                     <CardDescription>Manage dependent information.</CardDescription>
                                 </div>
-                                <Button size="sm" variant="outline" type="button" onClick={addDependent}>
+                                <Button size="sm" variant="outline" type="button" onClick={() => addListItem('dependents')}>
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Add Dependent
                                 </Button>
@@ -480,7 +494,7 @@ export default function EmployeesPage() {
                                             type="button"
                                             variant="destructive"
                                             size="icon"
-                                            onClick={() => removeDependent(index)}
+                                            onClick={() => removeListItem('dependents', index)}
                                             className="h-9 w-9"
                                         >
                                             <Trash2 className="h-4 w-4" />
@@ -491,19 +505,195 @@ export default function EmployeesPage() {
                             </CardContent>
                         </Card>
                          <Card>
-                            <CardHeader>
-                                <CardTitle>Work Experience</CardTitle>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div className="grid gap-1">
+                                    <CardTitle>Internal Work Experience</CardTitle>
+                                </div>
+                                <Button size="sm" variant="outline" type="button" onClick={() => addListItem('internalExperience')}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Experience
+                                </Button>
                             </CardHeader>
                             <CardContent>
-                                {/* Experience fields here */}
+                                <div className="grid gap-4">
+                                {newEmployee.internalExperience.map((exp, index) => (
+                                    <div key={index} className="grid gap-4 p-4 border rounded-md relative">
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`int-title-${index}`}>Job Title</Label>
+                                                <Input id={`int-title-${index}`} name="title" value={exp.title} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`int-department-${index}`}>Department</Label>
+                                                <Input id={`int-department-${index}`} name="department" value={exp.department} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`int-startDate-${index}`}>Start Date</Label>
+                                                <Input id={`int-startDate-${index}`} name="startDate" type="date" value={exp.startDate} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`int-endDate-${index}`}>End Date</Label>
+                                                <Input id={`int-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
+                                            </div>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`int-responsibilities-${index}`}>Key Responsibilities</Label>
+                                            <Textarea id={`int-responsibilities-${index}`} name="responsibilities" value={exp.responsibilities} onChange={(e) => handleNestedInputChange('internalExperience', index, e)} />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => removeListItem('internalExperience', index)}
+                                            className="absolute top-4 right-4 h-8 w-8"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                </div>
                             </CardContent>
                         </Card>
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Education</CardTitle>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div className="grid gap-1">
+                                    <CardTitle>External Work Experience</CardTitle>
+                                </div>
+                                <Button size="sm" variant="outline" type="button" onClick={() => addListItem('externalExperience')}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Experience
+                                </Button>
                             </CardHeader>
                             <CardContent>
-                                {/* Education fields here */}
+                                <div className="grid gap-4">
+                                {newEmployee.externalExperience.map((exp, index) => (
+                                    <div key={index} className="grid gap-4 p-4 border rounded-md relative">
+                                        <div className="grid md:grid-cols-2 gap-4">
+                                             <div className="grid gap-2">
+                                                <Label htmlFor={`ext-company-${index}`}>Company Name</Label>
+                                                <Input id={`ext-company-${index}`} name="company" value={exp.company} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`ext-title-${index}`}>Job Title</Label>
+                                                <Input id={`ext-title-${index}`} name="title" value={exp.title} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`ext-startDate-${index}`}>Start Date</Label>
+                                                <Input id={`ext-startDate-${index}`} name="startDate" type="date" value={exp.startDate} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`ext-endDate-${index}`}>End Date</Label>
+                                                <Input id={`ext-endDate-${index}`} name="endDate" type="date" value={exp.endDate} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
+                                            </div>
+                                        </div>
+                                         <div className="grid gap-2">
+                                            <Label htmlFor={`ext-responsibilities-${index}`}>Key Responsibilities</Label>
+                                            <Textarea id={`ext-responsibilities-${index}`} name="responsibilities" value={exp.responsibilities} onChange={(e) => handleNestedInputChange('externalExperience', index, e)} />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => removeListItem('externalExperience', index)}
+                                            className="absolute top-4 right-4 h-8 w-8"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div className="grid gap-1">
+                                    <CardTitle>Education Qualifications</CardTitle>
+                                </div>
+                                <Button size="sm" variant="outline" type="button" onClick={() => addListItem('education')}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Qualification
+                                </Button>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid gap-4">
+                                {newEmployee.education.map((edu, index) => (
+                                    <div key={index} className="grid md:grid-cols-2 gap-4 p-4 border rounded-md relative">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`edu-degree-${index}`}>Degree/Certificate</Label>
+                                            <Input id={`edu-degree-${index}`} name="degree" value={edu.degree} onChange={(e) => handleNestedInputChange('education', index, e)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`edu-institution-${index}`}>Institution</Label>
+                                            <Input id={`edu-institution-${index}`} name="institution" value={edu.institution} onChange={(e) => handleNestedInputChange('education', index, e)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`edu-field-${index}`}>Field of Study</Label>
+                                            <Input id={`edu-field-${index}`} name="field" value={edu.field} onChange={(e) => handleNestedInputChange('education', index, e)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`edu-completionDate-${index}`}>Completion Date</Label>
+                                            <Input id={`edu-completionDate-${index}`} name="completionDate" type="date" value={edu.completionDate} onChange={(e) => handleNestedInputChange('education', index, e)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`edu-grade-${index}`}>Grade/Result (Optional)</Label>
+                                            <Input id={`edu-grade-${index}`} name="grade" value={edu.grade} onChange={(e) => handleNestedInputChange('education', index, e)} />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => removeListItem('education', index)}
+                                            className="absolute top-4 right-4 h-8 w-8"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                         <Card>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div className="grid gap-1">
+                                    <CardTitle>Training & Certificates</CardTitle>
+                                </div>
+                                <Button size="sm" variant="outline" type="button" onClick={() => addListItem('training')}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Training
+                                </Button>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid gap-4">
+                                {newEmployee.training.map((train, index) => (
+                                    <div key={index} className="grid md:grid-cols-2 gap-4 p-4 border rounded-md relative">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`train-name-${index}`}>Program/Certificate Name</Label>
+                                            <Input id={`train-name-${index}`} name="name" value={train.name} onChange={(e) => handleNestedInputChange('training', index, e)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`train-provider-${index}`}>Provider</Label>
+                                            <Input id={`train-provider-${index}`} name="provider" value={train.provider} onChange={(e) => handleNestedInputChange('training', index, e)} />
+                                        </div>
+                                         <div className="grid gap-2">
+                                            <Label htmlFor={`train-completionDate-${index}`}>Completion Date</Label>
+                                            <Input id={`train-completionDate-${index}`} name="completionDate" type="date" value={train.completionDate} onChange={(e) => handleNestedInputChange('training', index, e)} />
+                                        </div>
+                                         <div className="grid gap-2">
+                                            <Label htmlFor={`train-file-${index}`}>Certificate File</Label>
+                                            <Input id={`train-file-${index}`} name="file" type="file" />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => removeListItem('training', index)}
+                                            className="absolute top-4 right-4 h-8 w-8"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -616,5 +806,3 @@ export default function EmployeesPage() {
     </div>
   )
 }
-
-    
