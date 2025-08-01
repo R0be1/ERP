@@ -133,6 +133,18 @@ export default function EmployeesPage() {
     const updatedContacts = newEmployee.emergencyContacts.filter((_, i) => i !== index);
     setNewEmployee(prevState => ({ ...prevState, emergencyContacts: updatedContacts }));
   };
+
+  const addDependent = () => {
+    setNewEmployee(prevState => ({
+      ...prevState,
+      dependents: [...prevState.dependents, { name: '', relationship: '', dob: '' }]
+    }));
+  };
+
+  const removeDependent = (index: number) => {
+    const updatedDependents = newEmployee.dependents.filter((_, i) => i !== index);
+    setNewEmployee(prevState => ({ ...prevState, dependents: updatedDependents }));
+  };
   
   const handleAddEmployee = () => {
     const newEmp = {
@@ -438,11 +450,44 @@ export default function EmployeesPage() {
                 <TabsContent value="history" className="mt-4 max-h-[60vh] overflow-y-auto p-1">
                     <div className="grid gap-6">
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Dependents</CardTitle>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div className="grid gap-1">
+                                    <CardTitle>Dependents</CardTitle>
+                                    <CardDescription>Manage dependent information.</CardDescription>
+                                </div>
+                                <Button size="sm" variant="outline" type="button" onClick={addDependent}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Dependent
+                                </Button>
                             </CardHeader>
                             <CardContent>
-                                {/* Dependents fields here */}
+                                <div className="grid gap-4">
+                                {newEmployee.dependents.map((dependent, index) => (
+                                    <div key={index} className="grid md:grid-cols-4 items-end gap-4 p-4 border rounded-md relative">
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`dep-name-${index}`}>Full Name</Label>
+                                            <Input id={`dep-name-${index}`} name="name" value={dependent.name} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`dep-relationship-${index}`}>Relationship</Label>
+                                            <Input id={`dep-relationship-${index}`} name="relationship" value={dependent.relationship} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`dep-dob-${index}`}>Date of Birth</Label>
+                                            <Input id={`dep-dob-${index}`} name="dob" type="date" value={dependent.dob} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="destructive"
+                                            size="icon"
+                                            onClick={() => removeDependent(index)}
+                                            className="h-9 w-9"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                                </div>
                             </CardContent>
                         </Card>
                          <Card>
