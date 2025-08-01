@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown } from "lucide-react"
@@ -58,7 +59,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "cmdk"
 import { cn } from "@/lib/utils"
 
 const initialNewEmployeeState = {
@@ -489,7 +490,7 @@ export default function EmployeesPage() {
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-full p-0">
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" side="bottom">
                                         <Command>
                                             <CommandInput placeholder="Search region..." />
                                             <CommandEmpty>No region found.</CommandEmpty>
@@ -1099,5 +1100,3 @@ export default function EmployeesPage() {
     </div>
   )
 }
-
-    
