@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { employees } from "@/lib/data"
@@ -96,7 +97,8 @@ interface jsPDFWithAutoTable extends jsPDF {
 const numberToWords = (num: number): string => {
     const a = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
     const b = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
-    const g = ['', 'thousand', 'million', 'billion', 'trillion'];
+    
+    if (num === 0) return 'Zero';
 
     const toWords = (n: number): string => {
         if (n < 20) return a[n];
@@ -104,29 +106,27 @@ const numberToWords = (num: number): string => {
         return b[Math.floor(n / 10)] + (rem ? '-' + a[rem] : '');
     };
     
-    if (num === 0) return 'zero';
-
-    let str = '';
-    let i = 0;
-    while (num > 0) {
-        let chunk = num % 1000;
-        if (chunk) {
-            let chunkStr = '';
-            if (chunk >= 100) {
-                chunkStr += a[Math.floor(chunk / 100)] + ' hundred';
-                if (chunk % 100) {
-                    chunkStr += ' and ';
-                }
-            }
-            if (chunk % 100) {
-                chunkStr += toWords(chunk % 100);
-            }
-            str = chunkStr + ' ' + g[i] + ' ' + str;
-        }
-        num = Math.floor(num / 1000);
-        i++;
+    const numToWords = (n: number) => {
+        if (n < 100) return toWords(n);
+        let rem = n % 100;
+        return a[Math.floor(n/100)] + ' hundred' + (rem > 0 ? ' ' + toWords(rem) : '');
     }
-    return str.trim().replace(/\s+/g, ' ');
+
+    let words = '';
+    const crores = Math.floor(num / 10000000);
+    num %= 10000000;
+    const lakhs = Math.floor(num / 100000);
+    num %= 100000;
+    const thousands = Math.floor(num / 1000);
+    num %= 1000;
+    const hundreds = num;
+
+    if (crores > 0) words += numToWords(crores) + ' crore ';
+    if (lakhs > 0) words += numToWords(lakhs) + ' lakh ';
+    if (thousands > 0) words += numToWords(thousands) + ' thousand ';
+    if (hundreds > 0) words += numToWords(hundreds);
+
+    return words.trim().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 };
 
 
@@ -167,10 +167,14 @@ export default function ProfilePage() {
                 doc.setFontSize(12);
                 doc.text(date, doc.internal.pageSize.getWidth() - 20, 20, { align: 'right' });
                 
-                doc.text("To Whom It May Concern,", 20, 50);
+                doc.setFontSize(16);
+                doc.setFont('helvetica', 'bold');
+                doc.text("To Whom It May Concern", doc.internal.pageSize.getWidth() / 2, 50, { align: 'center' });
+                doc.setFont('helvetica', 'normal');
 
-                const introText = `This letter is to certify that ${employee.name} has been an employee at Nib International Bank. During their tenure with us, they have held the following positions:`;
-                doc.text(introText, 20, 70, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+                doc.setFontSize(12);
+                const introText = `This is to certify that ${employee.name} has been in the service of Nib International Bank since ${employee.joinDate}. During this period, the captioned employee has been serving on the following job position(s):`;
+                doc.text(introText, 20, 70, { maxWidth: doc.internal.pageSize.getWidth() - 40, align: 'justify' });
 
                 const tableData = employee.internalExperience.map(exp => [
                     exp.startDate,
@@ -181,18 +185,21 @@ export default function ProfilePage() {
                 doc.autoTable({
                     head: [['Start Date', 'End Date', 'Job Titles']],
                     body: tableData,
-                    startY: 80,
+                    startY: 85,
                     headStyles: { fillColor: [70, 130, 180] }, // Soft blue
                 });
                 
                 const lastTableY = doc.autoTable.previous.finalY;
-
+                
+                const pronoun = employee.gender === 'female' ? 'She' : 'He';
+                const salaryInBirr = Number(employee.basicSalary).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 const salaryInWords = numberToWords(Number(employee.basicSalary));
-                const salaryText = `He is entitled a monthly basic salary of Birr ${employee.basicSalary} (${salaryInWords}).`;
-                const closingText = "This certificate is issued upon their request and does not serve as a release.";
+                const salaryText = `${pronoun} is entitled a monthly basic salary of Birr ${salaryInBirr} (Birr ${salaryInWords}). All necessary income tax has been regularly deducted from the employee’s taxable income(s) and duly paid to the concerned government organ(s).`;
+                
+                doc.text(salaryText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40, align: 'justify' });
 
-                doc.text(salaryText, 20, lastTableY + 20, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
-                doc.text(closingText, 20, lastTableY + 30, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+                const closingText = "This certificate is issued upon their request and does not serve as a release.";
+                doc.text(closingText, 20, lastTableY + 35, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
                 
                 doc.text("Nib International Bank", 20, lastTableY + 60);
 
@@ -215,7 +222,6 @@ export default function ProfilePage() {
             };
             img.onerror = () => {
                 console.error("Failed to load image for PDF");
-                // Proceed without image if it fails to load
                 addContent();
             }
 
