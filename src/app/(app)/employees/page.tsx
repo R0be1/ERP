@@ -2,8 +2,9 @@
 
 "use client"
 
-import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown } from "lucide-react"
-import { useState } from "react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -147,6 +148,8 @@ const jobTitles = [
 type Employee = (typeof initialEmployees)[number];
 
 export default function EmployeesPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [employees, setEmployees] = useState(initialEmployees);
   const [searchTerm, setSearchTerm] = useState("");
   const [newEmployee, setNewEmployee] = useState(initialNewEmployeeState);
@@ -157,6 +160,16 @@ export default function EmployeesPage() {
   const [isPositionPopoverOpen, setPositionPopoverOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<any>(null);
   const [isViewEmployeeDialogOpen, setViewEmployeeDialogOpen] = useState(false);
+
+  useEffect(() => {
+    const editEmployeeId = searchParams.get('edit');
+    if (editEmployeeId) {
+        const employeeToEdit = employees.find(emp => emp.id === editEmployeeId);
+        if (employeeToEdit) {
+            handleOpenEditDialog(employeeToEdit);
+        }
+    }
+  }, [searchParams, employees]);
 
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,7 +192,7 @@ export default function EmployeesPage() {
     
     if (name.startsWith('address.')) {
         const addressField = name.split('.')[1];
-        formState(prevState => ({
+        formState((prevState: any) => ({
             ...prevState,
             address: {
                 ...prevState.address,
@@ -187,7 +200,7 @@ export default function EmployeesPage() {
             }
         }));
     } else {
-        formState(prevState => ({ ...prevState, [name]: value }));
+        formState((prevState: any) => ({ ...prevState, [name]: value }));
     }
   };
 
@@ -196,7 +209,7 @@ export default function EmployeesPage() {
     
     if (name === 'address.region') {
         const addressField = name.split('.')[1];
-         formState(prevState => ({
+         formState((prevState: any) => ({
             ...prevState,
             address: {
                 ...prevState.address,
@@ -204,22 +217,22 @@ export default function EmployeesPage() {
             }
         }));
     } else {
-        formState(prevState => ({ ...prevState, [name]: value }));
+        formState((prevState: any) => ({ ...prevState, [name]: value }));
     }
   };
 
   const handleNestedInputChange = (section: keyof typeof initialNewEmployeeState, index: number, e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     const formState = selectedEmployee ? setSelectedEmployee : setNewEmployee;
-    const list = (selectedEmployee || newEmployee)[section] as any[];
+    const list = ((selectedEmployee || newEmployee) as any)[section] as any[];
     const updatedList = [...list];
     updatedList[index] = { ...updatedList[index], [name]: value };
-    formState(prevState => ({ ...prevState, [section]: updatedList }));
+    formState((prevState: any) => ({ ...prevState, [section]: updatedList }));
   };
   
   const addListItem = (section: keyof typeof initialNewEmployeeState) => {
       const formState = selectedEmployee ? setSelectedEmployee : setNewEmployee;
-      const list = (selectedEmployee || newEmployee)[section] as any[];
+      const list = ((selectedEmployee || newEmployee) as any)[section] as any[];
       let newItem;
       switch (section) {
           case 'emergencyContacts':
@@ -249,7 +262,7 @@ export default function EmployeesPage() {
           default:
               newItem = {};
       }
-      formState(prevState => ({
+      formState((prevState: any) => ({
         ...prevState,
         [section]: [...list, newItem]
       }));
@@ -257,9 +270,9 @@ export default function EmployeesPage() {
 
   const removeListItem = (section: keyof typeof initialNewEmployeeState, index: number) => {
     const formState = selectedEmployee ? setSelectedEmployee : setNewEmployee;
-    const list = (selectedEmployee || newEmployee)[section] as any[];
+    const list = ((selectedEmployee || newEmployee) as any)[section] as any[];
     const updatedList = list.filter((_, i) => i !== index);
-    formState(prevState => ({ ...prevState, [section]: updatedList }));
+    formState((prevState: any) => ({ ...prevState, [section]: updatedList }));
   };
 
   const handleAddEmployee = () => {
@@ -301,15 +314,20 @@ export default function EmployeesPage() {
     setSelectedEmployee(null);
     setPhotoPreview(null);
   };
-
-  const handleOpenViewDetails = (employee: Employee) => {
-      // Deep copy to avoid modifying the original employee data directly
+  
+  const handleOpenEditDialog = (employee: Employee) => {
       const employeeData = JSON.parse(JSON.stringify(employee));
-      // Ensure all fields from initialNewEmployeeState exist
       const fullEmployeeData = { ...initialNewEmployeeState, ...employeeData };
       setSelectedEmployee(fullEmployeeData);
       setPhotoPreview(employee.avatar);
       setViewEmployeeDialogOpen(true);
+  };
+
+  const handleCloseEditDialog = () => {
+    setViewEmployeeDialogOpen(false);
+    setSelectedEmployee(null);
+    const newUrl = window.location.pathname;
+    window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
   };
 
 
@@ -679,7 +697,7 @@ export default function EmployeesPage() {
                             </Button>
                         </div>
                         <div className="grid gap-4">
-                            {employeeData.emergencyContacts.map((contact, index) => (
+                            {employeeData.emergencyContacts.map((contact: any, index: number) => (
                                 <div key={index} className="grid md:grid-cols-4 items-end gap-4 p-4 border rounded-md relative">
                                     <div className="grid gap-2">
                                         <Label htmlFor={`ec-name-${index}`}>Full Name</Label>
@@ -781,7 +799,7 @@ export default function EmployeesPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.dependents.map((dependent, index) => (
+                            {employeeData.dependents.map((dependent: any, index: number) => (
                                 <div key={index} className="grid md:grid-cols-4 items-end gap-4 p-4 border rounded-md relative">
                                     <div className="grid gap-2">
                                         <Label htmlFor={`dep-name-${index}`}>Full Name</Label>
@@ -821,7 +839,7 @@ export default function EmployeesPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.internalExperience.map((exp, index) => (
+                            {employeeData.internalExperience.map((exp: any, index: number) => (
                                 <div key={index} className="grid gap-4 p-4 border rounded-md relative">
                                     <div className="grid md:grid-cols-2 gap-4">
                                         <div className="grid gap-2">
@@ -871,7 +889,7 @@ export default function EmployeesPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.externalExperience.map((exp, index) => (
+                            {employeeData.externalExperience.map((exp: any, index: number) => (
                                 <div key={index} className="grid gap-4 p-4 border rounded-md relative">
                                     <div className="grid md:grid-cols-2 gap-4">
                                          <div className="grid gap-2">
@@ -921,7 +939,7 @@ export default function EmployeesPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.education.map((edu, index) => (
+                            {employeeData.education.map((edu: any, index: number) => (
                                 <div key={index} className="grid md:grid-cols-2 gap-4 p-4 border rounded-md relative">
                                     <div className="grid gap-2">
                                         <Label htmlFor={`edu-degree-${index}`}>Degree/Certificate</Label>
@@ -969,7 +987,7 @@ export default function EmployeesPage() {
                         </CardHeader>
                         <CardContent>
                             <div className="grid gap-4">
-                            {employeeData.training.map((train, index) => (
+                            {employeeData.training.map((train: any, index: number) => (
                                 <div key={index} className="grid md:grid-cols-2 gap-4 p-4 border rounded-md relative">
                                     <div className="grid gap-2">
                                         <Label htmlFor={`train-name-${index}`}>Program/Certificate Name</Label>
@@ -1018,7 +1036,7 @@ export default function EmployeesPage() {
                             </Button>
                         </CardHeader>
                         <CardContent className="grid gap-4">
-                            {employeeData.incomingGuarantees.map((guarantee, index) => (
+                            {employeeData.incomingGuarantees.map((guarantee: any, index: number) => (
                                 <div key={index} className="grid gap-4 p-4 border rounded-md relative">
                                     <div className="grid md:grid-cols-3 gap-4">
                                         <div className="grid gap-2">
@@ -1069,7 +1087,7 @@ export default function EmployeesPage() {
                             </Button>
                         </CardHeader>
                         <CardContent className="grid gap-4">
-                            {employeeData.outgoingGuarantees.map((guarantee, index) => (
+                            {employeeData.outgoingGuarantees.map((guarantee: any, index: number) => (
                                 <div key={index} className="grid gap-4 p-4 border rounded-md relative">
                                     <div className="grid md:grid-cols-3 gap-4">
                                         <div className="grid gap-2">
@@ -1221,8 +1239,8 @@ export default function EmployeesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => handleOpenViewDetails(employee)}>View Details</DropdownMenuItem>
-                        <DropdownMenuItem onSelect={() => handleOpenViewDetails(employee)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => router.push(`/employees/${employee.id}`)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleOpenEditDialog(employee)}>Edit</DropdownMenuItem>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Delete</DropdownMenuItem>
@@ -1255,18 +1273,18 @@ export default function EmployeesPage() {
         </CardFooter>
       </Card>
       
-       <Dialog open={isViewEmployeeDialogOpen} onOpenChange={setViewEmployeeDialogOpen}>
+       <Dialog open={isViewEmployeeDialogOpen} onOpenChange={handleCloseEditDialog}>
             <DialogContent className="sm:max-w-4xl">
               <DialogHeader>
-                <DialogTitle>View/Edit Employee</DialogTitle>
+                <DialogTitle>Edit Employee</DialogTitle>
                 <DialogDescription>
-                  View or edit the details for the employee.
+                  Update the details for the employee.
                 </DialogDescription>
               </DialogHeader>
               {selectedEmployee && <EmployeeForm isEditMode={true} />}
               <DialogFooter>
                  <DialogClose asChild>
-                    <Button type="button" variant="ghost" onClick={() => setSelectedEmployee(null)}>Cancel</Button>
+                    <Button type="button" variant="ghost" onClick={handleCloseEditDialog}>Cancel</Button>
                 </DialogClose>
                 <Button type="button" onClick={handleUpdateEmployee}>Save Changes</Button>
               </DialogFooter>
