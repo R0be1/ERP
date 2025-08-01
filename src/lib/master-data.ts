@@ -57,10 +57,10 @@ const initialMasterData = {
         { value: 'business-administration', label: 'Business Administration' },
     ],
     institutions: [
-        { value: 'addis-ababa-university', label: 'Addis Ababa University' },
-        { value: 'mekelle-university', label: 'Mekelle University' },
-        { value: 'unity-university', label: 'Unity University' },
-        { value: 'admas-university', label: 'Admas University' },
+        { value: 'addis-ababa-university', label: 'Addis Ababa University', institutionType: 'Government' },
+        { value: 'mekelle-university', label: 'Mekelle University', institutionType: 'Government' },
+        { value: 'unity-university', label: 'Unity University', institutionType: 'Private' },
+        { value: 'admas-university', label: 'Admas University', institutionType: 'Private' },
     ],
     employmentTypes: [
         { value: 'permanent', label: 'Permanent' },

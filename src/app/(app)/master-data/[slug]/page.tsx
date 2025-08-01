@@ -33,11 +33,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
 type MasterDataCategoryKey = keyof typeof initialMasterData;
 
-const dataCategoryDetails: { [key: string]: { title: string, fields: { key: string, label: string, type: 'text' | 'number' | 'select', options?: MasterDataCategoryKey }[] } } = {
+const dataCategoryDetails: { [key: string]: { title: string, fields: { key: string, label: string, type: 'text' | 'number' | 'select' | 'hardcoded-select', options?: MasterDataCategoryKey | {value: string, label: string}[] }[] } } = {
     departments: { title: 'Departments', fields: [
         { key: 'label', label: 'Department Name', type: 'text' },
         { key: 'type', label: 'Department Type', type: 'select', options: 'departmentTypes' },
@@ -56,7 +57,10 @@ const dataCategoryDetails: { [key: string]: { title: string, fields: { key: stri
     employmentTypes: { title: 'Employment Types', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     regions: { title: 'Regions', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     fieldsOfStudy: { title: 'Fields of Study', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
-    institutions: { title: 'Institutions', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    institutions: { title: 'Institutions', fields: [
+        { key: 'label', label: 'Name', type: 'text' },
+        { key: 'institutionType', label: 'Institution Type', type: 'hardcoded-select', options: [{value: 'Government', label: 'Government'}, {value: 'Private', label: 'Private'}] }
+    ]},
     educationAwards: { title: 'Education Awards', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     programTypes: { title: 'Program Types', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
 };
@@ -188,8 +192,8 @@ export default function MasterDataManagementPage() {
 
     const getDisplayValue = (item: any, fieldKey: string) => {
         const field = categoryInfo.fields.find(f => f.key === fieldKey);
-        if (field?.type === 'select' && field.options) {
-            const optionSet = masterData[field.options] || [];
+        if (field?.type === 'select' && field.options && typeof field.options === 'string') {
+            const optionSet = masterData[field.options as MasterDataCategoryKey] || [];
             const option = optionSet.find(o => o.value === item[fieldKey]);
             return option ? option.label : item[fieldKey];
         }
@@ -240,13 +244,23 @@ export default function MasterDataManagementPage() {
                                         {field.type === 'number' && (
                                             <Input id={field.key} type="number" value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
                                         )}
-                                        {field.type === 'select' && field.options && (
+                                        {field.type === 'select' && field.options && typeof field.options === 'string' && (
                                             <Combobox 
-                                                items={masterData[field.options] || []}
+                                                items={masterData[field.options as MasterDataCategoryKey] || []}
                                                 value={formState[field.key] || ''}
                                                 onChange={(value) => handleFormChange(field.key, value)}
                                                 placeholder={`Select ${field.label}...`}
                                             />
+                                        )}
+                                        {field.type === 'hardcoded-select' && Array.isArray(field.options) && (
+                                             <Select onValueChange={(value) => handleFormChange(field.key, value)} value={formState[field.key] || ''}>
+                                                <SelectTrigger><SelectValue placeholder={`Select ${field.label}...`} /></SelectTrigger>
+                                                <SelectContent>
+                                                    {(field.options as {value: string, label: string}[]).map(opt => (
+                                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
                                         )}
                                     </div>
                                 )})}
