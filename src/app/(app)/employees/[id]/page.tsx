@@ -2,7 +2,7 @@
 
 "use client"
 
-import { employees } from "@/lib/data"
+import { employees as initialEmployees } from "@/lib/data"
 import { notFound, useRouter, useParams } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { useState, useEffect } from "react"
 
 const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => {
     if (!value) return null;
@@ -76,10 +77,24 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
     const router = useRouter();
     const params = useParams();
     const employeeId = (params?.id || serverParams.id) as string;
-    const employee = employees.find(e => e.id === employeeId)
+    
+    // This state will hold all employees, including newly added ones.
+    const [employees, setEmployees] = useState(initialEmployees);
+
+    // In a real app, you'd likely fetch this from a global state or an API
+    // For now, we'll check local storage for simplicity.
+    useEffect(() => {
+        const storedEmployees = localStorage.getItem('employees');
+        if (storedEmployees) {
+            setEmployees(JSON.parse(storedEmployees));
+        }
+    }, []);
+
+    const employee = employees.find(e => e.id === employeeId);
 
     if (!employee) {
-        notFound();
+        // You can render a loading state here while waiting for the effect
+        return <div>Loading...</div>;
     }
     
     // Fallback for missing nested data

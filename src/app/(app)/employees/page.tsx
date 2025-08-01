@@ -65,6 +65,7 @@ import { cn } from "@/lib/utils"
 
 const initialNewEmployeeState = {
   // Profile
+  id: '',
   employeeId: '',
   title: '',
   firstName: '',
@@ -1067,7 +1068,7 @@ export default function EmployeesPage() {
       avatar: photo || 'https://placehold.co/40x40.png',
       ...employeeData, // Add all other fields
     };
-    setEmployees([...employees, newEmp]);
+    setEmployees(prev => [...prev, newEmp]);
     setAddEmployeeDialogOpen(false);
   };
   
