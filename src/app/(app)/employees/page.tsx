@@ -557,6 +557,47 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                             </div>
                         </CardContent>
                     </Card>
+                     <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div className="grid gap-1">
+                                <CardTitle>Dependents</CardTitle>
+                                <CardDescription>Manage dependent information.</CardDescription>
+                            </div>
+                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('dependents')}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add Dependent
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-4">
+                            {(employeeData.dependents || []).map((dependent: any, index: number) => (
+                                <div key={index} className="grid md:grid-cols-4 items-end gap-4 p-4 border rounded-md relative">
+                                    <div className="grid gap-2">
+                                        <Label htmlFor={`dep-name-${index}`}>Full Name</Label>
+                                        <Input id={`dep-name-${index}`} name="name" value={dependent.name} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor={`dep-relationship-${index}`}>Relationship</Label>
+                                        <Input id={`dep-relationship-${index}`} name="relationship" value={dependent.relationship} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
+                                    </div>
+                                    <div className="grid gap-2">
+                                        <Label htmlFor={`dep-dob-${index}`}>Date of Birth</Label>
+                                        <Input id={`dep-dob-${index}`} name="dob" type="date" value={dependent.dob} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="icon"
+                                        onClick={() => removeListItem('dependents', index)}
+                                        className="h-9 w-9"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </TabsContent>
 
@@ -715,47 +756,6 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
              
             <TabsContent value="history" className="mt-4 max-h-[60vh] overflow-y-auto p-1">
                 <div className="grid gap-6">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between">
-                            <div className="grid gap-1">
-                                <CardTitle>Dependents</CardTitle>
-                                <CardDescription>Manage dependent information.</CardDescription>
-                            </div>
-                            <Button size="sm" variant="outline" type="button" onClick={() => addListItem('dependents')}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Add Dependent
-                            </Button>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid gap-4">
-                            {(employeeData.dependents || []).map((dependent: any, index: number) => (
-                                <div key={index} className="grid md:grid-cols-4 items-end gap-4 p-4 border rounded-md relative">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`dep-name-${index}`}>Full Name</Label>
-                                        <Input id={`dep-name-${index}`} name="name" value={dependent.name} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`dep-relationship-${index}`}>Relationship</Label>
-                                        <Input id={`dep-relationship-${index}`} name="relationship" value={dependent.relationship} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`dep-dob-${index}`}>Date of Birth</Label>
-                                        <Input id={`dep-dob-${index}`} name="dob" type="date" value={dependent.dob} onChange={(e) => handleNestedInputChange('dependents', index, e)} />
-                                    </div>
-                                    <Button
-                                        type="button"
-                                        variant="destructive"
-                                        size="icon"
-                                        onClick={() => removeListItem('dependents', index)}
-                                        className="h-9 w-9"
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            ))}
-                            </div>
-                        </CardContent>
-                    </Card>
                      <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div className="grid gap-1">
@@ -1194,7 +1194,7 @@ export default function EmployeesPage() {
            name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
            email: employeeData.workEmail,
            position: jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
-           department: departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
+           department: departments.find(j => j.value === employeeData.department)?.label || employeeData.department,
            jobCategory: jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
            avatar: photo || (emp as any).avatar,
         };
