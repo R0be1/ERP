@@ -68,6 +68,10 @@ const initialNewEmployeeState = {
   gender: '',
   maritalStatus: '',
   nationality: '',
+  nationalId: '',
+  kebeleId: '',
+  drivingLicense: '',
+  passportNo: '',
   // Job
   department: '',
   position: '', // Job Title
@@ -280,6 +284,29 @@ export default function EmployeesPage() {
                                 <div className="grid gap-2 md:col-span-3">
                                     <Label htmlFor="photo">Photo</Label>
                                     <Input id="photo" type="file" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Identification Information</CardTitle>
+                            </CardHeader>
+                            <CardContent className="grid md:grid-cols-2 gap-4">
+                               <div className="grid gap-2">
+                                    <Label htmlFor="nationalId">National ID</Label>
+                                    <Input id="nationalId" name="nationalId" value={newEmployee.nationalId} onChange={handleInputChange} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="kebeleId">Kebele ID</Label>
+                                    <Input id="kebeleId" name="kebeleId" value={newEmployee.kebeleId} onChange={handleInputChange} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="drivingLicense">Driving License</Label>
+                                    <Input id="drivingLicense" name="drivingLicense" value={newEmployee.drivingLicense} onChange={handleInputChange} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="passportNo">Passport No.</Label>
+                                    <Input id="passportNo" name="passportNo" value={newEmployee.passportNo} onChange={handleInputChange} />
                                 </div>
                             </CardContent>
                         </Card>
