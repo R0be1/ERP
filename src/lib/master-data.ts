@@ -62,16 +62,31 @@ const initialMasterData = {
         { value: 'unity-university', label: 'Unity University' },
         { value: 'admas-university', label: 'Admas University' },
     ],
+    divisions: [], // New empty category
+    employmentTypes: [ // New category with some initial data
+        { value: 'permanent', label: 'Permanent' },
+        { value: 'contract', label: 'Contract' },
+        { value: 'temporary', label: 'Temporary' },
+        { value: 'internship', label: 'Internship' },
+    ],
+    programTypes: [ // New category with some initial data
+        { value: 'regular', label: 'Regular' },
+        { value: 'distance', label: 'Distance' },
+        { value: 'extension', label: 'Extension' },
+        { value: 'weekend', label: 'Weekend' },
+    ]
 };
 
 
-let masterData = { ...initialMasterData };
+let masterData: typeof initialMasterData = { ...initialMasterData };
 
 if (typeof window !== 'undefined') {
     const storedData = localStorage.getItem('masterData');
     if (storedData) {
         try {
-            masterData = JSON.parse(storedData);
+            const parsedData = JSON.parse(storedData);
+            // Merge stored data with initial data to ensure all keys are present
+            masterData = { ...initialMasterData, ...parsedData };
         } catch (e) {
             console.error("Failed to parse master data from localStorage", e);
         }

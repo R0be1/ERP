@@ -19,6 +19,7 @@ import {
   PanelLeft,
   LogOut,
   Settings,
+  Database,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -52,13 +53,14 @@ const navItems = [
 const bottomNavItems = [
   { href: "/profile", icon: UserCircle, label: "My Profile" },
   { href: "/feedback", icon: MessageSquareQuote, label: "Feedback" },
-  { href: "/offboarding", icon: LogOut, label: "Exit/Offboarding" },
+  { href: "/master-data", icon: Database, label: "Master Data" },
   { href: "/configuration", icon: Settings, label: "Configuration" },
+  { href: "/offboarding", icon: LogOut, label: "Exit/Offboarding" },
 ]
 
 const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
   const pathname = usePathname();
-  const isActive = pathname === href;
+  const isActive = pathname.startsWith(href);
   return (
       <Tooltip>
         <TooltipTrigger asChild>
@@ -80,7 +82,7 @@ const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.Elemen
 
 const MobileNavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
     const pathname = usePathname();
-    const isActive = pathname === href;
+    const isActive = pathname.startsWith(href);
     return (
       <Link
         href={href}
