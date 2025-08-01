@@ -61,6 +61,8 @@ import { Textarea } from "@/components/ui/textarea"
 
 const initialNewEmployeeState = {
   // Profile
+  employeeId: '',
+  title: '',
   firstName: '',
   middleName: '',
   lastName: '',
@@ -189,8 +191,8 @@ export default function EmployeesPage() {
 
   const handleAddEmployee = () => {
     const newEmp = {
-      id: `EMP${String(employees.length + 1).padStart(3, '0')}`,
-      name: `${newEmployee.firstName} ${newEmployee.lastName}`,
+      id: newEmployee.employeeId || `EMP${String(employees.length + 1).padStart(3, '0')}`,
+      name: `${newEmployee.title} ${newEmployee.firstName} ${newEmployee.lastName}`,
       email: newEmployee.workEmail,
       position: newEmployee.position,
       department: newEmployee.department,
@@ -265,6 +267,24 @@ export default function EmployeesPage() {
                                 <CardTitle>Personal Information</CardTitle>
                             </CardHeader>
                             <CardContent className="grid md:grid-cols-3 gap-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="employeeId">Employee ID</Label>
+                                    <Input id="employeeId" name="employeeId" value={newEmployee.employeeId} onChange={handleInputChange} />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="title">Title</Label>
+                                    <Select name="title" onValueChange={(v) => handleSelectChange('title', v)} value={newEmployee.title}>
+                                        <SelectTrigger id="title"><SelectValue placeholder="Select..." /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Ato">Ato</SelectItem>
+                                            <SelectItem value="Woy">Woy</SelectItem>
+                                            <SelectItem value="Dr">Dr</SelectItem>
+                                            <SelectItem value="Eng">Eng</SelectItem>
+                                            <SelectItem value="Prof">Prof</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-2"></div>
                                <div className="grid gap-2">
                                     <Label htmlFor="firstName">First Name</Label>
                                     <Input id="firstName" name="firstName" value={newEmployee.firstName} onChange={handleInputChange} />
@@ -986,5 +1006,3 @@ export default function EmployeesPage() {
     </div>
   )
 }
-
-    
