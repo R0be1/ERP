@@ -1,39 +1,98 @@
 
-"use client"
+"use client";
 
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { 
+    Settings, GitBranch, ScrollText, Building, Briefcase, Tag, Layers, School, 
+    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User
+} from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollText, Settings, GitBranch } from "lucide-react";
+import { masterData as initialMasterData } from "@/lib/master-data";
+import { Separator } from "@/components/ui/separator";
 
 const configAreas = [
     {
         id: "system-settings",
         icon: Settings,
         title: "System Settings",
-        description: "Manage global configurations like themes, notifications, and integrations.",
-        action: "Go to Settings",
+        description: "Manage themes, notifications, and integrations.",
     },
     {
         id: "business-rules",
         icon: ScrollText,
         title: "Business Rules",
-        description: "Define and manage rules for leave policies, attendance, and compliance.",
-        action: "Manage Rules",
+        description: "Define policies for leave, attendance, and compliance.",
     },
     {
         id: "workflow-management",
         icon: GitBranch,
         title: "Workflow Management",
-        description: "Configure approval workflows for various HR processes.",
-        action: "Configure Workflows",
+        description: "Configure approval workflows for HR processes.",
     },
 ];
 
-export default function ConfigurationPage() {
+const dataCategories = [
+    { key: 'departments', title: 'Departments', description: 'Manage company departments.', icon: Building },
+    { key: 'divisions', title: 'Divisions / Units', description: 'Define units under departments.', icon: Landmark },
+    { key: 'jobTitles', title: 'Job Titles', description: 'Manage job titles and codes.', icon: Briefcase },
+    { key: 'jobCategories', title: 'Job Categories', description: 'Configure job types.', icon: Layers },
+    { key: 'jobGrades', title: 'Job Grades', description: 'Define grading structure.', icon: Tag },
+    { key: 'employmentTypes', title: 'Employment Types', description: 'Manage employment statuses.', icon: User },
+    { key: 'regions', title: 'Regions/Zones/Woredas', description: 'Geographical classifications.', icon: Map },
+    { key: 'fieldsOfStudy', title: 'Fields of Study', description: 'Manage education fields.', icon: Library },
+    { key: 'institutions', title: 'Institutions', description: 'Manage universities, colleges, etc.', icon: School },
+    { key: 'educationAwards', title: 'Award Types & Levels', description: 'Manage honors and certifications.', icon: GraduationCap },
+    { key: 'programTypes', title: 'Program Types', description: 'Regular, Distance, Extension.', icon: RadioTower },
+];
+
+type MasterDataCategoryKey = keyof typeof initialMasterData;
+
+const MasterDataCard = ({ title, description, icon: Icon, count }: { title: string; description: string; icon: React.ElementType, count: number }) => {
     return (
-        <div className="flex flex-col gap-4">
+        <Card className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow">
+            <CardHeader className="flex-row items-start gap-4 space-y-0 pb-4">
+                <div className="bg-muted p-3 rounded-md">
+                    <Icon className="h-6 w-6 text-primary" />
+                </div>
+                <div className="grid gap-1">
+                    <CardTitle>{title}</CardTitle>
+                    <CardDescription>{description}</CardDescription>
+                </div>
+            </CardHeader>
+            <CardContent className="flex-grow"></CardContent>
+            <CardFooter className="flex justify-between items-center">
+                <p className="text-xs text-muted-foreground">{count} Records</p>
+                <Button variant="outline" size="sm">Manage</Button>
+            </CardFooter>
+        </Card>
+    );
+};
+
+export default function ConfigurationPage() {
+    const [masterData, setMasterData] = useState(initialMasterData);
+
+    useEffect(() => {
+        const storedData = localStorage.getItem('masterData');
+        if (storedData) {
+            try {
+                setMasterData(JSON.parse(storedData));
+            } catch (e) {
+                console.error("Failed to parse master data from localStorage", e);
+            }
+        }
+    }, []);
+
+    const getCount = (key: string) => {
+        const data = masterData[key as MasterDataCategoryKey];
+        return Array.isArray(data) ? data.length : 0;
+    };
+
+    return (
+        <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-lg font-semibold md:text-2xl">Configuration Module</h1>
+                <h1 className="text-lg font-semibold md:text-2xl">Configuration</h1>
             </div>
 
             <Card>
@@ -46,7 +105,7 @@ export default function ConfigurationPage() {
                 <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {configAreas.map((area) => (
                         <Card key={area.id}>
-                            <CardHeader className="flex flex-row items-start gap-4 space-y-0">
+                            <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-4">
                                <area.icon className="h-8 w-8 text-primary" />
                                <div className="grid gap-1">
                                     <CardTitle>{area.title}</CardTitle>
@@ -54,9 +113,31 @@ export default function ConfigurationPage() {
                                </div>
                             </CardHeader>
                             <CardContent>
-                                <Button variant="outline">{area.action}</Button>
+                                <Button variant="outline">Configure</Button>
                             </CardContent>
                         </Card>
+                    ))}
+                </CardContent>
+            </Card>
+
+            <Separator />
+            
+            <Card>
+                 <CardHeader>
+                    <CardTitle>Master Data Management</CardTitle>
+                    <CardDescription>
+                        Manage the core data entities used across the HCM platform.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                     {dataCategories.map((cat) => (
+                        <MasterDataCard
+                            key={cat.key}
+                            title={cat.title}
+                            description={cat.description}
+                            icon={cat.icon}
+                            count={getCount(cat.key)}
+                        />
                     ))}
                 </CardContent>
             </Card>

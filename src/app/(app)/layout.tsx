@@ -53,7 +53,6 @@ const navItems = [
 const bottomNavItems = [
   { href: "/profile", icon: UserCircle, label: "My Profile" },
   { href: "/feedback", icon: MessageSquareQuote, label: "Feedback" },
-  { href: "/master-data", icon: Database, label: "Master Data" },
   { href: "/configuration", icon: Settings, label: "Configuration" },
   { href: "/offboarding", icon: LogOut, label: "Exit/Offboarding" },
 ]
