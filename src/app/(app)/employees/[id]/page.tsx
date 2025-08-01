@@ -1,8 +1,9 @@
 
+
 "use client"
 
 import { employees } from "@/lib/data"
-import { notFound, useRouter } from "next/navigation"
+import { notFound, useRouter, useParams } from "next/navigation"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -41,9 +42,11 @@ const ExperienceItem = ({ title, entity, duration, description }: { title: strin
 )
 
 
-export default function EmployeeProfilePage({ params }: { params: { id: string } }) {
+export default function EmployeeProfilePage({ params: serverParams }: { params: { id: string } }) {
     const router = useRouter();
-    const employee = employees.find(e => e.id === params.id)
+    const params = useParams();
+    const employeeId = (params.id || serverParams.id) as string;
+    const employee = employees.find(e => e.id === employeeId)
 
     if (!employee) {
         notFound();
