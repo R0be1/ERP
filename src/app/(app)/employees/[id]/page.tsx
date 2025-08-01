@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield } from "lucide-react"
+import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 
 const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => {
@@ -41,11 +41,41 @@ const ExperienceItem = ({ title, entity, duration, description }: { title: strin
     </div>
 )
 
+const GuaranteeItem = ({ guarantee, type }: { guarantee: any, type: 'incoming' | 'outgoing' }) => {
+    if (type === 'incoming') {
+        return (
+             <div className="grid md:grid-cols-2 gap-4 border p-4 rounded-md">
+                <InfoItem icon={User} label="Guarantor Name" value={guarantee.guarantorName} />
+                <InfoItem icon={Users} label="Relationship" value={guarantee.relationship} />
+                <InfoItem icon={Building} label="Organization" value={guarantee.organization} />
+                <InfoItem icon={Phone} label="Organization Phone" value={guarantee.organizationPhone} />
+                <InfoItem icon={Phone} label="Guarantor Phone" value={guarantee.guarantorPhone} />
+                <InfoItem icon={Calendar} label="Issue Date" value={guarantee.issueDate} />
+                <InfoItem icon={FileText} label="Document" value={guarantee.document ? "Attached" : "Not available"} />
+            </div>
+        )
+    }
+    return (
+        <div className="grid md:grid-cols-2 gap-4 border p-4 rounded-md">
+            <InfoItem icon={User} label="Recipient Name" value={guarantee.recipientName} />
+            <InfoItem icon={Phone} label="Recipient Phone" value={guarantee.recipientPhone} />
+            <InfoItem icon={Users} label="Relationship" value={guarantee.relationship} />
+            <InfoItem icon={Building} label="Organization" value={guarantee.organization} />
+            <InfoItem icon={Phone} label="Organization Phone" value={guarantee.organizationPhone} />
+            <InfoItem icon={Mail} label="P.O. Box" value={guarantee.poBox} />
+            <InfoItem icon={DollarSign} label="Guarantee Amount" value={`${guarantee.amount} ETB`} />
+            <InfoItem icon={Calendar} label="Issue Date" value={guarantee.issueDate} />
+            <InfoItem icon={Calendar} label="Expiry Date" value={guarantee.expiryDate} />
+            <InfoItem icon={FileText} label="Document" value={guarantee.document ? "Attached" : "Not available"} />
+        </div>
+    )
+}
+
 
 export default function EmployeeProfilePage({ params: serverParams }: { params: { id: string } }) {
     const router = useRouter();
     const params = useParams();
-    const employeeId = (params.id || serverParams.id) as string;
+    const employeeId = (params?.id || serverParams.id) as string;
     const employee = employees.find(e => e.id === employeeId)
 
     if (!employee) {
@@ -60,6 +90,8 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
     const externalExperience = employee.externalExperience || [];
     const education = employee.education || [];
     const training = employee.training || [];
+    const incomingGuarantees = employee.incomingGuarantees || [];
+    const outgoingGuarantees = employee.outgoingGuarantees || [];
 
     const fullAddress = [address.houseNo, address.kebele, address.woreda, address.subcity, address.city, address.country].filter(Boolean).join(', ');
 
@@ -177,6 +209,24 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                                 )) : <p className="text-muted-foreground text-sm">No training history recorded.</p>}
                             </div>
                          </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader><CardTitle>Guarantee Information</CardTitle></CardHeader>
+                        <CardContent className="grid gap-6">
+                            <div>
+                                <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ShieldCheck className="h-5 w-5" /> Incoming Guarantees</h3>
+                                {incomingGuarantees.length > 0 ? incomingGuarantees.map((guarantee, i) => (
+                                    <GuaranteeItem key={`inc-${i}`} guarantee={guarantee} type="incoming" />
+                                )) : <p className="text-muted-foreground text-sm">No incoming guarantees recorded.</p>}
+                            </div>
+                            <Separator />
+                             <div>
+                                <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ShieldCheck className="h-5 w-5" /> Outgoing Guarantees</h3>
+                                {outgoingGuarantees.length > 0 ? outgoingGuarantees.map((guarantee, i) => (
+                                     <GuaranteeItem key={`out-${i}`} guarantee={guarantee} type="outgoing" />
+                                )) : <p className="text-muted-foreground text-sm">No outgoing guarantees recorded.</p>}
+                            </div>
+                        </CardContent>
                     </Card>
                 </div>
             </div>
