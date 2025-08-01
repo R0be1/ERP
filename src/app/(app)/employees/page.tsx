@@ -490,7 +490,7 @@ export default function EmployeesPage() {
                                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                         </Button>
                                         </PopoverTrigger>
-                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" side="bottom">
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" side="bottom" align="start">
                                         <Command>
                                             <CommandInput placeholder="Search region..." />
                                             <CommandEmpty>No region found.</CommandEmpty>
