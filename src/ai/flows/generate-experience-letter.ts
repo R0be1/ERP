@@ -42,23 +42,31 @@ const prompt = ai.definePrompt({
   name: 'generateExperienceLetterPrompt',
   input: { schema: GenerateExperienceLetterInputSchema },
   output: { schema: GenerateExperienceLetterOutputSchema },
-  prompt: `You are an HR assistant tasked with writing a formal Work Experience Letter for an employee at "Nib International Bank".
+  prompt: `You are an HR assistant at "Nib International Bank". Your task is to generate a formal Work Experience Letter.
   
-  The letter must be structured as follows:
-  1.  Start with "Date: " followed by today's date in DD/MM/YYYY format.
-  2.  Add the salutation "To Whom It May Concern,".
-  3.  The opening paragraph must be: "This letter is to certify that {{{name}}} has been an employee at Nib International Bank. During their tenure with us, they have held the following positions:"
-  4.  Present the work history in a clean, table-like format with headers: "Title", "Company", and "Dates". Do not use markdown table syntax. Use spaces for alignment. The company for all internal experience is "Nib International Bank".
-  5.  The closing paragraph must be: "We have found {{{name}}} to be a diligent, hardworking, and valuable member of our team. We wish them all the best in their future endeavors."
-  
+  Follow this structure precisely:
+  1.  Start with the current date aligned to the right. Use the format: DD/MM/YYYY.
+  2.  Add two newlines.
+  3.  Add the salutation "To Whom It May Concern," aligned to the left.
+  4.  Add two newlines.
+  5.  The opening paragraph must be exactly: "This letter is to certify that {{{name}}} has been an employee at Nib International Bank. During their tenure with us, they have held the following positions:"
+  6.  Add two newlines.
+  7.  Present the work history in a clean, table-like format. Use spaces, not tabs or markdown, to create three columns with the headers: "Title", "Company", and "Dates".
+      - The "Company" for all internal experience is "Nib International Bank".
+      - For each role, list the title, company, and the date range (e.g., "YYYY-MM-DD - YYYY-MM-DD" or "YYYY-MM-DD - Present").
+  8.  Add two newlines after the table.
+  9.  The closing paragraph must be exactly: "We have found {{{name}}} to be a diligent, hardworking, and valuable member of our team. We wish them all the best in their future endeavors."
+  10. Add four newlines for a signature space.
+  11. Add the bank's name: "Nib International Bank".
+
+  Here is the employee's information:
   Employee Name: {{{name}}}
-  
-  Internal Work Experience (for the table):
+  Work History:
   {{#each internalExperience}}
-  - Title: {{{this.title}}}, Company: Nib International Bank, Dates: {{{this.startDate}}} - {{{this.endDate}}}
+  - Title: {{{this.title}}}, Start Date: {{{this.startDate}}}, End Date: {{{this.endDate}}}
   {{/each}}
   
-  Do not include any information not provided above. The tone must be formal. The output should be plain text for a PDF.
+  The entire output must be plain text suitable for a PDF, with professional spacing and alignment.
   `,
 });
 
@@ -73,4 +81,3 @@ const generateExperienceLetterFlow = ai.defineFlow(
     return output!;
   }
 );
-
