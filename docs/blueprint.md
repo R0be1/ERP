@@ -1,0 +1,81 @@
+# **App Name**: HCM Express
+
+## Core Features:
+
+- Centralized employee database: Centralized employee database (personal, contact, employment info)
+- Organizational structure mapping: Organizational structure mapping (departments, positions, reporting lines)
+- Job profiles and position management: Job profiles and position management
+- Employment status tracking: Employment status tracking (active, on leave, terminated)
+- Document management: Document management (contracts, certificates, ID copies)
+- Role-based access control: Role-based access control
+- Employee self-service portal: Employee self-service portal (profile updates, document uploads)
+- Job requisition and approval workflows: Job requisition and approval workflows
+- Vacancy posting: Vacancy posting (internal & external portals)
+- Applicant tracking system: Applicant tracking system (ATS)
+- Resume parsing and scoring: Resume parsing and scoring
+- Interview scheduling: Interview scheduling & evaluation templates
+- Offer letter generation: Offer letter generation & approval
+- Digital onboarding checklists: Digital onboarding checklists
+- Pre-employment documentation collection: Pre-employment documentation collection
+- Welcome kits and training schedule automation: Welcome kits and training schedule automation
+- Shift scheduling: Shift scheduling and calendar integration
+- Attendance tracking: Biometric or RFID-based attendance tracking
+- Web/mobile check-in: Web/mobile check-in and check-out
+- Leave management: Leave management (application, approval, tracking)
+- Overtime and holiday work tracking: Overtime and holiday work tracking
+- Timesheet submission: Timesheet submission and approval workflows
+- Payroll integration: Integration with payroll for time-based compensation
+- Salary structure: Salary structure configuration (earnings, deductions, bonuses)
+- Payroll processing: Monthly/bi-weekly payroll run processing
+- Attendance data integration: Integration with attendance and performance data
+- Tax calculations: Tax, pension, and social security calculations
+- Payslip generation: Payslip generation and secure employee access
+- Payroll journal entries: Payroll journal entries and accounting integration
+- Year-end tax statement: Year-end tax statement generation
+- Multi-currency: Multi-currency and multi-location payroll capability
+- Goal setting: Goal setting and cascading (individual & team goals)
+- Competency framework: Competency framework and evaluation templates
+- Performance reviews: Self, peer, manager, and 360-degree reviews
+- Performance scoring: Performance scoring and rating system
+- Automated reminders: Automated reminders and review cycles
+- Performance improvement plans: Performance improvement plans (PIPs)
+- Training integration: Integration with promotions, rewards, and training
+- Training needs assessment: Training needs assessment (TNA)
+- Course catalog: Course catalog management (internal/external)
+- Instructor scheduling: Instructor and venue scheduling
+- Enrollment tracking: Enrollment and attendance tracking
+- Post-training feedback: Post-training feedback and assessments
+- Learning path tracking: Learning path and career development tracking
+- Certification tracking: Certification tracking and expiry alerts
+- Performance integration: Integration with performance and promotion paths
+- Eligibility rules: Eligibility rules based on grade, position, or service
+- Benefit selection: Enrollment and benefit selection portal
+- Benefits tracking: Insurance, pension, and share scheme tracking
+- Reimbursement processing: Reimbursement claim processing
+- Employee assistance programs: Wellness and employee assistance programs (EAP)
+- Leave balance management: Leave balance and accrual management
+- Benefits notifications: Notifications for benefit renewals or changes
+- Exit workflows: Resignation, retirement, and termination workflows
+- Clearance checklist: Clearance checklist and approvals (IT, Admin, Finance)
+- Knowledge transfer: Knowledge transfer and handover tracking
+- Exit interview: Exit interview scheduling and forms
+- Final settlement: Final settlement and document issuance
+- Access revocation: Access revocation and archival of employee record
+- Offboarding feedback analytics: Offboarding feedback analytics
+- HR reports: Standard HR reports (headcount, turnover, leave, etc.)
+- Customizable dashboards: Customizable dashboards per user role
+- Data visualization: Real-time data visualization (charts, KPIs)
+- Compliance reports: Compliance reports (tax, benefits, audits)
+- Predictive analytics: Predictive analytics (attrition risk, promotion readiness)
+- Export capabilities: Export capabilities (Excel, PDF, CSV)
+- BI tools Integration: API integrations for BI tools (Power BI, Tableau)
+
+## Style Guidelines:
+
+- Primary color: Soft blue (#72A0C1) for a professional and calming feel.
+- Background color: Light gray (#F0F2F5) for a clean and modern look.
+- Accent color: Muted green (#8FBC8F) for highlighting key actions.
+- Body and headline font: 'Inter' (sans-serif) for a clean, modern, neutral appearance suitable for both headings and body text.
+- Use simple, clear icons to represent different modules and actions.
+- Implement a clean, card-based layout to present employee information and modules.
+- Use subtle transitions and animations to improve user experience.
