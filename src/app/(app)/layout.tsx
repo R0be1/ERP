@@ -16,6 +16,7 @@ import {
   Clock,
   PanelLeft,
   LogOut,
+  Settings,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -57,6 +58,7 @@ export default function AppLayout({
   const bottomNavItems = [
     { href: "/profile", icon: UserCircle, label: "My Profile" },
     { href: "/feedback", icon: MessageSquareQuote, label: "Feedback" },
+    { href: "/configuration", icon: Settings, label: "Configuration" },
   ]
 
   const NavLink = ({ href, icon: Icon, label, isMobile = false }: { href: string; icon: React.ElementType; label: string, isMobile?: boolean }) => {
