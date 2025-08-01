@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit } from "lucide-react"
@@ -370,7 +369,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
        <>
         <Tabs defaultValue="personal-job">
             <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="personal-job">Personal & Job</TabsTrigger>
+                <TabsTrigger value="personal-job">Personal &amp; Job</TabsTrigger>
                 <TabsTrigger value="contact">Contact</TabsTrigger>
                 <TabsTrigger value="financial">Financial</TabsTrigger>
                 <TabsTrigger value="history">History</TabsTrigger>
@@ -467,29 +466,6 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                             </div>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Identification Information</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-4">
-                           <div className="grid gap-2">
-                                <Label htmlFor="nationalId">National ID</Label>
-                                <Input id="nationalId" name="nationalId" value={employeeData.nationalId} onChange={handleInputChange} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="kebeleId">Kebele ID</Label>
-                                <Input id="kebeleId" name="kebeleId" value={employeeData.kebeleId} onChange={handleInputChange} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="drivingLicense">Driving License</Label>
-                                <Input id="drivingLicense" name="drivingLicense" value={employeeData.drivingLicense} onChange={handleInputChange} />
-                            </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="passportNo">Passport No.</Label>
-                                <Input id="passportNo" name="passportNo" value={employeeData.passportNo} onChange={handleInputChange} />
-                            </div>
-                        </CardContent>
-                    </Card>
                      <Card>
                          <CardHeader>
                             <CardTitle>Job Details</CardTitle>
@@ -555,6 +531,29 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                             <div className="grid gap-2">
                                 <Label htmlFor="probationEndDate">Probation End Date</Label>
                                 <Input id="probationEndDate" name="probationEndDate" type="date" value={employeeData.probationEndDate} onChange={handleInputChange} />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Identification Information</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid md:grid-cols-2 gap-4">
+                           <div className="grid gap-2">
+                                <Label htmlFor="nationalId">National ID</Label>
+                                <Input id="nationalId" name="nationalId" value={employeeData.nationalId} onChange={handleInputChange} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="kebeleId">Kebele ID</Label>
+                                <Input id="kebeleId" name="kebeleId" value={employeeData.kebeleId} onChange={handleInputChange} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="drivingLicense">Driving License</Label>
+                                <Input id="drivingLicense" name="drivingLicense" value={employeeData.drivingLicense} onChange={handleInputChange} />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="passportNo">Passport No.</Label>
+                                <Input id="passportNo" name="passportNo" value={employeeData.passportNo} onChange={handleInputChange} />
                             </div>
                         </CardContent>
                     </Card>
@@ -661,7 +660,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                  <div className="grid gap-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Contract & Salary</CardTitle>
+                            <CardTitle>Contract &amp; Salary</CardTitle>
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-2 gap-4">
                             <div className="grid gap-2">
@@ -943,7 +942,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                      <Card>
                         <CardHeader className="flex flex-row items-center justify-between">
                             <div className="grid gap-1">
-                                <CardTitle>Training & Certificates</CardTitle>
+                                <CardTitle>Training &amp; Certificates</CardTitle>
                             </div>
                             <Button size="sm" variant="outline" type="button" onClick={() => addListItem('training')}>
                                 <PlusCircle className="mr-2 h-4 w-4" />
@@ -1386,3 +1385,5 @@ export default function EmployeesPage() {
     </div>
   )
 }
+
+    
