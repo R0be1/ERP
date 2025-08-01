@@ -152,10 +152,8 @@ export default function ProfilePage() {
                     <TabsTrigger value="dependents">Dependents</TabsTrigger>
                     <TabsTrigger value="financial">Financial</TabsTrigger>
                     <TabsTrigger value="experience">Experience</TabsTrigger>
-                    <TabsTrigger value="education">Education</TabsTrigger>
-                    <TabsTrigger value="training">Training</TabsTrigger>
-                    <TabsTrigger value="guarantors_in">Guarantors (In)</TabsTrigger>
-                    <TabsTrigger value="guarantees_out">Guarantees (Out)</TabsTrigger>
+                    <TabsTrigger value="education-training">Education &amp; Training</TabsTrigger>
+                    <TabsTrigger value="guarantees">Guarantees</TabsTrigger>
                     <TabsTrigger value="activity">Activity Log</TabsTrigger>
                 </TabsList>
                 
@@ -268,11 +266,12 @@ export default function ProfilePage() {
                         </CardContent>
                     </Card>
                 </TabsContent>
-                <TabsContent value="education" className="mt-4">
-                     <Card>
-                        <CardHeader><CardTitle>Education</CardTitle></CardHeader>
+                <TabsContent value="education-training" className="mt-4">
+                    <Card>
+                        <CardHeader><CardTitle>Education &amp; Training</CardTitle></CardHeader>
                          <CardContent className="grid gap-6">
-                             <div className="flex flex-col gap-4">
+                             <div>
+                                <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Education</h3>
                                 {education.length > 0 ? education.map((edu: any, i) => {
                                     const details = [
                                         edu.programType,
@@ -291,14 +290,9 @@ export default function ProfilePage() {
                                     )
                                 }) : <p className="text-muted-foreground text-sm">No education history recorded.</p>}
                             </div>
-                         </CardContent>
-                    </Card>
-                </TabsContent>
-                <TabsContent value="training" className="mt-4">
-                    <Card>
-                        <CardHeader><CardTitle>Training</CardTitle></CardHeader>
-                         <CardContent className="grid gap-6">
-                            <div className="flex flex-col gap-4">
+                            <Separator />
+                            <div>
+                                <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><Award className="h-5 w-5" /> Training</h3>
                                 {training.length > 0 ? training.map((trn, i) => (
                                      <ExperienceItem key={`trn-${i}`} title={trn.name} entity={trn.provider} duration={`Completed: ${trn.completionDate}`} />
                                 )) : <p className="text-muted-foreground text-sm">No training history recorded.</p>}
@@ -306,23 +300,23 @@ export default function ProfilePage() {
                          </CardContent>
                     </Card>
                 </TabsContent>
-                 <TabsContent value="guarantors_in" className="mt-4">
+                 <TabsContent value="guarantees" className="mt-4">
                     <Card>
-                        <CardHeader><CardTitle>Incoming Guarantees</CardTitle></CardHeader>
+                        <CardHeader><CardTitle>Guarantee Information</CardTitle></CardHeader>
                         <CardContent className="grid gap-6">
-                            {incomingGuarantees.length > 0 ? incomingGuarantees.map((guarantee, i) => (
-                                <GuaranteeItem key={`inc-${i}`} guarantee={guarantee} type="incoming" />
-                            )) : <p className="text-muted-foreground text-sm">No incoming guarantees recorded.</p>}
-                        </CardContent>
-                    </Card>
-                 </TabsContent>
-                 <TabsContent value="guarantees_out" className="mt-4">
-                     <Card>
-                        <CardHeader><CardTitle>Outgoing Guarantees</CardTitle></CardHeader>
-                        <CardContent className="grid gap-6">
-                            {outgoingGuarantees.length > 0 ? outgoingGuarantees.map((guarantee, i) => (
-                                 <GuaranteeItem key={`out-${i}`} guarantee={guarantee} type="outgoing" />
-                            )) : <p className="text-muted-foreground text-sm">No outgoing guarantees recorded.</p>}
+                            <div>
+                                <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ShieldCheck className="h-5 w-5" /> Incoming Guarantees</h3>
+                                {incomingGuarantees.length > 0 ? incomingGuarantees.map((guarantee, i) => (
+                                    <GuaranteeItem key={`inc-${i}`} guarantee={guarantee} type="incoming" />
+                                )) : <p className="text-muted-foreground text-sm">No incoming guarantees recorded.</p>}
+                            </div>
+                            <Separator />
+                             <div>
+                                <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ShieldCheck className="h-5 w-5" /> Outgoing Guarantees</h3>
+                                {outgoingGuarantees.length > 0 ? outgoingGuarantees.map((guarantee, i) => (
+                                     <GuaranteeItem key={`out-${i}`} guarantee={guarantee} type="outgoing" />
+                                )) : <p className="text-muted-foreground text-sm">No outgoing guarantees recorded.</p>}
+                            </div>
                         </CardContent>
                     </Card>
                  </TabsContent>
