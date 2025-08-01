@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit, List, LayoutGrid } from "lucide-react"
@@ -1386,7 +1387,11 @@ export default function EmployeesPage() {
           ) : (
              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {filteredEmployees.map((employee) => (
-                <Card key={employee.id} className="flex flex-col">
+                <Card 
+                  key={employee.id} 
+                  className="flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+                  onClick={() => router.push(`/employees/${employee.id}`)}
+                >
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <Avatar className="h-12 w-12">
@@ -1395,7 +1400,7 @@ export default function EmployeesPage() {
                       </Avatar>
                        <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
                               <MoreHorizontal className="h-4 w-4" />
                               <span className="sr-only">Toggle menu</span>
                             </Button>
