@@ -1,8 +1,7 @@
 
-
 "use client"
 
-import { MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown } from "lucide-react"
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -58,6 +57,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { cn } from "@/lib/utils"
 
 const initialNewEmployeeState = {
   // Profile
@@ -108,6 +110,19 @@ const initialNewEmployeeState = {
   outgoingGuarantees: [{ recipientName: '', recipientPhone: '', relationship: '', organization: '', organizationPhone: '', poBox: '', amount: '', issueDate: '', expiryDate: '', document: null }],
 };
 
+const regions = [
+  { value: 'addis-ababa', label: 'Addis Ababa' },
+  { value: 'afar', label: 'Afar' },
+  { value: 'amhara', label: 'Amhara' },
+  { value: 'benishangul-gumuz', label: 'Benishangul-Gumuz' },
+  { value: 'dire-dawa', label: 'Dire Dawa' },
+  { value: 'gambela', label: 'Gambela' },
+  { value: 'harari', label: 'Harari' },
+  { value: 'oromia', label: 'Oromia' },
+  { value: 'somali', label: 'Somali' },
+  { value: 'snnp', label: 'SNNP' },
+  { value: 'tigray', label: 'Tigray' },
+]
 
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState(initialEmployees);
@@ -115,6 +130,7 @@ export default function EmployeesPage() {
   const [newEmployee, setNewEmployee] = useState(initialNewEmployeeState);
   const [isAddEmployeeDialogOpen, setAddEmployeeDialogOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [isRegionPopoverOpen, setRegionPopoverOpen] = useState(false);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -459,22 +475,47 @@ export default function EmployeesPage() {
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="region">Region</Label>
-                                    <Select name="address.region" onValueChange={(v) => handleSelectChange('address.region', v)} value={newEmployee.address.region}>
-                                        <SelectTrigger id="region"><SelectValue placeholder="Select..." /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="addis-ababa">Addis Ababa</SelectItem>
-                                            <SelectItem value="afar">Afar</SelectItem>
-                                            <SelectItem value="amhara">Amhara</SelectItem>
-                                            <SelectItem value="benishangul-gumuz">Benishangul-Gumuz</SelectItem>
-                                            <SelectItem value="dire-dawa">Dire Dawa</SelectItem>
-                                            <SelectItem value="gambela">Gambela</SelectItem>
-                                            <SelectItem value="harari">Harari</SelectItem>
-                                            <SelectItem value="oromia">Oromia</SelectItem>
-                                            <SelectItem value="somali">Somali</SelectItem>
-                                            <SelectItem value="snnp">SNNP</SelectItem>
-                                            <SelectItem value="tigray">Tigray</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Popover open={isRegionPopoverOpen} onOpenChange={setRegionPopoverOpen}>
+                                        <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={isRegionPopoverOpen}
+                                            className="w-full justify-between"
+                                        >
+                                            {newEmployee.address.region
+                                            ? regions.find((region) => region.value === newEmployee.address.region)?.label
+                                            : "Select region..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-full p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Search region..." />
+                                            <CommandEmpty>No region found.</CommandEmpty>
+                                            <CommandGroup>
+                                            {regions.map((region) => (
+                                                <CommandItem
+                                                key={region.value}
+                                                value={region.value}
+                                                onSelect={(currentValue) => {
+                                                    handleSelectChange('address.region', currentValue === newEmployee.address.region ? "" : currentValue)
+                                                    setRegionPopoverOpen(false)
+                                                }}
+                                                >
+                                                <Check
+                                                    className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    newEmployee.address.region === region.value ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {region.label}
+                                                </CommandItem>
+                                            ))}
+                                            </CommandGroup>
+                                        </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="city">City</Label>
@@ -1058,3 +1099,5 @@ export default function EmployeesPage() {
     </div>
   )
 }
+
+    
