@@ -81,21 +81,31 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
     // This state will hold all employees, including newly added ones.
     const [employees, setEmployees] = useState(initialEmployees);
     const [isLoading, setIsLoading] = useState(true);
+    const [employee, setEmployee] = useState<(typeof initialEmployees)[number] | undefined>(undefined);
 
     // In a real app, you'd likely fetch this from a global state or an API
     // For now, we'll check local storage for simplicity.
     useEffect(() => {
+        setIsLoading(true);
         const storedEmployees = localStorage.getItem('employees');
+        let allEmployees = initialEmployees;
         if (storedEmployees) {
-            setEmployees(JSON.parse(storedEmployees));
+            try {
+                 allEmployees = JSON.parse(storedEmployees);
+                 setEmployees(allEmployees);
+            } catch (error) {
+                console.error("Failed to parse employees from localStorage", error);
+            }
         }
+        
+        const foundEmployee = allEmployees.find(e => e.id === employeeId);
+        setEmployee(foundEmployee);
         setIsLoading(false);
-    }, []);
+    }, [employeeId]);
 
-    const employee = employees.find(e => e.id === employeeId);
 
     if (isLoading) {
-        return <div>Loading...</div>;
+        return <div className="flex justify-center items-center h-full">Loading...</div>;
     }
 
     if (!employee) {
