@@ -65,27 +65,34 @@ export default function AppLayout({
   const NavLink = ({ href, icon: Icon, label, isMobile = false }: { href: string; icon: React.ElementType; label: string, isMobile?: boolean }) => {
     const isActive = pathname === href
     
-    const linkContent = (
-      <Link
-        href={href}
-        className={cn(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-          isActive && "bg-muted text-primary"
-        )}
-      >
-        <Icon className="h-4 w-4" />
-        {isMobile ? label : <span className="sr-only">{label}</span>}
-      </Link>
-    );
-
     if (isMobile) {
-      return linkContent;
+      return (
+        <Link
+          href={href}
+          className={cn(
+            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+            isActive && "bg-muted text-primary"
+          )}
+        >
+          <Icon className="h-4 w-4" />
+          {label}
+        </Link>
+      );
     }
 
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          {linkContent}
+          <Link
+            href={href}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+              isActive && "bg-muted text-primary"
+            )}
+          >
+            <Icon className="h-4 w-4" />
+            <span className="sr-only">{label}</span>
+          </Link>
         </TooltipTrigger>
         <TooltipContent side="right">{label}</TooltipContent>
       </Tooltip>
