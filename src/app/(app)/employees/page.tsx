@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown } from "lucide-react"
@@ -125,6 +124,25 @@ const regions = [
   { value: 'tigray', label: 'Tigray' },
 ]
 
+const departments = [
+  { value: 'engineering', label: 'Engineering' },
+  { value: 'marketing', label: 'Marketing' },
+  { value: 'sales', label: 'Sales' },
+  { value: 'human-resources', label: 'Human Resources' },
+  { value: 'product', label: 'Product' },
+  { value: 'finance', label: 'Finance' },
+  { value: 'operations', label: 'Operations' },
+]
+
+const jobTitles = [
+    { value: 'software-engineer', label: 'Software Engineer' },
+    { value: 'senior-software-engineer', label: 'Senior Software Engineer' },
+    { value: 'product-manager', label: 'Product Manager' },
+    { value: 'marketing-manager', label: 'Marketing Manager' },
+    { value: 'sales-representative', label: 'Sales Representative' },
+    { value: 'hr-specialist', label: 'HR Specialist' },
+]
+
 export default function EmployeesPage() {
   const [employees, setEmployees] = useState(initialEmployees);
   const [searchTerm, setSearchTerm] = useState("");
@@ -132,6 +150,8 @@ export default function EmployeesPage() {
   const [isAddEmployeeDialogOpen, setAddEmployeeDialogOpen] = useState(false);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [isRegionPopoverOpen, setRegionPopoverOpen] = useState(false);
+  const [isDepartmentPopoverOpen, setDepartmentPopoverOpen] = useState(false);
+  const [isPositionPopoverOpen, setPositionPopoverOpen] = useState(false);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -409,11 +429,91 @@ export default function EmployeesPage() {
                             <CardContent className="grid md:grid-cols-3 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="department">Department</Label>
-                                    <Input id="department" name="department" value={newEmployee.department} onChange={handleInputChange} />
+                                     <Popover open={isDepartmentPopoverOpen} onOpenChange={setDepartmentPopoverOpen}>
+                                        <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={isDepartmentPopoverOpen}
+                                            className="w-full justify-between"
+                                        >
+                                            {newEmployee.department
+                                            ? departments.find((d) => d.value === newEmployee.department)?.label
+                                            : "Select department..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" side="bottom" align="start">
+                                        <Command>
+                                            <CommandInput placeholder="Search department..." />
+                                            <CommandEmpty>No department found.</CommandEmpty>
+                                            <CommandGroup>
+                                            {departments.map((d) => (
+                                                <CommandItem
+                                                key={d.value}
+                                                value={d.value}
+                                                onSelect={(currentValue) => {
+                                                    handleSelectChange('department', currentValue === newEmployee.department ? "" : currentValue)
+                                                    setDepartmentPopoverOpen(false)
+                                                }}
+                                                >
+                                                <Check
+                                                    className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    newEmployee.department === d.value ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {d.label}
+                                                </CommandItem>
+                                            ))}
+                                            </CommandGroup>
+                                        </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="position">Job Title</Label>
-                                    <Input id="position" name="position" value={newEmployee.position} onChange={handleInputChange} />
+                                    <Popover open={isPositionPopoverOpen} onOpenChange={setPositionPopoverOpen}>
+                                        <PopoverTrigger asChild>
+                                        <Button
+                                            variant="outline"
+                                            role="combobox"
+                                            aria-expanded={isPositionPopoverOpen}
+                                            className="w-full justify-between"
+                                        >
+                                            {newEmployee.position
+                                            ? jobTitles.find((p) => p.value === newEmployee.position)?.label
+                                            : "Select job title..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" side="bottom" align="start">
+                                        <Command>
+                                            <CommandInput placeholder="Search job title..." />
+                                            <CommandEmpty>No job title found.</CommandEmpty>
+                                            <CommandGroup>
+                                            {jobTitles.map((p) => (
+                                                <CommandItem
+                                                key={p.value}
+                                                value={p.value}
+                                                onSelect={(currentValue) => {
+                                                    handleSelectChange('position', currentValue === newEmployee.position ? "" : currentValue)
+                                                    setPositionPopoverOpen(false)
+                                                }}
+                                                >
+                                                <Check
+                                                    className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    newEmployee.position === p.value ? "opacity-100" : "opacity-0"
+                                                    )}
+                                                />
+                                                {p.label}
+                                                </CommandItem>
+                                            ))}
+                                            </CommandGroup>
+                                        </Command>
+                                        </PopoverContent>
+                                    </Popover>
                                 </div>
                                 <div className="grid gap-2">
                                     <Label htmlFor="manager">Manager</Label>
