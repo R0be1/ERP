@@ -75,6 +75,7 @@ const initialNewEmployeeState = {
   dob: '',
   gender: '',
   maritalStatus: '',
+  spouseFullName: '',
   nationality: '',
   nationalId: '',
   kebeleId: '',
@@ -233,6 +234,32 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
         setEmployeeData(initialDataProp);
         setPhotoPreview(isEditMode ? (initialDataProp as any).avatar : null);
     }, [initialDataProp, isEditMode]);
+
+    useEffect(() => {
+        if (employeeData.maritalStatus === 'married') {
+            const hasSpouse = employeeData.dependents.some(dep => dep.relationship === 'Spouse');
+            if (employeeData.spouseFullName && !hasSpouse) {
+                setEmployeeData(prev => ({
+                    ...prev,
+                    dependents: [...prev.dependents, { name: prev.spouseFullName, relationship: 'Spouse', dob: '' }]
+                }));
+            } else if (employeeData.spouseFullName && hasSpouse) {
+                 setEmployeeData(prev => ({
+                    ...prev,
+                    dependents: prev.dependents.map(dep => dep.relationship === 'Spouse' ? { ...dep, name: prev.spouseFullName } : dep)
+                }));
+            }
+        } else {
+             const hasSpouse = employeeData.dependents.some(dep => dep.relationship === 'Spouse');
+             if(hasSpouse) {
+                setEmployeeData(prev => ({
+                    ...prev,
+                    spouseFullName: '',
+                    dependents: prev.dependents.filter(dep => dep.relationship !== 'Spouse')
+                }));
+             }
+        }
+    }, [employeeData.maritalStatus, employeeData.spouseFullName]);
 
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -402,6 +429,12 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                     </SelectContent>
                                 </Select>
                             </div>
+                            {employeeData.maritalStatus === 'married' && (
+                                <div className="grid gap-2">
+                                    <Label htmlFor="spouseFullName">Spouse Full Name</Label>
+                                    <Input id="spouseFullName" name="spouseFullName" value={employeeData.spouseFullName} onChange={handleInputChange} />
+                                </div>
+                            )}
                             <div className="grid gap-2">
                                 <Label htmlFor="nationality">Nationality</Label>
                                 <Input id="nationality" name="nationality" value={employeeData.nationality} onChange={handleInputChange} />
