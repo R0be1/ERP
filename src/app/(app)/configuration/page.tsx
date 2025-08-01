@@ -35,7 +35,6 @@ const configAreas = [
 
 const dataCategories = [
     { key: 'departments', title: 'Departments', description: 'Manage company departments.', icon: Building },
-    { key: 'divisions', title: 'Divisions / Units', description: 'Define units under departments.', icon: Landmark },
     { key: 'jobTitles', title: 'Job Titles', description: 'Manage job titles and codes.', icon: Briefcase },
     { key: 'jobCategories', title: 'Job Categories', description: 'Configure job types.', icon: Layers },
     { key: 'jobGrades', title: 'Job Grades', description: 'Define grading structure.', icon: Tag },

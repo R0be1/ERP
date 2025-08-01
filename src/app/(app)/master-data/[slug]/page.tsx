@@ -81,8 +81,9 @@ export default function MasterDataManagementPage() {
                 updatedData[index] = { value: itemValue, label: itemLabel };
             }
         } else {
-            // Add
-            updatedData.push({ value: itemValue, label: itemLabel });
+            // Add - new ID generation
+            const newId = String(categoryData.length + 1).padStart(3, '0');
+            updatedData.push({ value: newId, label: itemLabel });
         }
         
         const newMasterData = { ...masterData, [slug]: updatedData };
@@ -105,7 +106,8 @@ export default function MasterDataManagementPage() {
             setItemValue(item.value);
             setItemLabel(item.label);
         } else {
-            setItemValue("");
+             const newId = String(categoryData.length + 1).padStart(3, '0');
+            setItemValue(newId);
             setItemLabel("");
         }
         setDialogOpen(true);
@@ -152,7 +154,7 @@ export default function MasterDataManagementPage() {
                             <div className="grid gap-4 py-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="value">Value / ID</Label>
-                                    <Input id="value" value={itemValue} onChange={(e) => setItemValue(e.target.value)} disabled={!!editingItem} />
+                                    <Input id="value" value={itemValue} onChange={(e) => setItemValue(e.target.value)} disabled />
                                 </div>
                                 <div className="grid gap-2">
                                      <Label htmlFor="label">Label / Name</Label>
