@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react"
@@ -111,6 +112,20 @@ export default function EmployeesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [newEmployee, setNewEmployee] = useState(initialNewEmployeeState);
   const [isAddEmployeeDialogOpen, setAddEmployeeDialogOpen] = useState(false);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPhotoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+        setPhotoPreview(null);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -180,10 +195,11 @@ export default function EmployeesPage() {
       position: newEmployee.position,
       department: newEmployee.department,
       status: 'Active',
-      avatar: 'https://placehold.co/40x40.png',
+      avatar: photoPreview || 'https://placehold.co/40x40.png',
     };
     setEmployees([...employees, newEmp]);
     setNewEmployee(initialNewEmployeeState);
+    setPhotoPreview(null);
     setAddEmployeeDialogOpen(false);
   };
 
@@ -292,7 +308,15 @@ export default function EmployeesPage() {
                                 </div>
                                 <div className="grid gap-2 md:col-span-3">
                                     <Label htmlFor="photo">Photo</Label>
-                                    <Input id="photo" type="file" />
+                                    <div className="flex items-center gap-4">
+                                        <Input id="photo" type="file" className="max-w-xs" onChange={handlePhotoChange} accept="image/*" />
+                                        {photoPreview && (
+                                            <Avatar className="h-20 w-20">
+                                                <AvatarImage src={photoPreview} alt="Employee photo preview" />
+                                                <AvatarFallback>Preview</AvatarFallback>
+                                            </Avatar>
+                                        )}
+                                    </div>
                                 </div>
                             </CardContent>
                         </Card>
