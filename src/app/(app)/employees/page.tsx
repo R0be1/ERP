@@ -60,7 +60,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 
@@ -107,7 +107,7 @@ const initialNewEmployeeState = {
   dependents: [{ name: '', relationship: '', dob: '' }],
   internalExperience: [{ title: '', department: '', startDate: '', endDate: '' }],
   externalExperience: [{ company: '', title: '', startDate: '', endDate: '', managerialRole: false }],
-  education: [{ degree: '', institution: '', field: '', completionDate: '', grade: '' }],
+  education: [{ award: '', institution: '', fieldOfStudy: '', completionDate: '', programType: '', cgpa: '', result: '' }],
   training: [{ name: '', provider: '', completionDate: '', file: null }],
   // Guarantees
   incomingGuarantees: [{ guarantorName: '', relationship: '', organization: '', organizationPhone: '', guarantorPhone: '', issueDate: '', document: null }],
@@ -147,15 +147,87 @@ const jobTitles = [
     { value: 'hr-specialist', label: 'HR Specialist' },
 ]
 
+const educationAwards = [
+    { value: 'certificate', label: 'Certificate' },
+    { value: 'diploma', label: 'Diploma' },
+    { value: 'bachelors-degree', label: 'Bachelor\'s Degree' },
+    { value: 'masters-degree', label: 'Master\'s Degree' },
+    { value: 'phd', label: 'PhD' },
+]
+
+const fieldsOfStudy = [
+    { value: 'accounting', label: 'Accounting' },
+    { value: 'management', label: 'Management' },
+    { value: 'economics', label: 'Economics' },
+    { value: 'law', label: 'Law' },
+    { value: 'computer-science', label: 'Computer Science' },
+    { value: 'business-administration', label: 'Business Administration' },
+]
+
+const institutions = [
+    { value: 'addis-ababa-university', label: 'Addis Ababa University' },
+    { value: 'mekelle-university', label: 'Mekelle University' },
+    { value: 'unity-university', label: 'Unity University' },
+    { value: 'admas-university', label: 'Admas University' },
+]
+
+
 type Employee = (typeof initialEmployees)[number];
 type FormEmployeeState = typeof initialNewEmployeeState;
+
+const Combobox = ({ items, value, onChange, placeholder }: { items: {value: string, label: string}[], value: string, onChange: (value: string) => void, placeholder: string }) => {
+    const [open, setOpen] = useState(false)
+    
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+            <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between"
+            >
+                {value
+                ? items.find((item) => item.value === value)?.label
+                : placeholder}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+            <Command>
+                <CommandInput placeholder={`Search ${placeholder.toLowerCase()}...`} />
+                <CommandEmpty>No item found.</CommandEmpty>
+                <CommandList>
+                    <CommandGroup>
+                    {items.map((item) => (
+                        <CommandItem
+                        key={item.value}
+                        value={item.value}
+                        onSelect={(currentValue) => {
+                            onChange(currentValue === value ? "" : currentValue)
+                            setOpen(false)
+                        }}
+                        >
+                        <Check
+                            className={cn(
+                            "mr-2 h-4 w-4",
+                            value === item.value ? "opacity-100" : "opacity-0"
+                            )}
+                        />
+                        {item.label}
+                        </CommandItem>
+                    ))}
+                    </CommandGroup>
+                </CommandList>
+            </Command>
+            </PopoverContent>
+        </Popover>
+    )
+}
 
 const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubmit, onCancel }: { initialData: FormEmployeeState, isEditMode?: boolean, onSubmit: (employeeData: FormEmployeeState, photo: string | null) => void, onCancel: () => void }) => {
     const [employeeData, setEmployeeData] = useState(initialDataProp);
     const [photoPreview, setPhotoPreview] = useState<string | null>(isEditMode ? (initialDataProp as any).avatar : null);
-    const [isRegionPopoverOpen, setRegionPopoverOpen] = useState(false);
-    const [isDepartmentPopoverOpen, setDepartmentPopoverOpen] = useState(false);
-    const [isPositionPopoverOpen, setPositionPopoverOpen] = useState(false);
     
     useEffect(() => {
         setEmployeeData(initialDataProp);
@@ -207,6 +279,15 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
         });
     }, []);
 
+    const handleNestedSelectChange = useCallback((section: keyof FormEmployeeState, index: number, name: string, value: string) => {
+        setEmployeeData(prevState => {
+            const list = prevState[section] as any[];
+            const updatedList = [...list];
+            updatedList[index] = { ...updatedList[index], [name]: value };
+            return { ...prevState, [section]: updatedList };
+        });
+    }, []);
+
     const addListItem = useCallback((section: keyof FormEmployeeState) => {
         let newItem;
         switch (section) {
@@ -214,7 +295,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
             case 'dependents': newItem = { name: '', relationship: '', dob: '' }; break;
             case 'internalExperience': newItem = { title: '', department: '', startDate: '', endDate: '' }; break;
             case 'externalExperience': newItem = { company: '', title: '', startDate: '', endDate: '', managerialRole: false }; break;
-            case 'education': newItem = { degree: '', institution: '', field: '', completionDate: '', grade: '' }; break;
+            case 'education': newItem = { award: '', institution: '', fieldOfStudy: '', completionDate: '', programType: '', cgpa: '', result: '' }; break;
             case 'training': newItem = { name: '', provider: '', completionDate: '', file: null }; break;
             case 'incomingGuarantees': newItem = { guarantorName: '', relationship: '', organization: '', organizationPhone: '', guarantorPhone: '', issueDate: '', document: null }; break;
             case 'outgoingGuarantees': newItem = { recipientName: '', recipientPhone: '', relationship: '', organization: '', organizationPhone: '', poBox: '', amount: '', issueDate: '', expiryDate: '', document: null }; break;
@@ -370,92 +451,22 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                         </CardHeader>
                         <CardContent className="grid md:grid-cols-3 gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="department">Department</Label>
-                                 <Popover open={isDepartmentPopoverOpen} onOpenChange={setDepartmentPopoverOpen}>
-                                    <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={isDepartmentPopoverOpen}
-                                        className="w-full justify-between"
-                                    >
-                                        {employeeData.department
-                                        ? departments.find((d) => d.value === employeeData.department)?.label
-                                        : "Select department..."}
-                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder="Search department..." />
-                                        <CommandEmpty>No department found.</CommandEmpty>
-                                        <CommandGroup>
-                                        {departments.map((d) => (
-                                            <CommandItem
-                                            key={d.value}
-                                            value={d.value}
-                                            onSelect={(currentValue) => {
-                                                handleSelectChange('department', currentValue === employeeData.department ? "" : currentValue)
-                                                setDepartmentPopoverOpen(false)
-                                            }}
-                                            >
-                                            <Check
-                                                className={cn(
-                                                "mr-2 h-4 w-4",
-                                                employeeData.department === d.value ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {d.label}
-                                            </CommandItem>
-                                        ))}
-                                        </CommandGroup>
-                                    </Command>
-                                    </PopoverContent>
-                                </Popover>
+                                <Label>Department</Label>
+                                <Combobox
+                                    items={departments}
+                                    value={employeeData.department}
+                                    onChange={(value) => handleSelectChange('department', value)}
+                                    placeholder="Select department..."
+                                />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="position">Job Title</Label>
-                                <Popover open={isPositionPopoverOpen} onOpenChange={setPositionPopoverOpen}>
-                                    <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={isPositionPopoverOpen}
-                                        className="w-full justify-between"
-                                    >
-                                        {employeeData.position
-                                        ? jobTitles.find((p) => p.value === employeeData.position)?.label
-                                        : "Select job title..."}
-                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder="Search job title..." />
-                                        <CommandEmpty>No job title found.</CommandEmpty>
-                                        <CommandGroup>
-                                        {jobTitles.map((p) => (
-                                            <CommandItem
-                                            key={p.value}
-                                            value={p.value}
-                                            onSelect={(currentValue) => {
-                                                handleSelectChange('position', currentValue === employeeData.position ? "" : currentValue)
-                                                setPositionPopoverOpen(false)
-                                            }}
-                                            >
-                                            <Check
-                                                className={cn(
-                                                "mr-2 h-4 w-4",
-                                                employeeData.position === p.value ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {p.label}
-                                            </CommandItem>
-                                        ))}
-                                        </CommandGroup>
-                                    </Command>
-                                    </PopoverContent>
-                                </Popover>
+                                <Label>Job Title</Label>
+                                 <Combobox
+                                    items={jobTitles}
+                                    value={employeeData.position}
+                                    onChange={(value) => handleSelectChange('position', value)}
+                                    placeholder="Select job title..."
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="manager">Manager</Label>
@@ -516,49 +527,14 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                 <Label htmlFor="country">Country</Label>
                                 <Input id="country" name="address.country" value={employeeData.address.country} onChange={handleInputChange} />
                             </div>
-                            <div className="grid gap-2">
-                                <Label htmlFor="region">Region</Label>
-                                <Popover open={isRegionPopoverOpen} onOpenChange={setRegionPopoverOpen}>
-                                    <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={isRegionPopoverOpen}
-                                        className="w-full justify-between"
-                                    >
-                                        {employeeData.address.region
-                                        ? regions.find((region) => region.value === employeeData.address.region)?.label
-                                        : "Select region..."}
-                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                                    <Command>
-                                        <CommandInput placeholder="Search region..." />
-                                        <CommandEmpty>No region found.</CommandEmpty>
-                                        <CommandGroup>
-                                        {regions.map((region) => (
-                                            <CommandItem
-                                            key={region.value}
-                                            value={region.value}
-                                            onSelect={(currentValue) => {
-                                                handleSelectChange('address.region', currentValue === employeeData.address.region ? "" : currentValue)
-                                                setRegionPopoverOpen(false)
-                                            }}
-                                            >
-                                            <Check
-                                                className={cn(
-                                                "mr-2 h-4 w-4",
-                                                employeeData.address.region === region.value ? "opacity-100" : "opacity-0"
-                                                )}
-                                            />
-                                            {region.label}
-                                            </CommandItem>
-                                        ))}
-                                        </CommandGroup>
-                                    </Command>
-                                    </PopoverContent>
-                                </Popover>
+                           <div className="grid gap-2">
+                                <Label>Region</Label>
+                                <Combobox
+                                    items={regions}
+                                    value={employeeData.address.region}
+                                    onChange={(value) => handleSelectChange('address.region', value)}
+                                    placeholder="Select region..."
+                                />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="city">City</Label>
@@ -829,26 +805,65 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                         <CardContent>
                             <div className="grid gap-4">
                             {(employeeData.education || []).map((edu: any, index: number) => (
-                                <div key={index} className="grid md:grid-cols-2 gap-4 p-4 border rounded-md relative">
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`edu-degree-${index}`}>Degree/Certificate</Label>
-                                        <Input id={`edu-degree-${index}`} name="degree" value={edu.degree} onChange={(e) => handleNestedInputChange('education', index, e)} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`edu-institution-${index}`}>Institution</Label>
-                                        <Input id={`edu-institution-${index}`} name="institution" value={edu.institution} onChange={(e) => handleNestedInputChange('education', index, e)} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`edu-field-${index}`}>Field of Study</Label>
-                                        <Input id={`edu-field-${index}`} name="field" value={edu.field} onChange={(e) => handleNestedInputChange('education', index, e)} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`edu-completionDate-${index}`}>Completion Date</Label>
-                                        <Input id={`edu-completionDate-${index}`} name="completionDate" type="date" value={edu.completionDate} onChange={(e) => handleNestedInputChange('education', index, e)} />
-                                    </div>
-                                    <div className="grid gap-2">
-                                        <Label htmlFor={`edu-grade-${index}`}>Grade/Result (Optional)</Label>
-                                        <Input id={`edu-grade-${index}`} name="grade" value={edu.grade} onChange={(e) => handleNestedInputChange('education', index, e)} />
+                                <div key={index} className="grid gap-4 p-4 border rounded-md relative">
+                                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                        <div className="grid gap-2">
+                                            <Label>Award</Label>
+                                            <Combobox 
+                                                items={educationAwards}
+                                                value={edu.award}
+                                                onChange={(value) => handleNestedSelectChange('education', index, 'award', value)}
+                                                placeholder="Select award..."
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label>Field of Study</Label>
+                                            <Combobox 
+                                                items={fieldsOfStudy}
+                                                value={edu.fieldOfStudy}
+                                                onChange={(value) => handleNestedSelectChange('education', index, 'fieldOfStudy', value)}
+                                                placeholder="Select field..."
+                                            />
+                                        </div>
+                                         <div className="grid gap-2">
+                                            <Label>Institution</Label>
+                                             <Combobox 
+                                                items={institutions}
+                                                value={edu.institution}
+                                                onChange={(value) => handleNestedSelectChange('education', index, 'institution', value)}
+                                                placeholder="Select institution..."
+                                            />
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`edu-programType-${index}`}>Program Type</Label>
+                                            <Select
+                                                name="programType"
+                                                onValueChange={(v) => handleNestedSelectChange('education', index, 'programType', v)}
+                                                value={edu.programType}
+                                            >
+                                                <SelectTrigger id={`edu-programType-${index}`}><SelectValue placeholder="Select..." /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="regular">Regular</SelectItem>
+                                                    <SelectItem value="weekend">Weekend</SelectItem>
+                                                    <SelectItem value="distance">Distance</SelectItem>
+                                                    <SelectItem value="extension">Extension</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`edu-cgpa-${index}`}>CGPA</Label>
+                                            <Input id={`edu-cgpa-${index}`} name="cgpa" type="number" step="0.01" min="0" max="4" value={edu.cgpa} onChange={(e) => handleNestedInputChange('education', index, e)} />
+                                        </div>
+                                        {edu.award === 'diploma' && (
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`edu-result-${index}`}>Result</Label>
+                                                <Input id={`edu-result-${index}`} name="result" value={edu.result} onChange={(e) => handleNestedInputChange('education', index, e)} />
+                                            </div>
+                                        )}
+                                        <div className="grid gap-2">
+                                            <Label htmlFor={`edu-completionDate-${index}`}>Completion Date</Label>
+                                            <Input id={`edu-completionDate-${index}`} name="completionDate" type="date" value={edu.completionDate} onChange={(e) => handleNestedInputChange('education', index, e)} />
+                                        </div>
                                     </div>
                                     <Button
                                         type="button"
@@ -1085,19 +1100,23 @@ export default function EmployeesPage() {
         if (employeeToEdit) {
             handleOpenEditDialog(employeeToEdit as any);
         }
+        // Clean up the URL query param
+        const newUrl = window.location.pathname;
+        window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
     }
   }, [searchParams, employees, handleOpenEditDialog]);
 
   const handleAddEmployee = (employeeData: FormEmployeeState, photo: string | null) => {
     const newEmp: Employee = {
+      ...({} as Employee),
+      ...(employeeData as any),
       id: employeeData.employeeId || `EMP${String(Date.now()).slice(-4)}`,
       name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
       email: employeeData.workEmail,
       position: jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
       department: departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
       status: 'Active',
-      avatar: photo || 'https://placehold.co/40x40.png',
-      ...(employeeData as any),
+      avatar: photo || `https://placehold.co/40x40.png?text=${employeeData.firstName[0]}${employeeData.lastName[0]}`,
     };
     setEmployees(prev => [...prev, newEmp]);
     setAddEmployeeDialogOpen(false);

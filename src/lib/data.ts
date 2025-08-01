@@ -41,7 +41,7 @@ export const employees = [
     dependents: [{ name: 'Sam Johnson', relationship: 'Child', dob: '2015-10-20' }],
     internalExperience: [{ title: 'Software Engineer', department: 'Engineering', startDate: '2020-01-15', endDate: '' }],
     externalExperience: [{ company: 'Tech Corp', title: 'Junior Developer', startDate: '2018-06-01', endDate: '2019-12-31', managerialRole: false }],
-    education: [{ degree: 'BSc in Computer Science', institution: 'MIT', field: 'Computer Science', completionDate: '2018-05-01', grade: 'A' }],
+    education: [{ award: 'BSc in Computer Science', institution: 'MIT', fieldOfStudy: 'Computer Science', completionDate: '2018-05-01', cgpa: '3.8', programType: 'regular', result: '' }],
     training: [{ name: 'Advanced React', provider: 'Coursera', completionDate: '2021-06-01', file: null }],
     incomingGuarantees: [],
     outgoingGuarantees: [],

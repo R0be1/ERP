@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare } from "lucide-react"
+import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
 
@@ -25,24 +25,23 @@ const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label
     )
 }
 
-const ExperienceItem = ({ title, entity, duration, managerialRole }: { title: string, entity: string, duration: string, managerialRole?: boolean }) => (
+const ExperienceItem = ({ title, entity, duration, details }: { title: string, entity: string, duration: string, details?: React.ReactNode }) => (
     <div className="flex gap-4">
         <div className="flex flex-col items-center">
             <div className="bg-primary/20 text-primary rounded-full p-2">
-                <Briefcase className="h-5 w-5" />
+                 {details ? <GraduationCap className="h-5 w-5" /> : <Briefcase className="h-5 w-5" />}
             </div>
             <div className="flex-grow w-px bg-border my-2"></div>
         </div>
         <div>
-            <div className="flex items-center gap-2">
-                 <h4 className="font-semibold">{title}</h4>
-                 {managerialRole && <Badge variant="outline" className="flex items-center gap-1"><CheckSquare className="h-3 w-3" /> Managerial</Badge>}
-            </div>
+            <h4 className="font-semibold">{title}</h4>
             <p className="text-muted-foreground text-sm">{entity}</p>
             <p className="text-muted-foreground text-xs mb-1">{duration}</p>
+             {details && <div className="text-xs text-muted-foreground">{details}</div>}
         </div>
     </div>
 )
+
 
 const GuaranteeItem = ({ guarantee, type }: { guarantee: any, type: 'incoming' | 'outgoing' }) => {
     if (type === 'incoming') {
@@ -220,7 +219,22 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                             <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><ChevronsRight className="h-5 w-5" /> External Experience</h3>
                                 {externalExperience.length > 0 ? externalExperience.map((exp, i) => (
-                                    <ExperienceItem key={`ext-${i}`} title={exp.title} entity={exp.company} duration={`${exp.startDate} - ${exp.endDate}`} managerialRole={exp.managerialRole} />
+                                     <div key={`ext-${i}`} className="flex gap-4">
+                                        <div className="flex flex-col items-center">
+                                            <div className="bg-primary/20 text-primary rounded-full p-2">
+                                                <Briefcase className="h-5 w-5" />
+                                            </div>
+                                            <div className="flex-grow w-px bg-border my-2"></div>
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-2">
+                                                <h4 className="font-semibold">{exp.title}</h4>
+                                                {exp.managerialRole && <Badge variant="outline" className="flex items-center gap-1"><CheckSquare className="h-3 w-3" /> Managerial</Badge>}
+                                            </div>
+                                            <p className="text-muted-foreground text-sm">{exp.company}</p>
+                                            <p className="text-muted-foreground text-xs mb-1">{`${exp.startDate} - ${exp.endDate}`}</p>
+                                        </div>
+                                    </div>
                                 )) : <p className="text-muted-foreground text-sm">No external experience recorded.</p>}
                             </div>
                         </CardContent>
@@ -230,13 +244,27 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
                          <CardContent className="grid gap-6">
                              <div>
                                 <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><GraduationCap className="h-5 w-5" /> Education</h3>
-                                {education.length > 0 ? education.map((edu, i) => (
-                                     <ExperienceItem key={`edu-${i}`} title={edu.degree} entity={`${edu.institution} - ${edu.field}`} duration={`Completed: ${edu.completionDate}`} />
-                                )) : <p className="text-muted-foreground text-sm">No education history recorded.</p>}
+                                {education.length > 0 ? education.map((edu, i) => {
+                                    const details = [
+                                        edu.programType,
+                                        edu.cgpa ? `CGPA: ${edu.cgpa}`: null,
+                                        edu.result ? `Result: ${edu.result}` : null
+                                    ].filter(Boolean).join(' • ');
+
+                                    return (
+                                        <ExperienceItem 
+                                            key={`edu-${i}`} 
+                                            title={edu.award} 
+                                            entity={`${edu.institution} - ${edu.fieldOfStudy}`} 
+                                            duration={`Completed: ${edu.completionDate}`}
+                                            details={details}
+                                        />
+                                    )
+                                }) : <p className="text-muted-foreground text-sm">No education history recorded.</p>}
                             </div>
                             <Separator />
                             <div>
-                                <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><Shield className="h-5 w-5" /> Training</h3>
+                                <h3 className="font-semibold text-primary mb-4 flex items-center gap-2"><Award className="h-5 w-5" /> Training</h3>
                                 {training.length > 0 ? training.map((trn, i) => (
                                      <ExperienceItem key={`trn-${i}`} title={trn.name} entity={trn.provider} duration={`Completed: ${trn.completionDate}`} />
                                 )) : <p className="text-muted-foreground text-sm">No training history recorded.</p>}
