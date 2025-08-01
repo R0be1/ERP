@@ -65,6 +65,13 @@ export default function AppLayout({
   const NavLink = ({ href, icon: Icon, label, isMobile = false }: { href: string; icon: React.ElementType; label: string, isMobile?: boolean }) => {
     const isActive = pathname === href
     
+    const linkContent = (
+      <>
+        <Icon className="h-4 w-4" />
+        {isMobile ? label : <span className="sr-only">{label}</span>}
+      </>
+    );
+    
     if (isMobile) {
       return (
          <Link
@@ -74,8 +81,7 @@ export default function AppLayout({
             isActive && "bg-muted text-primary"
           )}
         >
-          <Icon className="h-4 w-4" />
-          {label}
+          {linkContent}
         </Link>
       )
     }
@@ -90,8 +96,7 @@ export default function AppLayout({
               isActive && "bg-muted text-primary"
             )}
           >
-            <Icon className="h-4 w-4" />
-            <span className="sr-only">{label}</span>
+            {linkContent}
           </Link>
         </TooltipTrigger>
         <TooltipContent side="right">{label}</TooltipContent>
