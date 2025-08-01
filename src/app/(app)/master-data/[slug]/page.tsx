@@ -1,23 +1,22 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { masterData as initialMasterData, setMasterData } from "@/lib/master-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, ChevronsUpDown, Check } from "lucide-react";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
   DialogClose,
+  DialogFooter
 } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -32,22 +31,83 @@ import {
 } from "@/components/ui/alert-dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { cn } from "@/lib/utils";
 
 type MasterDataCategoryKey = keyof typeof initialMasterData;
 
-const dataCategoryDetails: { [key in MasterDataCategoryKey]?: { title: string } } = {
-    departments: { title: 'Departments' },
-    divisions: { title: 'Divisions / Units' },
-    jobTitles: { title: 'Job Titles' },
-    jobCategories: { title: 'Job Categories' },
-    jobGrades: { title: 'Job Grades' },
-    employmentTypes: { title: 'Employment Types' },
-    regions: { title: 'Regions' },
-    fieldsOfStudy: { title: 'Fields of Study' },
-    institutions: { title: 'Institutions' },
-    educationAwards: { title: 'Education Awards' },
-    programTypes: { title: 'Program Types' },
+const dataCategoryDetails: { [key: string]: { title: string, fields: { key: string, label: string, type: 'text' | 'number' | 'select', options?: MasterDataCategoryKey }[] } } = {
+    departments: { title: 'Departments', fields: [
+        { key: 'label', label: 'Department Name', type: 'text' },
+        { key: 'type', label: 'Department Type', type: 'select', options: 'departmentTypes' },
+        { key: 'parent', label: 'Parent Department', type: 'select', options: 'departments' },
+        { key: 'capacity', label: 'Max Staff Capacity', type: 'number' },
+        { key: 'region', label: 'Region', type: 'select', options: 'regions' },
+        { key: 'location', label: 'Work Location', type: 'select', options: 'workLocations' },
+    ]},
+    departmentTypes: { title: 'Department Types', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    workLocations: { title: 'Work Locations', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    jobTitles: { title: 'Job Titles', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    jobCategories: { title: 'Job Categories', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    jobGrades: { title: 'Job Grades', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    employmentTypes: { title: 'Employment Types', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    regions: { title: 'Regions', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    fieldsOfStudy: { title: 'Fields of Study', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    institutions: { title: 'Institutions', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    educationAwards: { title: 'Education Awards', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    programTypes: { title: 'Program Types', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
 };
+
+const Combobox = ({ items, value, onChange, placeholder }: { items: {value: string, label: string}[], value: string, onChange: (value: string) => void, placeholder: string }) => {
+    const [open, setOpen] = useState(false)
+    
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+            <Button
+                variant="outline"
+                role="combobox"
+                aria-expanded={open}
+                className="w-full justify-between"
+            >
+                {value
+                ? items.find((item) => item.value === value)?.label
+                : placeholder}
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+            <Command>
+                <CommandInput placeholder={`Search ${placeholder.toLowerCase()}...`} />
+                <CommandEmpty>No item found.</CommandEmpty>
+                <CommandList>
+                    <CommandGroup>
+                    {items.map((item) => (
+                        <CommandItem
+                        key={item.value}
+                        value={item.value}
+                        onSelect={(currentValue) => {
+                            onChange(currentValue === value ? "" : currentValue)
+                            setOpen(false)
+                        }}
+                        >
+                        <Check
+                            className={cn(
+                            "mr-2 h-4 w-4",
+                            value === item.value ? "opacity-100" : "opacity-0"
+                            )}
+                        />
+                        {item.label}
+                        </CommandItem>
+                    ))}
+                    </CommandGroup>
+                </CommandList>
+            </Command>
+            </PopoverContent>
+        </Popover>
+    )
+}
 
 export default function MasterDataManagementPage() {
     const router = useRouter();
@@ -57,33 +117,36 @@ export default function MasterDataManagementPage() {
     const [masterData, setMasterDataState] = useState(initialMasterData);
     const [searchTerm, setSearchTerm] = useState("");
     const [isDialogOpen, setDialogOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState<{ value: string; label: string } | null>(null);
-    const [itemValue, setItemValue] = useState("");
-    const [itemLabel, setItemLabel] = useState("");
+    const [editingItem, setEditingItem] = useState<any | null>(null);
+    const [formState, setFormState] = useState<any>({});
 
     useEffect(() => {
         setMasterDataState(initialMasterData);
     }, []);
 
-    const categoryData = masterData[slug] || [];
-    const categoryInfo = dataCategoryDetails[slug] || { title: "Master Data" };
+    const categoryInfo = dataCategoryDetails[slug] || { title: "Master Data", fields: [{ key: 'label', label: 'Name', type: 'text' }] };
+    const categoryData = useMemo(() => masterData[slug] || [], [masterData, slug]);
 
     const filteredData = categoryData.filter(item =>
         item.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handleFormChange = (key: string, value: string) => {
+        setFormState((prev: any) => ({ ...prev, [key]: value }));
+    };
+
     const handleSave = () => {
-        const updatedData = [...categoryData];
+        let updatedData = [...categoryData];
         if (editingItem) {
             // Edit
             const index = updatedData.findIndex(item => item.value === editingItem.value);
             if (index > -1) {
-                updatedData[index] = { value: itemValue, label: itemLabel };
+                updatedData[index] = { ...updatedData[index], ...formState };
             }
         } else {
-            // Add - new ID generation
-            const newId = String(categoryData.length + 1).padStart(3, '0');
-            updatedData.push({ value: newId, label: itemLabel });
+            // Add
+            const newId = String(Date.now()); // Using timestamp for unique ID
+            updatedData.push({ ...formState, value: newId });
         }
         
         const newMasterData = { ...masterData, [slug]: updatedData };
@@ -100,15 +163,17 @@ export default function MasterDataManagementPage() {
         setMasterDataState(newMasterData);
     };
     
-    const handleOpenDialog = (item: { value: string; label: string } | null = null) => {
+    const handleOpenDialog = (item: any | null = null) => {
         setEditingItem(item);
         if (item) {
-            setItemValue(item.value);
-            setItemLabel(item.label);
+            setFormState(item);
         } else {
-             const newId = String(categoryData.length + 1).padStart(3, '0');
-            setItemValue(newId);
-            setItemLabel("");
+            const newId = String(categoryData.length + 1).padStart(3, '0');
+            const initialFormState = categoryInfo.fields.reduce((acc, field) => {
+                acc[field.key] = '';
+                return acc;
+            }, { value: newId });
+            setFormState(initialFormState);
         }
         setDialogOpen(true);
     };
@@ -116,10 +181,18 @@ export default function MasterDataManagementPage() {
     const handleCloseDialog = () => {
         setDialogOpen(false);
         setEditingItem(null);
-        setItemValue("");
-        setItemLabel("");
+        setFormState({});
     };
 
+    const getDisplayValue = (item: any, fieldKey: string) => {
+        const field = categoryInfo.fields.find(f => f.key === fieldKey);
+        if (field?.type === 'select' && field.options) {
+            const optionSet = masterData[field.options] || [];
+            const option = optionSet.find(o => o.value === item[fieldKey]);
+            return option ? option.label : item[fieldKey];
+        }
+        return item[fieldKey];
+    }
 
     if (!slug || !categoryData) {
         return (
@@ -147,19 +220,30 @@ export default function MasterDataManagementPage() {
                                 Add New
                             </Button>
                         </DialogTrigger>
-                        <DialogContent>
+                        <DialogContent className="sm:max-w-2xl">
                             <DialogHeader>
                                 <DialogTitle>{editingItem ? `Edit ${categoryInfo.title}` : `Add New ${categoryInfo.title}`}</DialogTitle>
                             </DialogHeader>
                             <div className="grid gap-4 py-4">
-                                <div className="grid gap-2">
-                                    <Label htmlFor="value">Value / ID</Label>
-                                    <Input id="value" value={itemValue} onChange={(e) => setItemValue(e.target.value)} disabled />
-                                </div>
-                                <div className="grid gap-2">
-                                     <Label htmlFor="label">Label / Name</Label>
-                                    <Input id="label" value={itemLabel} onChange={(e) => setItemLabel(e.target.value)} />
-                                </div>
+                                {categoryInfo.fields.map(field => (
+                                    <div className="grid gap-2" key={field.key}>
+                                        <Label htmlFor={field.key}>{field.label}</Label>
+                                        {field.type === 'text' && (
+                                            <Input id={field.key} value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
+                                        )}
+                                        {field.type === 'number' && (
+                                            <Input id={field.key} type="number" value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
+                                        )}
+                                        {field.type === 'select' && field.options && (
+                                            <Combobox 
+                                                items={masterData[field.options] || []}
+                                                value={formState[field.key] || ''}
+                                                onChange={(value) => handleFormChange(field.key, value)}
+                                                placeholder={`Select ${field.label}...`}
+                                            />
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                             <DialogFooter>
                                 <DialogClose asChild>
@@ -187,8 +271,10 @@ export default function MasterDataManagementPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Value / ID</TableHead>
-                                <TableHead>Label / Name</TableHead>
+                                <TableHead>ID</TableHead>
+                                {categoryInfo.fields.map(field => (
+                                    <TableHead key={field.key}>{field.label}</TableHead>
+                                ))}
                                 <TableHead><span className="sr-only">Actions</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -196,7 +282,9 @@ export default function MasterDataManagementPage() {
                             {filteredData.map((item) => (
                                 <TableRow key={item.value}>
                                     <TableCell className="font-mono">{item.value}</TableCell>
-                                    <TableCell>{item.label}</TableCell>
+                                    {categoryInfo.fields.map(field => (
+                                        <TableCell key={field.key}>{getDisplayValue(item, field.key)}</TableCell>
+                                    ))}
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>

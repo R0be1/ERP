@@ -1,11 +1,12 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     Settings, GitBranch, ScrollText, Building, Briefcase, Tag, Layers, School, 
-    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User
+    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -35,6 +36,8 @@ const configAreas = [
 
 const dataCategories = [
     { key: 'departments', title: 'Departments', description: 'Manage company departments.', icon: Building },
+    { key: 'departmentTypes', title: 'Department Types', description: 'Manage types of departments.', icon: Building2 },
+    { key: 'workLocations', title: 'Work Locations', description: 'Manage work locations.', icon: MapPin },
     { key: 'jobTitles', title: 'Job Titles', description: 'Manage job titles and codes.', icon: Briefcase },
     { key: 'jobCategories', title: 'Job Categories', description: 'Configure job types.', icon: Layers },
     { key: 'jobGrades', title: 'Job Grades', description: 'Define grading structure.', icon: Tag },
@@ -88,7 +91,8 @@ export default function ConfigurationPage() {
             try {
                 // Merge to ensure new categories from initialMasterData are included
                 const parsedData = JSON.parse(storedData);
-                setMasterData(prev => ({ ...prev, ...parsedData }));
+                const mergedData = { ...initialMasterData, ...parsedData };
+                setMasterData(mergedData);
             } catch (e) {
                 console.error("Failed to parse master data from localStorage", e);
             }

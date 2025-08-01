@@ -18,13 +18,13 @@ const initialMasterData = {
         { value: 'tigray', label: 'Tigray' },
     ],
     departments: [
-        { value: 'engineering', label: 'Engineering' },
-        { value: 'marketing', label: 'Marketing' },
-        { value: 'sales', label: 'Sales' },
-        { value: 'human-resources', label: 'Human Resources' },
-        { value: 'product', label: 'Product' },
-        { value: 'finance', label: 'Finance' },
-        { value: 'operations', label: 'Operations' },
+        { value: '001', label: 'Engineering', type: 'department', parent: '', capacity: '50', region: 'addis-ababa', location: 'head-office' },
+        { value: '002', label: 'Marketing', type: 'department', parent: '', capacity: '20', region: 'addis-ababa', location: 'head-office' },
+        { value: '003', label: 'Sales', type: 'department', parent: '', capacity: '30', region: 'addis-ababa', location: 'head-office' },
+        { value: '004', label: 'Human Resources', type: 'department', parent: '', capacity: '15', region: 'addis-ababa', location: 'head-office' },
+        { value: '005', label: 'Product', type: 'department', parent: '', capacity: '25', region: 'addis-ababa', location: 'head-office' },
+        { value: '006', label: 'Finance', type: 'department', parent: '', capacity: '10', region: 'addis-ababa', location: 'head-office' },
+        { value: '007', label: 'Operations', type: 'department', parent: '', capacity: '40', region: 'addis-ababa', location: 'head-office' },
     ],
     jobTitles: [
         { value: 'software-engineer', label: 'Software Engineer' },
@@ -62,18 +62,31 @@ const initialMasterData = {
         { value: 'unity-university', label: 'Unity University' },
         { value: 'admas-university', label: 'Admas University' },
     ],
-    divisions: [], // New empty category
-    employmentTypes: [ // New category with some initial data
+    employmentTypes: [
         { value: 'permanent', label: 'Permanent' },
         { value: 'contract', label: 'Contract' },
         { value: 'temporary', label: 'Temporary' },
         { value: 'internship', label: 'Internship' },
     ],
-    programTypes: [ // New category with some initial data
+    programTypes: [
         { value: 'regular', label: 'Regular' },
         { value: 'distance', label: 'Distance' },
         { value: 'extension', label: 'Extension' },
         { value: 'weekend', label: 'Weekend' },
+    ],
+    departmentTypes: [
+        { value: 'ceo-office', label: 'Office of Chief Executive Officer' },
+        { value: 'co-office', label: 'Office of Chief Officer' },
+        { value: 'dco-office', label: 'Office of Deputy Chief Officer' },
+        { value: 'department', label: 'Department' },
+        { value: 'division', label: 'Division' },
+        { value: 'branch-district', label: 'Branch District' },
+    ],
+    workLocations: [
+        { value: 'head-office', label: 'Head Office' },
+        { value: 'district', label: 'District' },
+        { value: 'city-branch', label: 'City Branch' },
+        { value: 'outline-branch', label: 'Outline Branch' },
     ]
 };
 
