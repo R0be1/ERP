@@ -66,38 +66,26 @@ export default function AppLayout({
     const isActive = pathname === href
     
     const linkContent = (
-      <>
+      <Link
+        href={href}
+        className={cn(
+          "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
+          isActive && "bg-muted text-primary"
+        )}
+      >
         <Icon className="h-4 w-4" />
         {isMobile ? label : <span className="sr-only">{label}</span>}
-      </>
+      </Link>
     );
-    
+
     if (isMobile) {
-      return (
-         <Link
-          href={href}
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-            isActive && "bg-muted text-primary"
-          )}
-        >
-          {linkContent}
-        </Link>
-      )
+      return linkContent;
     }
 
     return (
       <Tooltip>
         <TooltipTrigger asChild>
-          <Link
-            href={href}
-            className={cn(
-              "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-              isActive && "bg-muted text-primary"
-            )}
-          >
-            {linkContent}
-          </Link>
+          {linkContent}
         </TooltipTrigger>
         <TooltipContent side="right">{label}</TooltipContent>
       </Tooltip>
