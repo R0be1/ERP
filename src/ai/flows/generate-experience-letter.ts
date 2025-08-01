@@ -42,28 +42,23 @@ const prompt = ai.definePrompt({
   name: 'generateExperienceLetterPrompt',
   input: { schema: GenerateExperienceLetterInputSchema },
   output: { schema: GenerateExperienceLetterOutputSchema },
-  prompt: `You are an HR assistant tasked with writing a formal Work Experience Letter for an employee.
+  prompt: `You are an HR assistant tasked with writing a formal Work Experience Letter for an employee at "Nib International Bank".
   
-  Today's date is ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.
-  
-  The letter should be addressed "To Whom It May Concern".
-  
-  Based on the following employee details, please draft a professional and concise work experience letter. The letter should confirm the employee's tenure and the positions they held within the company.
+  The letter must be structured as follows:
+  1.  Start with today's date: ${new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}.
+  2.  Add the salutation "To Whom It May Concern,".
+  3.  The opening paragraph must be: "This letter is to certify that {{{name}}} has been an employee at Nib International Bank. During their tenure with us, they have held the following positions:"
+  4.  Present the work history in a clean, table-like format with headers: "Job Position", "Start Date", and "End Date". Do not use markdown table syntax. Use spaces to align the columns.
+  5.  Conclude the letter professionally with "Sincerely," followed by "Nib International Bank HR Department".
   
   Employee Name: {{{name}}}
-  Join Date: {{{joinDate}}}
-  Employment Type: {{{employmentType}}}
   
-  Internal Work Experience:
+  Internal Work Experience (for the table):
   {{#each internalExperience}}
-  - Position: {{{this.title}}}
-    Department: {{{this.department}}}
-    Duration: {{{this.startDate}}} to {{{this.endDate}}}{{#if this.managerialRole}} (Managerial Role){{/if}}
+  - Position: {{{this.title}}}, Start: {{{this.startDate}}}, End: {{{this.endDate}}}
   {{/each}}
   
-  The letter should state that the employee has worked with the company from their join date until the present. It should list the roles they have held as detailed in their internal experience. Conclude the letter professionally, for example, with "Sincerely, [Company Name] HR Department".
-  
-  Do not include any information not provided above. The tone should be formal. Structure the output as plain text suitable for a PDF document.
+  Do not include any information not provided above. The tone must be formal. The output should be plain text for a PDF.
   `,
 });
 
