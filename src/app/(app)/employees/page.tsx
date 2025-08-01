@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2 } from "lucide-react"
@@ -101,6 +100,9 @@ const initialNewEmployeeState = {
   externalExperience: [{ company: '', title: '', startDate: '', endDate: '', responsibilities: '' }],
   education: [{ degree: '', institution: '', field: '', completionDate: '', grade: '' }],
   training: [{ name: '', provider: '', completionDate: '', file: null }],
+  // Guarantees
+  incomingGuarantees: [{ guarantorName: '', relationship: '', organization: '', organizationPhone: '', guarantorPhone: '', issueDate: '', document: null }],
+  outgoingGuarantees: [{ recipientName: '', recipientPhone: '', relationship: '', organization: '', organizationPhone: '', poBox: '', amount: '', issueDate: '', expiryDate: '', document: null }],
 };
 
 
@@ -148,6 +150,12 @@ export default function EmployeesPage() {
             break;
         case 'training':
              newItem = { name: '', provider: '', completionDate: '', file: null };
+            break;
+        case 'incomingGuarantees':
+            newItem = { guarantorName: '', relationship: '', organization: '', organizationPhone: '', guarantorPhone: '', issueDate: '', document: null };
+            break;
+        case 'outgoingGuarantees':
+            newItem = { recipientName: '', recipientPhone: '', relationship: '', organization: '', organizationPhone: '', poBox: '', amount: '', issueDate: '', expiryDate: '', document: null };
             break;
         default:
             newItem = {};
@@ -226,11 +234,12 @@ export default function EmployeesPage() {
                 </DialogDescription>
               </DialogHeader>
               <Tabs defaultValue="personal-job">
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                     <TabsTrigger value="personal-job">Personal & Job</TabsTrigger>
                     <TabsTrigger value="contact">Contact</TabsTrigger>
                     <TabsTrigger value="financial">Financial</TabsTrigger>
                     <TabsTrigger value="history">History</TabsTrigger>
+                    <TabsTrigger value="guarantees">Guarantees</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="personal-job" className="mt-4 max-h-[60vh] overflow-y-auto p-1">
@@ -725,6 +734,126 @@ export default function EmployeesPage() {
                         </Card>
                     </div>
                 </TabsContent>
+                
+                 <TabsContent value="guarantees" className="mt-4 max-h-[60vh] overflow-y-auto p-1">
+                    <div className="grid gap-6">
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div className="grid gap-1">
+                                    <CardTitle>Incoming Guarantee</CardTitle>
+                                    <CardDescription>Guarantees provided to the employee by a third party.</CardDescription>
+                                </div>
+                                <Button size="sm" variant="outline" type="button" onClick={() => addListItem('incomingGuarantees')}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Incoming
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="grid gap-4">
+                                {newEmployee.incomingGuarantees.map((guarantee, index) => (
+                                    <div key={index} className="grid gap-4 p-4 border rounded-md relative">
+                                        <div className="grid md:grid-cols-3 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`ig-name-${index}`}>Guarantor Name</Label>
+                                                <Input id={`ig-name-${index}`} name="guarantorName" value={guarantee.guarantorName} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`ig-relationship-${index}`}>Relationship</Label>
+                                                <Input id={`ig-relationship-${index}`} name="relationship" value={guarantee.relationship} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`ig-organization-${index}`}>Organization</Label>
+                                                <Input id={`ig-organization-${index}`} name="organization" value={guarantee.organization} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`ig-org-phone-${index}`}>Organization Phone</Label>
+                                                <Input id={`ig-org-phone-${index}`} name="organizationPhone" value={guarantee.organizationPhone} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`ig-guarantor-phone-${index}`}>Guarantor Phone</Label>
+                                                <Input id={`ig-guarantor-phone-${index}`} name="guarantorPhone" value={guarantee.guarantorPhone} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`ig-issueDate-${index}`}>Issue Date</Label>
+                                                <Input id={`ig-issueDate-${index}`} name="issueDate" type="date" value={guarantee.issueDate} onChange={(e) => handleNestedInputChange('incomingGuarantees', index, e)} />
+                                            </div>
+                                        </div>
+                                         <div className="grid gap-2">
+                                            <Label htmlFor={`ig-document-${index}`}>Supporting Document</Label>
+                                            <Input id={`ig-document-${index}`} name="document" type="file" />
+                                        </div>
+                                        <Button type="button" variant="destructive" size="icon" onClick={() => removeListItem('incomingGuarantees', index)} className="absolute top-4 right-4 h-8 w-8">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader className="flex flex-row items-center justify-between">
+                                <div className="grid gap-1">
+                                    <CardTitle>Outgoing Guarantee</CardTitle>
+                                    <CardDescription>Guarantees provided by the employee to a third party.</CardDescription>
+                                </div>
+                                <Button size="sm" variant="outline" type="button" onClick={() => addListItem('outgoingGuarantees')}>
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Add Outgoing
+                                </Button>
+                            </CardHeader>
+                            <CardContent className="grid gap-4">
+                                {newEmployee.outgoingGuarantees.map((guarantee, index) => (
+                                    <div key={index} className="grid gap-4 p-4 border rounded-md relative">
+                                        <div className="grid md:grid-cols-3 gap-4">
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`og-recipientName-${index}`}>Recipient Name</Label>
+                                                <Input id={`og-recipientName-${index}`} name="recipientName" value={guarantee.recipientName} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`og-recipientPhone-${index}`}>Recipient Phone</Label>
+                                                <Input id={`og-recipientPhone-${index}`} name="recipientPhone" value={guarantee.recipientPhone} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`og-relationship-${index}`}>Relationship</Label>
+                                                <Input id={`og-relationship-${index}`} name="relationship" value={guarantee.relationship} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`og-organization-${index}`}>Organization</Label>
+                                                <Input id={`og-organization-${index}`} name="organization" value={guarantee.organization} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`og-org-phone-${index}`}>Organization Phone</Label>
+                                                <Input id={`og-org-phone-${index}`} name="organizationPhone" value={guarantee.organizationPhone} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`og-poBox-${index}`}>P.O. Box</Label>
+                                                <Input id={`og-poBox-${index}`} name="poBox" value={guarantee.poBox} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`og-amount-${index}`}>Guarantee Amount (ETB)</Label>
+                                                <Input id={`og-amount-${index}`} name="amount" value={guarantee.amount} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`og-issueDate-${index}`}>Issue Date</Label>
+                                                <Input id={`og-issueDate-${index}`} name="issueDate" type="date" value={guarantee.issueDate} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
+                                            </div>
+                                            <div className="grid gap-2">
+                                                <Label htmlFor={`og-expiryDate-${index}`}>Expiry Date</Label>
+                                                <Input id={`og-expiryDate-${index}`} name="expiryDate" type="date" value={guarantee.expiryDate} onChange={(e) => handleNestedInputChange('outgoingGuarantees', index, e)} />
+                                            </div>
+                                        </div>
+                                         <div className="grid gap-2">
+                                            <Label htmlFor={`og-document-${index}`}>Supporting Document</Label>
+                                            <Input id={`og-document-${index}`} name="document" type="file" />
+                                        </div>
+                                        <Button type="button" variant="destructive" size="icon" onClick={() => removeListItem('outgoingGuarantees', index)} className="absolute top-4 right-4 h-8 w-8">
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                ))}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </TabsContent>
+
               </Tabs>
               <DialogFooter>
                  <DialogClose asChild>
@@ -833,3 +962,5 @@ export default function EmployeesPage() {
     </div>
   )
 }
+
+    
