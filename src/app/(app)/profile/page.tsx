@@ -92,6 +92,44 @@ interface jsPDFWithAutoTable extends jsPDF {
   autoTable: (options: any) => jsPDF;
 }
 
+// Function to convert number to words
+const numberToWords = (num: number): string => {
+    const a = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+    const b = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+    const g = ['', 'thousand', 'million', 'billion', 'trillion'];
+
+    const toWords = (n: number): string => {
+        if (n < 20) return a[n];
+        let rem = n % 10;
+        return b[Math.floor(n / 10)] + (rem ? '-' + a[rem] : '');
+    };
+    
+    if (num === 0) return 'zero';
+
+    let str = '';
+    let i = 0;
+    while (num > 0) {
+        let chunk = num % 1000;
+        if (chunk) {
+            let chunkStr = '';
+            if (chunk >= 100) {
+                chunkStr += a[Math.floor(chunk / 100)] + ' hundred';
+                if (chunk % 100) {
+                    chunkStr += ' and ';
+                }
+            }
+            if (chunk % 100) {
+                chunkStr += toWords(chunk % 100);
+            }
+            str = chunkStr + ' ' + g[i] + ' ' + str;
+        }
+        num = Math.floor(num / 1000);
+        i++;
+    }
+    return str.trim().replace(/\s+/g, ' ');
+};
+
+
 export default function ProfilePage() {
     const router = useRouter();
     const { toast } = useToast();
@@ -147,8 +185,12 @@ export default function ProfilePage() {
             
             const lastTableY = doc.autoTable.previous.finalY;
 
-            const closingText = `We have found ${employee.name} to be a diligent, hardworking, and valuable member of our team. We wish them all the best in their future endeavors.`;
-            doc.text(closingText, 20, lastTableY + 20, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+            const salaryInWords = numberToWords(Number(employee.basicSalary));
+            const salaryText = `He is entitled a monthly basic salary of Birr ${employee.basicSalary} (${salaryInWords}).`;
+            const closingText = "This certificate is issued upon their request and does not serve as a release.";
+
+            doc.text(salaryText, 20, lastTableY + 20, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+            doc.text(closingText, 20, lastTableY + 30, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
             
             doc.text("Nib International Bank", 20, lastTableY + 60);
 
