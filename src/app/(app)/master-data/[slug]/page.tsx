@@ -267,7 +267,8 @@ export default function MasterDataManagementPage() {
             }
         } else {
             // Add
-            const newId = String(Date.now()); // Using timestamp for unique ID
+            const existingValues = updatedData.map(item => parseInt(item.value)).filter(v => !isNaN(v));
+            const newId = existingValues.length > 0 ? String(Math.max(...existingValues) + 1).padStart(3, '0') : '001';
             updatedData.push({ ...formState, value: newId });
         }
         
