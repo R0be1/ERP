@@ -100,9 +100,36 @@ const initialMasterData = {
         { value: 'v', label: 'V' }
     ],
     allowanceTypes: [
-        { value: 'housing', label: 'Housing Allowance', description: 'Allowance for housing expenses.', isTaxable: true, defaultBasis: 'fixed', defaultValue: '5000', appliesTo: 'all' },
-        { value: 'transport', label: 'Transport Allowance', description: 'Allowance for commuting expenses.', isTaxable: false, defaultBasis: 'fixed', defaultValue: '2000', appliesTo: 'all' },
-        { value: 'communication', label: 'Communication Allowance', description: 'Allowance for mobile and internet bills.', isTaxable: false, defaultBasis: 'fixed', defaultValue: '1000', appliesTo: 'managerial' },
+        { 
+            value: 'housing-allowance', 
+            label: 'Housing Allowance', 
+            description: 'Allowance for housing expenses.', 
+            isTaxable: true,
+            jobTitleRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+            jobGradeRule: { isEnabled: true, basis: 'fixed', value: '5000', appliesTo: ['Grade 15', 'Grade 14'] },
+            jobCategoryRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+            departmentTypeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+        },
+        { 
+            value: 'transport-allowance', 
+            label: 'Transport Allowance', 
+            description: 'Allowance for commuting expenses.', 
+            isTaxable: false,
+            jobTitleRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+            jobGradeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+            jobCategoryRule: { isEnabled: true, basis: 'fixed', value: '2000', appliesTo: ['managerial', 'professional'] },
+            departmentTypeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+        },
+        { 
+            value: 'communication-allowance', 
+            label: 'Communication Allowance', 
+            description: 'Allowance for mobile and internet bills.', 
+            isTaxable: false,
+            jobTitleRule: { isEnabled: true, basis: 'fixed', value: '1500', appliesTo: ['product-manager'] },
+            jobGradeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+            jobCategoryRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+            departmentTypeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+        },
     ],
     salaryStructures: [
         { 
@@ -116,11 +143,6 @@ const initialMasterData = {
                 { step: '2', salary: '105000' },
                 { step: '3', salary: '110000' },
             ],
-            allowances: [
-                { allowanceType: 'housing', basis: 'fixed', value: '15000', taxable: true, eligibilityRule: '' },
-                { allowanceType: 'transport', basis: 'fixed', value: '5000', taxable: false, eligibilityRule: '' },
-                { allowanceType: 'communication', basis: 'fixed', value: '2000', taxable: false, eligibilityRule: '' },
-            ]
         },
         { 
             value: 'SS002', 
@@ -132,10 +154,6 @@ const initialMasterData = {
                 { step: '1', salary: '50000' },
                 { step: '2', salary: '52500' },
             ],
-            allowances: [
-                { allowanceType: 'housing', basis: 'percentage', value: '10', taxable: true, eligibilityRule: '' },
-                { allowanceType: 'transport', basis: 'fixed', value: '2000', taxable: false, eligibilityRule: '' },
-            ]
         }
     ]
 };
@@ -174,3 +192,4 @@ const setMasterData = (newData: typeof initialMasterData) => {
 };
 
 export { initialMasterData, masterData, setMasterData, getMasterData };
+

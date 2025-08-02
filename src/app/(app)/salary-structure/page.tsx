@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -57,6 +58,8 @@ const SalaryStructurePage = () => {
     const [formState, setFormState] = useState<any>({
         effectiveDate: '',
         jobGrade: '',
+        status: 'active',
+        steps: [{ step: '1', salary: '' }],
     });
     
     const router = useRouter();
@@ -79,7 +82,6 @@ const SalaryStructurePage = () => {
                 effectiveDate: '',
                 status: 'active',
                 steps: [{ step: '1', salary: '' }],
-                allowances: []
             });
         }
         setStructureDialogOpen(true);
@@ -91,6 +93,8 @@ const SalaryStructurePage = () => {
         setFormState({
             effectiveDate: '',
             jobGrade: '',
+            status: 'active',
+            steps: [{ step: '1', salary: '' }],
         });
     };
 
@@ -114,24 +118,7 @@ const SalaryStructurePage = () => {
         const newSteps = formState.steps.filter((_: any, i: number) => i !== index);
         handleFormChange('steps', newSteps);
     };
-
-    const handleAllowanceChange = (index: number, key: string, value: any) => {
-        const newAllowances = [...formState.allowances];
-        newAllowances[index][key] = value;
-        handleFormChange('allowances', newAllowances);
-    };
-
-    const addAllowance = () => {
-        const newAllowances = [...(formState.allowances || [])];
-        newAllowances.push({ allowanceType: '', basis: 'fixed', value: '', taxable: false, eligibilityRule: '' });
-        handleFormChange('allowances', newAllowances);
-    };
-
-    const removeAllowance = (index: number) => {
-        const newAllowances = formState.allowances.filter((_: any, i: number) => i !== index);
-        handleFormChange('allowances', newAllowances);
-    };
-
+    
     const handleSaveStructure = () => {
         if (formState.status === 'active') {
             const isDuplicate = salaryStructures.some(s => 
@@ -169,7 +156,6 @@ const SalaryStructurePage = () => {
     };
 
     const getJobGradeLabel = (value: string) => masterData.jobGrades.find(g => g.value === value)?.label || value;
-    const getAllowanceLabel = (value: string) => masterData.allowanceTypes.find(a => a.value === value)?.label || value;
 
     if (!isClient) return <div>Loading...</div>;
 
@@ -179,13 +165,13 @@ const SalaryStructurePage = () => {
             <Tabs defaultValue="structures">
                 <TabsList>
                     <TabsTrigger value="structures">Salary Structures</TabsTrigger>
-                    <TabsTrigger value="allowances" onClick={() => router.push('/master-data/allowanceTypes')}>Allowance Setup</TabsTrigger>
+                    <TabsTrigger value="allowances" onClick={() => router.push('/master-data/allowanceTypes')}>Allowance Entitlement</TabsTrigger>
                 </TabsList>
                 <TabsContent value="structures">
                     <Card>
                         <CardHeader>
                             <CardTitle>Defined Salary Structures</CardTitle>
-                            <CardDescription>Manage base salary scales and associated allowances for each job grade.</CardDescription>
+                            <CardDescription>Manage base salary scales for each job grade.</CardDescription>
                             <Button onClick={() => handleOpenStructureDialog()} className="ml-auto">
                                 <PlusCircle className="mr-2 h-4 w-4" /> Add Structure
                             </Button>
@@ -227,10 +213,10 @@ const SalaryStructurePage = () => {
             </Tabs>
 
             <Dialog open={isStructureDialogOpen} onOpenChange={setStructureDialogOpen}>
-                <DialogContent className="max-w-4xl">
+                <DialogContent className="max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>{editingStructure ? 'Edit' : 'Add'} Salary Structure</DialogTitle>
-                        <DialogDescription>Define the base salary steps and allowances for a job grade.</DialogDescription>
+                        <DialogDescription>Define the base salary steps for a job grade.</DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
                         <Card>
@@ -268,50 +254,6 @@ const SalaryStructurePage = () => {
                                 </div>
                             </CardContent>
                         </Card>
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Allowances</CardTitle>
-                            </CardHeader>
-                            <CardContent className='grid gap-4'>
-                                {formState.allowances?.map((allowance: any, index: number) => (
-                                    <div key={index} className="p-4 border rounded-md grid md:grid-cols-3 gap-4 relative">
-                                        <div className="grid gap-2">
-                                            <Label>Allowance Type</Label>
-                                            <Select value={allowance.allowanceType || ''} onValueChange={v => handleAllowanceChange(index, 'allowanceType', v)}>
-                                                <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
-                                                <SelectContent>
-                                                    {masterData.allowanceTypes.map(a => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Basis</Label>
-                                            <Select value={allowance.basis || ''} onValueChange={v => handleAllowanceChange(index, 'basis', v)}>
-                                                <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="fixed">Fixed Amount</SelectItem>
-                                                    <SelectItem value="percentage">% of Base Salary</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Value</Label>
-                                            <Input type="number" value={allowance.value || ''} onChange={e => handleAllowanceChange(index, 'value', e.target.value)} />
-                                        </div>
-                                        <div className="md:col-span-3 grid gap-2">
-                                            <Label>Eligibility Rule (Optional)</Label>
-                                            <Input placeholder="e.g., Only for managers" value={allowance.eligibilityRule || ''} onChange={e => handleAllowanceChange(index, 'eligibilityRule', e.target.value)} />
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Switch checked={allowance.taxable} onCheckedChange={c => handleAllowanceChange(index, 'taxable', c)} />
-                                            <Label>Taxable</Label>
-                                        </div>
-                                        <Button variant="destructive" size="icon" className="absolute top-2 right-2 h-6 w-6" onClick={() => removeAllowance(index)}><Trash2 className="h-4 w-4"/></Button>
-                                    </div>
-                                ))}
-                                <Button variant="outline" size="sm" onClick={addAllowance}>Add Allowance</Button>
-                            </CardContent>
-                        </Card>
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>
@@ -340,3 +282,4 @@ const SalaryStructurePage = () => {
 };
 
 export default SalaryStructurePage;
+
