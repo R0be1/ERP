@@ -100,36 +100,39 @@ const initialMasterData = {
         { value: 'v', label: 'V' }
     ],
     allowanceTypes: [
-        { 
-            value: 'housing-allowance', 
-            label: 'Housing Allowance', 
-            description: 'Allowance for housing expenses.', 
+        { value: 'housing-allowance', label: 'Housing Allowance', description: 'Allowance for housing expenses.', isTaxable: true },
+        { value: 'transport-allowance', label: 'Transport Allowance', description: 'Allowance for commuting expenses.', isTaxable: false },
+        { value: 'communication-allowance', label: 'Communication Allowance', description: 'Allowance for mobile and internet bills.', isTaxable: false },
+        { value: 'representation-allowance', label: 'Representation Allowance', description: 'Allowance for representation duties.', isTaxable: true },
+        { value: 'hardship-allowance', label: 'Hardship Allowance', description: 'Allowance for working in difficult locations.', isTaxable: false },
+    ],
+    allowanceRules: [
+        {
+            id: 'AR1',
+            allowanceType: 'housing-allowance',
+            ruleType: 'grade',
+            jobGrade: 'Grade 15',
+            basis: 'fixed',
             isTaxable: true,
-            jobTitleRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
-            jobGradeRule: { isEnabled: true, basis: 'fixed', value: '5000', appliesTo: ['Grade 15', 'Grade 14'] },
-            jobCategoryRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
-            departmentTypeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
+            effectiveDate: '2024-01-01',
+            positions: [
+                { jobTitle: 'product-manager', value: '10000' }
+            ]
         },
-        { 
-            value: 'transport-allowance', 
-            label: 'Transport Allowance', 
-            description: 'Allowance for commuting expenses.', 
+        {
+            id: 'AR2',
+            allowanceType: 'transport-allowance',
+            ruleType: 'department',
+            departments: ['002', '003'],
+            jobTitles: ['marketing-manager', 'sales-representative'],
+            basis: 'fixed',
             isTaxable: false,
-            jobTitleRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
-            jobGradeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
-            jobCategoryRule: { isEnabled: true, basis: 'fixed', value: '2000', appliesTo: ['managerial', 'professional'] },
-            departmentTypeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
-        },
-        { 
-            value: 'communication-allowance', 
-            label: 'Communication Allowance', 
-            description: 'Allowance for mobile and internet bills.', 
-            isTaxable: false,
-            jobTitleRule: { isEnabled: true, basis: 'fixed', value: '1500', appliesTo: ['product-manager'] },
-            jobGradeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
-            jobCategoryRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
-            departmentTypeRule: { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] },
-        },
+            effectiveDate: '2024-01-01',
+            positions: [
+                { jobTitle: 'marketing-manager', value: '3000' },
+                { jobTitle: 'sales-representative', value: '2000' }
+            ]
+        }
     ],
     salaryStructures: [
         { 
@@ -192,4 +195,3 @@ const setMasterData = (newData: typeof initialMasterData) => {
 };
 
 export { initialMasterData, masterData, setMasterData, getMasterData };
-

@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -38,7 +39,6 @@ import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
 
 type MasterDataCategoryKey = keyof typeof initialMasterData;
 
@@ -200,133 +200,6 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
     );
 };
 
-
-const AllowanceEntitlementForm = ({ masterData, onSave, onCancel, initialData, isEditMode }: any) => {
-    const defaultRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
-    const getInitialFormState = () => {
-        if (initialData && initialData.value) { // Check if it's an existing item
-            return {
-                label: initialData.label || '',
-                description: initialData.description || '',
-                isTaxable: initialData.isTaxable || false,
-                jobTitleRule: initialData.jobTitleRule || defaultRule,
-                jobGradeRule: initialData.jobGradeRule || defaultRule,
-                jobCategoryRule: initialData.jobCategoryRule || defaultRule,
-                departmentTypeRule: initialData.departmentTypeRule || defaultRule,
-            };
-        }
-        // For new items
-        return {
-            label: '',
-            description: '',
-            isTaxable: false,
-            jobTitleRule: defaultRule,
-            jobGradeRule: defaultRule,
-            jobCategoryRule: defaultRule,
-            departmentTypeRule: defaultRule,
-        };
-    };
-
-    const [formState, setFormState] = useState(getInitialFormState);
-    
-    useEffect(() => {
-        setFormState(getInitialFormState());
-    }, [initialData]);
-
-    const handleRuleChange = (ruleName: string, field: string, value: any) => {
-        setFormState((prev: any) => ({
-            ...prev,
-            [ruleName]: { ...prev[ruleName], [field]: value }
-        }));
-    };
-
-    const getRuleConfig = (ruleName: string) => {
-        switch(ruleName) {
-            case 'jobTitleRule': return { label: 'Job Title Based', options: masterData.jobTitles };
-            case 'jobGradeRule': return { label: 'Job Grade Based', options: masterData.jobGrades };
-            case 'jobCategoryRule': return { label: 'Job Category Based', options: masterData.jobCategories };
-            case 'departmentTypeRule': return { label: 'Department Type Based', options: masterData.departmentTypes };
-            default: return { label: 'Rule', options: [] };
-        }
-    };
-    
-    return (
-        <>
-            <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
-                <div className="grid md:grid-cols-2 gap-4">
-                    <div className="grid gap-2">
-                        <Label>Allowance Name</Label>
-                        <Input value={formState.label || ''} onChange={(e) => setFormState({...formState, label: e.target.value})} disabled={isEditMode}/>
-                    </div>
-                    <div className="grid gap-2">
-                         <Label>Description</Label>
-                        <Input value={formState.description || ''} onChange={(e) => setFormState({...formState, description: e.target.value})} />
-                    </div>
-                    <div className="flex items-center space-x-2 pt-6">
-                        <Switch id="isTaxable" checked={formState.isTaxable || false} onCheckedChange={(c) => setFormState({...formState, isTaxable: c})} />
-                        <Label htmlFor="isTaxable">Is Taxable</Label>
-                    </div>
-                </div>
-                
-                {['jobTitleRule', 'jobGradeRule', 'jobCategoryRule', 'departmentTypeRule'].map(ruleName => {
-                    const ruleConfig = getRuleConfig(ruleName);
-                    const ruleData = formState[ruleName] || defaultRule;
-
-                    return (
-                        <Card key={ruleName}>
-                            <CardHeader>
-                                <CardTitle className="flex items-center justify-between">
-                                    {ruleConfig.label}
-                                    <Switch
-                                        checked={ruleData.isEnabled}
-                                        onCheckedChange={(c) => handleRuleChange(ruleName, 'isEnabled', c)}
-                                    />
-                                </CardTitle>
-                            </CardHeader>
-                            {ruleData.isEnabled && (
-                                <CardContent className="grid gap-4">
-                                    <div className="grid gap-2">
-                                        <Label>Applies To</Label>
-                                        <MultiSelectCombobox
-                                            items={ruleConfig.options}
-                                            selected={ruleData.appliesTo || []}
-                                            onChange={(v) => handleRuleChange(ruleName, 'appliesTo', v)}
-                                            placeholder={`Select ${ruleConfig.label.replace(' Based', 's')}...`}
-                                        />
-                                    </div>
-                                    <div className="grid md:grid-cols-2 gap-4">
-                                        <div className="grid gap-2">
-                                            <Label>Basis</Label>
-                                            <Select value={ruleData.basis} onValueChange={v => handleRuleChange(ruleName, 'basis', v)}>
-                                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="fixed">Fixed Amount</SelectItem>
-                                                    <SelectItem value="percentage">% of Basic Salary</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="grid gap-2">
-                                            <Label>Value</Label>
-                                            <Input type="number" value={ruleData.value} onChange={e => handleRuleChange(ruleName, 'value', e.target.value)} />
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            )}
-                        </Card>
-                    )
-                })}
-            </div>
-             <DialogFooter>
-                <DialogClose asChild>
-                    <Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button>
-                </DialogClose>
-                <Button onClick={() => onSave(formState)}>Save</Button>
-            </DialogFooter>
-        </>
-    );
-};
-
-
 export default function MasterDataManagementPage() {
     const router = useRouter();
     const params = useParams();
@@ -421,12 +294,6 @@ export default function MasterDataManagementPage() {
                 }
                 return acc;
             }, {});
-             if (slug === 'allowanceTypes') {
-                initialFormState.jobTitleRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
-                initialFormState.jobGradeRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
-                initialFormState.jobCategoryRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
-                initialFormState.departmentTypeRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
-            }
             setFormState(initialFormState);
         }
         setDialogOpen(true);
@@ -508,91 +375,81 @@ export default function MasterDataManagementPage() {
                             <DialogHeader>
                                 <DialogTitle>{editingItem ? `Edit ${categoryInfo.title}` : `Add New ${categoryInfo.title}`}</DialogTitle>
                             </DialogHeader>
-                            {slug === 'allowanceTypes' ? (
-                                <AllowanceEntitlementForm 
-                                    masterData={masterData}
-                                    onSave={handleSave}
-                                    onCancel={handleCloseDialog}
-                                    initialData={formState}
-                                    isEditMode={!!editingItem}
-                                />
-                            ) : (
-                                <>
-                                <div className="grid md:grid-cols-2 gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
-                                    {categoryInfo.fields.map(field => {
-                                        const { dependsOn, dependsValue } = field;
-                                        if (dependsOn && formState[dependsOn] !== dependsValue) {
-                                            return null;
-                                        }
-                                        
-                                        const isDisabled = field.dependsOn && slug === 'jobTitles' && field.key === 'isHeadOfDepartment' && formState[field.dependsOn] !== 'managerial';
-                                        
-                                        return (
-                                        <div className={cn("grid gap-2", (field.type === 'checkbox' || field.type === 'textarea' || (field.key === 'managedDepartments') || (field.key === 'managesDepartmentType') ) ? 'md:col-span-2' : '')} key={field.key}>
-                                            <Label htmlFor={field.key}>{field.label}</Label>
-                                            {field.type === 'text' && (
-                                                <Input id={field.key} value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
-                                            )}
-                                            {field.type === 'textarea' && (
-                                                <Textarea id={field.key} value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
-                                            )}
-                                            {field.type === 'number' && (
-                                                <Input id={field.key} type="number" value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
-                                            )}
-                                            {field.type === 'select' && field.options && typeof field.options === 'string' && (
-                                                <Combobox 
-                                                    items={masterData[field.options as MasterDataCategoryKey] || []}
-                                                    value={formState[field.key] || ''}
-                                                    onChange={(value) => handleFormChange(field.key, value)}
-                                                    placeholder={`Select ${field.label}...`}
+                            <>
+                            <div className="grid md:grid-cols-2 gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
+                                {categoryInfo.fields.map(field => {
+                                    const { dependsOn, dependsValue } = field;
+                                    if (dependsOn && formState[dependsOn] !== dependsValue) {
+                                        return null;
+                                    }
+                                    
+                                    const isDisabled = field.dependsOn && slug === 'jobTitles' && field.key === 'isHeadOfDepartment' && formState[field.dependsOn] !== 'managerial';
+                                    
+                                    return (
+                                    <div className={cn("grid gap-2", (field.type === 'checkbox' || field.type === 'textarea' || (field.key === 'managedDepartments') || (field.key === 'managesDepartmentType') ) ? 'md:col-span-2' : '')} key={field.key}>
+                                        <Label htmlFor={field.key}>{field.label}</Label>
+                                        {field.type === 'text' && (
+                                            <Input id={field.key} value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
+                                        )}
+                                        {field.type === 'textarea' && (
+                                            <Textarea id={field.key} value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
+                                        )}
+                                        {field.type === 'number' && (
+                                            <Input id={field.key} type="number" value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
+                                        )}
+                                        {field.type === 'select' && field.options && typeof field.options === 'string' && (
+                                            <Combobox 
+                                                items={masterData[field.options as MasterDataCategoryKey] || []}
+                                                value={formState[field.key] || ''}
+                                                onChange={(value) => handleFormChange(field.key, value)}
+                                                placeholder={`Select ${field.label}...`}
+                                            />
+                                        )}
+                                        {field.type === 'multi-select' && field.options && typeof field.options === 'string' && (
+                                            <MultiSelectCombobox
+                                                items={masterData[field.options as MasterDataCategoryKey] || []}
+                                                selected={formState[field.key] || []}
+                                                onChange={(value) => handleFormChange(field.key, value)}
+                                                placeholder={`Select ${field.label}...`}
+                                                disabled={!!formState['managesDepartmentType']}
+                                            />
+                                        )}
+                                        {field.type === 'hardcoded-select' && Array.isArray(field.options) && (
+                                             <Select onValueChange={(value) => handleFormChange(field.key, value)} value={formState[field.key] || ''}>
+                                                <SelectTrigger><SelectValue placeholder={`Select ${field.label}...`} /></SelectTrigger>
+                                                <SelectContent>
+                                                    {(field.options as {value: string, label: string}[]).map(opt => (
+                                                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        )}
+                                        {field.type === 'checkbox' && (
+                                             <div className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={field.key}
+                                                    checked={formState[field.key] || false}
+                                                    onCheckedChange={(checked) => handleFormChange(field.key, !!checked)}
+                                                    disabled={isDisabled}
                                                 />
-                                            )}
-                                            {field.type === 'multi-select' && field.options && typeof field.options === 'string' && (
-                                                <MultiSelectCombobox
-                                                    items={masterData[field.options as MasterDataCategoryKey] || []}
-                                                    selected={formState[field.key] || []}
-                                                    onChange={(value) => handleFormChange(field.key, value)}
-                                                    placeholder={`Select ${field.label}...`}
-                                                    disabled={!!formState['managesDepartmentType']}
-                                                />
-                                            )}
-                                            {field.type === 'hardcoded-select' && Array.isArray(field.options) && (
-                                                 <Select onValueChange={(value) => handleFormChange(field.key, value)} value={formState[field.key] || ''}>
-                                                    <SelectTrigger><SelectValue placeholder={`Select ${field.label}...`} /></SelectTrigger>
-                                                    <SelectContent>
-                                                        {(field.options as {value: string, label: string}[]).map(opt => (
-                                                            <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            )}
-                                            {field.type === 'checkbox' && (
-                                                 <div className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={field.key}
-                                                        checked={formState[field.key] || false}
-                                                        onCheckedChange={(checked) => handleFormChange(field.key, !!checked)}
-                                                        disabled={isDisabled}
-                                                    />
-                                                    <label
-                                                        htmlFor={field.key}
-                                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                                    >
-                                                        {field.label}
-                                                    </label>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )})}
-                                </div>
-                                <DialogFooter>
-                                    <DialogClose asChild>
-                                        <Button type="button" variant="ghost" onClick={handleCloseDialog}>Cancel</Button>
-                                    </DialogClose>
-                                    <Button onClick={handleSave}>Save</Button>
-                                </DialogFooter>
-                                </>
-                            )}
+                                                <label
+                                                    htmlFor={field.key}
+                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    {field.label}
+                                                </label>
+                                            </div>
+                                        )}
+                                    </div>
+                                )})}
+                            </div>
+                            <DialogFooter>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="ghost" onClick={handleCloseDialog}>Cancel</Button>
+                                </DialogClose>
+                                <Button onClick={handleSave}>Save</Button>
+                            </DialogFooter>
+                            </>
                         </DialogContent>
                     </Dialog>
                 </div>
@@ -619,7 +476,6 @@ export default function MasterDataManagementPage() {
                                      if (field.type === 'checkbox' && slug === 'jobTitles' && field.key === 'isHeadOfDepartment') return null; // Hide checkbox column
                                      return <TableHead key={field.key}>{field.label}</TableHead>
                                 })}
-                                {slug === 'allowanceTypes' && <TableHead>Active Rules</TableHead>}
                                 <TableHead><span className="sr-only">Actions</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -631,16 +487,6 @@ export default function MasterDataManagementPage() {
                                          if (field.type === 'checkbox' && slug === 'jobTitles' && field.key === 'isHeadOfDepartment') return null;
                                         return <TableCell key={field.key}>{getDisplayValue(item, field.key)}</TableCell>
                                     })}
-                                    {slug === 'allowanceTypes' && (
-                                        <TableCell>
-                                            <div className="flex flex-wrap gap-1">
-                                                {item.jobTitleRule?.isEnabled && <Badge variant="outline">Job Title</Badge>}
-                                                {item.jobGradeRule?.isEnabled && <Badge variant="outline">Job Grade</Badge>}
-                                                {item.jobCategoryRule?.isEnabled && <Badge variant="outline">Job Category</Badge>}
-                                                {item.departmentTypeRule?.isEnabled && <Badge variant="outline">Department</Badge>}
-                                            </div>
-                                        </TableCell>
-                                    )}
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
