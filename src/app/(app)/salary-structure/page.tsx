@@ -136,7 +136,10 @@ const SalaryStructurePage = () => {
     };
 
     const getJobGradeLabel = (value: string) => masterData.jobGrades.find(g => g.value === value)?.label || value;
-    const getJobTitleLabel = (value: string) => masterData.jobTitles.find(t => t.value === value)?.label || value;
+    const getJobTitleLabel = (value: string) => {
+        if (!value || value === 'all') return 'All';
+        return masterData.jobTitles.find(t => t.value === value)?.label || value;
+    }
     const getAllowanceLabel = (value: string) => masterData.allowanceTypes.find(a => a.value === value)?.label || value;
 
     if (!isClient) return <div>Loading...</div>;
@@ -173,7 +176,7 @@ const SalaryStructurePage = () => {
                                     {salaryStructures.map((structure: any) => (
                                         <TableRow key={structure.value}>
                                             <TableCell>{getJobGradeLabel(structure.jobGrade)}</TableCell>
-                                            <TableCell>{structure.jobTitle ? getJobTitleLabel(structure.jobTitle) : 'All'}</TableCell>
+                                            <TableCell>{getJobTitleLabel(structure.jobTitle)}</TableCell>
                                             <TableCell>{structure.effectiveDate}</TableCell>
                                             <TableCell><Badge variant={structure.status === 'active' ? 'secondary' : 'outline'}>{structure.status}</Badge></TableCell>
                                             <TableCell className="text-right">
@@ -219,10 +222,10 @@ const SalaryStructurePage = () => {
                                 </div>
                                 <div className="grid gap-2">
                                     <Label>Job Title (Optional)</Label>
-                                    <Select value={formState.jobTitle} onValueChange={v => handleFormChange('jobTitle', v)}>
+                                    <Select value={formState.jobTitle} onValueChange={v => handleFormChange('jobTitle', v === 'all' ? '' : v)}>
                                         <SelectTrigger><SelectValue placeholder="All titles in grade" /></SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">All titles in grade</SelectItem>
+                                            <SelectItem value="all">All titles in grade</SelectItem>
                                             {masterData.jobTitles.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
@@ -306,3 +309,5 @@ const SalaryStructurePage = () => {
 };
 
 export default SalaryStructurePage;
+
+    
