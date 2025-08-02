@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -103,18 +104,21 @@ const initialMasterData = {
 
 let masterData: typeof initialMasterData = { ...initialMasterData };
 
-if (typeof window !== 'undefined') {
-    const storedData = localStorage.getItem('masterData');
-    if (storedData) {
-        try {
-            const parsedData = JSON.parse(storedData);
-            // Merge stored data with initial data to ensure all keys are present
-            masterData = { ...initialMasterData, ...parsedData };
-        } catch (e) {
-            console.error("Failed to parse master data from localStorage", e);
+const getMasterData = () => {
+    if (typeof window !== 'undefined') {
+        const storedData = localStorage.getItem('masterData');
+        if (storedData) {
+            try {
+                const parsedData = JSON.parse(storedData);
+                // Merge stored data with initial data to ensure all keys are present
+                return { ...initialMasterData, ...parsedData };
+            } catch (e) {
+                console.error("Failed to parse master data from localStorage", e);
+            }
         }
     }
-}
+    return masterData;
+};
 
 const setMasterData = (newData: typeof initialMasterData) => {
     masterData = newData;
@@ -123,4 +127,4 @@ const setMasterData = (newData: typeof initialMasterData) => {
     }
 };
 
-export { masterData, setMasterData };
+export { initialMasterData, masterData, setMasterData, getMasterData };

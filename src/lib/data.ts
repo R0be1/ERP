@@ -22,7 +22,7 @@ export const employees = [
     passportNo: 'P-54321',
     manager: 'Jane Doe',
     employmentType: 'permanent',
-    jobGrade: 'A1',
+    jobGrade: 'Grade 12',
     jobCategory: 'Professional',
     joinDate: '2020-01-15',
     probationEndDate: '2020-04-15',

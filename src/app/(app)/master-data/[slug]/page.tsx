@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { masterData as initialMasterData, setMasterData } from "@/lib/master-data";
+import { masterData as initialMasterData, setMasterData, getMasterData } from "@/lib/master-data";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -125,13 +125,15 @@ export default function MasterDataManagementPage() {
     const slug = params.slug as MasterDataCategoryKey;
 
     const [masterData, setMasterDataState] = useState(initialMasterData);
+    const [isClient, setIsClient] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const [isDialogOpen, setDialogOpen] = useState(false);
     const [editingItem, setEditingItem] = useState<any | null>(null);
     const [formState, setFormState] = useState<any>({});
 
     useEffect(() => {
-        setMasterDataState(initialMasterData);
+        setIsClient(true);
+        setMasterDataState(getMasterData());
     }, []);
 
     const categoryInfo = dataCategoryDetails[slug] || { title: "Master Data", fields: [{ key: 'label', label: 'Name', type: 'text' }] };
@@ -202,6 +204,17 @@ export default function MasterDataManagementPage() {
             return option ? option.label : item[fieldKey];
         }
         return item[fieldKey];
+    }
+
+    if (!isClient) {
+        return (
+             <div className="flex flex-col gap-4">
+                 <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-2 w-fit">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Configuration
+                </Button>
+                <div>Loading...</div>
+             </div>
+        )
     }
 
     if (!slug || !categoryData) {
