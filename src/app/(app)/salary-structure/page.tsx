@@ -127,6 +127,7 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
 
 const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) => {
     const initialFormState = {
+        id: '',
         ruleType: 'grade',
         allowanceType: '',
         basis: 'fixed',
@@ -149,50 +150,28 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
             const newState = { ...prev, [field]: value };
             
             if (field === 'ruleType') {
-                const clearedState: any = {
-                    ...initialFormState,
-                    ruleType: value,
-                    allowanceType: prev.allowanceType,
-                    basis: prev.basis,
-                    isTaxable: prev.isTaxable,
-                    effectiveDate: prev.effectiveDate,
-                    description: prev.description,
-                };
-                return clearedState;
+                 newState.jobGrade = '';
+                 newState.departments = [];
+                 newState.jobTitles = [];
+                 newState.positions = [];
             }
+            
+            if (field === 'jobGrade') {
+                 const titlesForGrade = masterData.jobTitles.filter((jt: any) => jt.jobGrade === value);
+                 newState.positions = titlesForGrade.map((jt: any) => ({ jobTitle: jt.value, value: '' }));
+            }
+            
+            if (field === 'jobTitles') {
+                 newState.positions = (value || []).map((jtValue: string) => {
+                    const existingPos = (prev.positions || []).find((p: any) => p.jobTitle === jtValue);
+                    return { jobTitle: jtValue, value: existingPos?.value || '' }
+                 });
+            }
+
 
             return newState;
         });
     };
-    
-    const titlesForGrade = useMemo(() => {
-        if (rule.ruleType !== 'grade' || !rule.jobGrade) return [];
-        return masterData.jobTitles.filter((jt: any) => jt.jobGrade === rule.jobGrade);
-    }, [rule.ruleType, rule.jobGrade, masterData.jobTitles]);
-
-    useEffect(() => {
-        if (rule.ruleType === 'grade' && rule.jobGrade) {
-            const newPositions = titlesForGrade.map((jt: any) => {
-                const existingPos = (rule.positions || []).find((p: any) => p.jobTitle === jt.value);
-                return { jobTitle: jt.value, value: existingPos?.value || '' };
-            });
-            setRule((prev: any) => ({ ...prev, positions: newPositions }));
-        }
-    }, [rule.ruleType, rule.jobGrade, titlesForGrade]);
-    
-    useEffect(() => {
-        if (rule.ruleType === 'department' && (rule.jobTitles?.length > 0 || rule.departments?.length > 0)) {
-            const newPositions = (rule.jobTitles || []).map((jtValue: string) => {
-                 const existingPos = (rule.positions || []).find((p: any) => p.jobTitle === jtValue);
-                return {
-                    jobTitle: jtValue,
-                    value: existingPos?.value || ''
-                }
-            });
-            setRule((prev: any) => ({ ...prev, positions: newPositions }));
-        }
-    }, [rule.ruleType, rule.jobTitles, rule.departments]);
-
 
     const handlePositionValueChange = (jobTitle: string, value: string) => {
         setRule((prev: any) => {
@@ -457,7 +436,9 @@ const SalaryStructurePage = () => {
         let updatedRules = [...allowanceRules];
         if (editingAllowanceRule) {
              const index = updatedRules.findIndex(r => r.id === (editingAllowanceRule as any).id);
-             updatedRules[index] = ruleData;
+             if (index > -1) {
+                updatedRules[index] = ruleData;
+             }
         } else {
             updatedRules.push({ ...ruleData, id: `AR${Date.now()}` });
         }
@@ -474,11 +455,15 @@ const SalaryStructurePage = () => {
         setMasterDataState(newMasterData);
     }
 
-    const getJobGradeLabel = (value: string) => masterData.jobGrades.find(g => g.value === value)?.label || value;
-    const getAllowanceTypeLabel = (value: string) => masterData.allowanceTypes.find(a => a.value === value)?.label || value;
+    const getJobGradeLabel = (value: string) => masterData.jobGrades.find((g:any) => g.value === value)?.label || value;
+    const getAllowanceTypeLabel = (value: string) => masterData.allowanceTypes.find((a:any) => a.value === value)?.label || value;
     const getDepartmentLabels = (values: string[] = []) => {
         if (values.length > 2) return `${values.length} departments`;
-        return values.map(v => masterData.departments.find(d => d.value === v)?.label).join(', ');
+        return values.map(v => masterData.departments.find((d:any) => d.value === v)?.label).join(', ');
+    };
+    const getJobTitleLabels = (values: string[] = []) => {
+        if (values.length > 2) return `${values.length} job titles`;
+        return values.map(v => masterData.jobTitles.find((jt:any) => jt.value === v)?.label).join(', ');
     };
 
     if (!isClient) return <div>Loading...</div>;
@@ -581,7 +566,10 @@ const SalaryStructurePage = () => {
                                             <TableCell>{getAllowanceTypeLabel(rule.allowanceType)}</TableCell>
                                             <TableCell>{rule.ruleType === 'grade' ? 'Job Grade' : 'Department'}</TableCell>
                                             <TableCell>
-                                                {rule.ruleType === 'grade' ? getJobGradeLabel(rule.jobGrade) : getDepartmentLabels(rule.departments)}
+                                                {rule.ruleType === 'grade' 
+                                                    ? getJobGradeLabel(rule.jobGrade) 
+                                                    : `${getDepartmentLabels(rule.departments)} / ${getJobTitleLabels(rule.jobTitles)}`
+                                                }
                                             </TableCell>
                                             <TableCell>{rule.effectiveDate}</TableCell>
                                              <TableCell className="text-right">
@@ -701,5 +689,8 @@ const SalaryStructurePage = () => {
 };
 
 export default SalaryStructurePage;
+
+    
+
 
     
