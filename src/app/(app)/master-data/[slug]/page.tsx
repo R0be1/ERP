@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, ChevronsUpDown, Check } from "lucide-react";
+import { MoreHorizontal, PlusCircle, Search, Trash2, Edit, ArrowLeft, ChevronsUpDown, Check, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -35,14 +35,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 type MasterDataCategoryKey = keyof typeof initialMasterData;
 
-const dataCategoryDetails: { [key: string]: { title: string, fields: { key: string, label: string, type: 'text' | 'number' | 'select' | 'hardcoded-select', options?: MasterDataCategoryKey | {value: string, label: string}[] }[] } } = {
+const dataCategoryDetails: { [key: string]: { title: string, fields: { key: string, label: string, type: 'text' | 'number' | 'select' | 'hardcoded-select' | 'checkbox' | 'multi-select', options?: MasterDataCategoryKey | {value: string, label: string}[], dependsOn?: string, dependsValue?: string }[] } } = {
     departments: { title: 'Departments', fields: [
         { key: 'label', label: 'Department Name', type: 'text' },
         { key: 'type', label: 'Department Type', type: 'select', options: 'departmentTypes' },
-        { key: 'branchGrade', label: 'Branch Grade', type: 'select', options: 'branchGrades' },
+        { key: 'branchGrade', label: 'Branch Grade', type: 'select', options: 'branchGrades', dependsOn: 'type', dependsValue: 'branch' },
         { key: 'parent', label: 'Parent Department', type: 'select', options: 'departments' },
         { key: 'capacity', label: 'Max Staff Capacity', type: 'number' },
         { key: 'region', label: 'Region', type: 'select', options: 'regions' },
@@ -54,6 +56,8 @@ const dataCategoryDetails: { [key: string]: { title: string, fields: { key: stri
         { key: 'label', label: 'Name', type: 'text' },
         { key: 'jobCategory', label: 'Job Category', type: 'select', options: 'jobCategories' },
         { key: 'jobGrade', label: 'Job Grade', type: 'select', options: 'jobGrades' },
+        { key: 'isHeadOfDepartment', label: 'Head of Department', type: 'checkbox', dependsOn: 'jobCategory', dependsValue: 'managerial'},
+        { key: 'managedDepartments', label: 'Manages Departments', type: 'multi-select', options: 'departments', dependsOn: 'isHeadOfDepartment', dependsValue: true },
     ]},
     jobCategories: { title: 'Job Categories', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     jobGrades: { title: 'Job Grades', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
@@ -119,6 +123,76 @@ const Combobox = ({ items, value, onChange, placeholder }: { items: {value: stri
     )
 }
 
+const MultiSelectCombobox = ({ items, selected, onChange, placeholder }: { items: {value: string, label: string}[], selected: string[], onChange: (selected: string[]) => void, placeholder: string }) => {
+    const [open, setOpen] = useState(false);
+    const [inputValue, setInputValue] = useState("");
+
+    const handleSelect = (value: string) => {
+        onChange(selected.includes(value) ? selected.filter(v => v !== value) : [...selected, value]);
+    };
+
+    const handleUnselect = (value: string) => {
+        onChange(selected.filter(v => v !== value));
+    };
+
+    const selectedItems = items.filter(item => selected.includes(item.value));
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <div className="flex flex-wrap gap-1 items-center rounded-md border border-input min-h-10 p-1 cursor-text" onClick={() => setOpen(true)}>
+                    {selectedItems.map(item => (
+                        <Badge key={item.value} variant="secondary" className="flex items-center gap-1">
+                            {item.label}
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUnselect(item.value);
+                                }}
+                                className="rounded-full hover:bg-muted-foreground/20"
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    ))}
+                    <span className="text-muted-foreground text-sm flex-1 ml-1">
+                        {selectedItems.length === 0 ? placeholder : ''}
+                    </span>
+                </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                    <CommandInput 
+                        placeholder="Search..." 
+                        value={inputValue}
+                        onValueChange={setInputValue}
+                    />
+                    <CommandList>
+                        <CommandEmpty>No items found.</CommandEmpty>
+                        <CommandGroup>
+                            {items.map((item) => (
+                                <CommandItem
+                                    key={item.value}
+                                    onSelect={() => handleSelect(item.value)}
+                                >
+                                    <Check
+                                        className={cn(
+                                            "mr-2 h-4 w-4",
+                                            selected.includes(item.value) ? "opacity-100" : "opacity-0"
+                                        )}
+                                    />
+                                    {item.label}
+                                </CommandItem>
+                            ))}
+                        </CommandGroup>
+                    </CommandList>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    );
+};
+
+
 export default function MasterDataManagementPage() {
     const router = useRouter();
     const params = useParams();
@@ -133,7 +207,8 @@ export default function MasterDataManagementPage() {
 
     useEffect(() => {
         setIsClient(true);
-        setMasterDataState(getMasterData());
+        const data = getMasterData();
+        setMasterDataState(data);
     }, []);
 
     const categoryInfo = dataCategoryDetails[slug] || { title: "Master Data", fields: [{ key: 'label', label: 'Name', type: 'text' }] };
@@ -143,7 +218,7 @@ export default function MasterDataManagementPage() {
         item.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleFormChange = (key: string, value: string) => {
+    const handleFormChange = (key: string, value: any) => {
         setFormState((prev: any) => ({ ...prev, [key]: value }));
     };
 
@@ -182,7 +257,13 @@ export default function MasterDataManagementPage() {
         } else {
             const newId = String(categoryData.length + 1).padStart(3, '0');
             const initialFormState = categoryInfo.fields.reduce((acc, field) => {
-                acc[field.key] = '';
+                if (field.type === 'checkbox') {
+                    acc[field.key] = false;
+                } else if (field.type === 'multi-select'){
+                    acc[field.key] = [];
+                } else {
+                    acc[field.key] = '';
+                }
                 return acc;
             }, { value: newId });
             setFormState(initialFormState);
@@ -203,6 +284,14 @@ export default function MasterDataManagementPage() {
             const option = optionSet.find(o => o.value === item[fieldKey]);
             return option ? option.label : item[fieldKey];
         }
+        if (field?.type === 'multi-select' && field.options && typeof field.options === 'string') {
+            const optionSet = masterData[field.options as MasterDataCategoryKey] || [];
+            const selectedOptions = item[fieldKey] || [];
+            return selectedOptions.map((val: string) => optionSet.find(o => o.value === val)?.label).filter(Boolean).join(', ');
+        }
+        if (field?.type === 'checkbox') {
+            return item[fieldKey] ? 'Yes' : 'No';
+        }
         return item[fieldKey];
     }
 
@@ -217,7 +306,7 @@ export default function MasterDataManagementPage() {
         )
     }
 
-    if (!slug || !categoryData) {
+    if (!slug || !categoryInfo) {
         return (
              <div className="flex flex-col gap-4">
                  <Button variant="ghost" size="sm" onClick={() => router.back()} className="mb-2 w-fit">
@@ -249,11 +338,15 @@ export default function MasterDataManagementPage() {
                             </DialogHeader>
                             <div className="grid md:grid-cols-2 gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
                                 {categoryInfo.fields.map(field => {
-                                    if (slug === 'departments' && field.key === 'branchGrade' && formState.type !== 'branch') {
+                                    const { dependsOn, dependsValue } = field;
+                                    if (dependsOn && formState[dependsOn] !== dependsValue) {
                                         return null;
                                     }
+                                    
+                                    const isDisabled = field.dependsOn && slug === 'jobTitles' && field.key === 'isHeadOfDepartment' && formState[field.dependsOn] !== 'managerial';
+                                    
                                     return (
-                                    <div className="grid gap-2" key={field.key}>
+                                    <div className={cn("grid gap-2", (field.type === 'checkbox' || (field.dependsOn === 'isHeadOfDepartment')) ? 'md:col-span-2' : '')} key={field.key}>
                                         <Label htmlFor={field.key}>{field.label}</Label>
                                         {field.type === 'text' && (
                                             <Input id={field.key} value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
@@ -269,6 +362,14 @@ export default function MasterDataManagementPage() {
                                                 placeholder={`Select ${field.label}...`}
                                             />
                                         )}
+                                        {field.type === 'multi-select' && field.options && typeof field.options === 'string' && (
+                                            <MultiSelectCombobox
+                                                items={masterData[field.options as MasterDataCategoryKey] || []}
+                                                selected={formState[field.key] || []}
+                                                onChange={(value) => handleFormChange(field.key, value)}
+                                                placeholder={`Select ${field.label}...`}
+                                            />
+                                        )}
                                         {field.type === 'hardcoded-select' && Array.isArray(field.options) && (
                                              <Select onValueChange={(value) => handleFormChange(field.key, value)} value={formState[field.key] || ''}>
                                                 <SelectTrigger><SelectValue placeholder={`Select ${field.label}...`} /></SelectTrigger>
@@ -278,6 +379,22 @@ export default function MasterDataManagementPage() {
                                                     ))}
                                                 </SelectContent>
                                             </Select>
+                                        )}
+                                        {field.type === 'checkbox' && (
+                                             <div className="flex items-center space-x-2">
+                                                <Checkbox
+                                                    id={field.key}
+                                                    checked={formState[field.key] || false}
+                                                    onCheckedChange={(checked) => handleFormChange(field.key, !!checked)}
+                                                    disabled={isDisabled}
+                                                />
+                                                <label
+                                                    htmlFor={field.key}
+                                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                                                >
+                                                    {field.label}
+                                                </label>
+                                            </div>
                                         )}
                                     </div>
                                 )})}
@@ -309,9 +426,11 @@ export default function MasterDataManagementPage() {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>ID</TableHead>
-                                {categoryInfo.fields.map(field => (
-                                    <TableHead key={field.key}>{field.label}</TableHead>
-                                ))}
+                                {categoryInfo.fields.map(field => {
+                                     if (field.type === 'multi-select') return null;
+                                     if (field.type === 'checkbox' && slug === 'jobTitles' && field.key === 'isHeadOfDepartment') return null; // Hide checkbox column
+                                     return <TableHead key={field.key}>{field.label}</TableHead>
+                                })}
                                 <TableHead><span className="sr-only">Actions</span></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -319,9 +438,11 @@ export default function MasterDataManagementPage() {
                             {filteredData.map((item) => (
                                 <TableRow key={item.value}>
                                     <TableCell className="font-mono">{item.value}</TableCell>
-                                    {categoryInfo.fields.map(field => (
-                                        <TableCell key={field.key}>{getDisplayValue(item, field.key)}</TableCell>
-                                    ))}
+                                    {categoryInfo.fields.map(field => {
+                                         if (field.type === 'multi-select') return null;
+                                         if (field.type === 'checkbox' && slug === 'jobTitles' && field.key === 'isHeadOfDepartment') return null;
+                                        return <TableCell key={field.key}>{getDisplayValue(item, field.key)}</TableCell>
+                                    })}
                                     <TableCell className="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -373,3 +494,5 @@ export default function MasterDataManagementPage() {
         </div>
     );
 }
+
+    

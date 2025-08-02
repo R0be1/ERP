@@ -28,12 +28,12 @@ const initialMasterData = {
         { value: '007', label: 'Operations', type: 'department', parent: '', capacity: '40', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
     ],
     jobTitles: [
-        { value: 'software-engineer', label: 'Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 10' },
-        { value: 'senior-software-engineer', label: 'Senior Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 12' },
-        { value: 'product-manager', label: 'Product Manager', jobCategory: 'managerial', jobGrade: 'Grade 15' },
-        { value: 'marketing-manager', label: 'Marketing Manager', jobCategory: 'managerial', jobGrade: 'Grade 14' },
-        { value: 'sales-representative', label: 'Sales Representative', jobCategory: 'clerical', jobGrade: 'Grade 8' },
-        { value: 'hr-specialist', label: 'HR Specialist', jobCategory: 'professional', jobGrade: 'Grade 9' },
+        { value: 'software-engineer', label: 'Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 10', isHeadOfDepartment: false, managedDepartments: [] },
+        { value: 'senior-software-engineer', label: 'Senior Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 12', isHeadOfDepartment: false, managedDepartments: [] },
+        { value: 'product-manager', label: 'Product Manager', jobCategory: 'managerial', jobGrade: 'Grade 15', isHeadOfDepartment: true, managedDepartments: ['005'] },
+        { value: 'marketing-manager', label: 'Marketing Manager', jobCategory: 'managerial', jobGrade: 'Grade 14', isHeadOfDepartment: true, managedDepartments: ['002'] },
+        { value: 'sales-representative', label: 'Sales Representative', jobCategory: 'clerical', jobGrade: 'Grade 8', isHeadOfDepartment: false, managedDepartments: [] },
+        { value: 'hr-specialist', label: 'HR Specialist', jobCategory: 'professional', jobGrade: 'Grade 9', isHeadOfDepartment: false, managedDepartments: [] },
     ],
     jobGrades: Array.from({ length: 22 }, (_, i) => ({ value: `Grade ${i + 1}`, label: `Grade ${i + 1}` })),
     jobCategories: [
@@ -111,7 +111,13 @@ const getMasterData = () => {
             try {
                 const parsedData = JSON.parse(storedData);
                 // Merge stored data with initial data to ensure all keys are present
-                return { ...initialMasterData, ...parsedData };
+                const mergedData = { ...initialMasterData };
+                for (const key in initialMasterData) {
+                    if (parsedData[key]) {
+                        (mergedData as any)[key] = parsedData[key];
+                    }
+                }
+                return mergedData;
             } catch (e) {
                 console.error("Failed to parse master data from localStorage", e);
             }
@@ -128,3 +134,5 @@ const setMasterData = (newData: typeof initialMasterData) => {
 };
 
 export { initialMasterData, masterData, setMasterData, getMasterData };
+
+    
