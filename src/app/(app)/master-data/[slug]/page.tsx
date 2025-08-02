@@ -1,5 +1,4 @@
 
-
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -204,14 +203,36 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
 
 const AllowanceEntitlementForm = ({ masterData, onSave, onCancel, initialData, isEditMode }: any) => {
     const defaultRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
+    const getInitialFormState = () => {
+        if (initialData && initialData.value) { // Check if it's an existing item
+            return {
+                label: initialData.label || '',
+                description: initialData.description || '',
+                isTaxable: initialData.isTaxable || false,
+                jobTitleRule: initialData.jobTitleRule || defaultRule,
+                jobGradeRule: initialData.jobGradeRule || defaultRule,
+                jobCategoryRule: initialData.jobCategoryRule || defaultRule,
+                departmentTypeRule: initialData.departmentTypeRule || defaultRule,
+            };
+        }
+        // For new items
+        return {
+            label: '',
+            description: '',
+            isTaxable: false,
+            jobTitleRule: defaultRule,
+            jobGradeRule: defaultRule,
+            jobCategoryRule: defaultRule,
+            departmentTypeRule: defaultRule,
+        };
+    };
+
+    const [formState, setFormState] = useState(getInitialFormState);
     
-    const [formState, setFormState] = useState(initialData || {
-        jobTitleRule: defaultRule,
-        jobGradeRule: defaultRule,
-        jobCategoryRule: defaultRule,
-        departmentTypeRule: defaultRule,
-    });
-    
+    useEffect(() => {
+        setFormState(getInitialFormState());
+    }, [initialData]);
+
     const handleRuleChange = (ruleName: string, field: string, value: any) => {
         setFormState((prev: any) => ({
             ...prev,
@@ -400,6 +421,12 @@ export default function MasterDataManagementPage() {
                 }
                 return acc;
             }, {});
+             if (slug === 'allowanceTypes') {
+                initialFormState.jobTitleRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
+                initialFormState.jobGradeRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
+                initialFormState.jobCategoryRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
+                initialFormState.departmentTypeRule = { isEnabled: false, basis: 'fixed', value: '0', appliesTo: [] };
+            }
             setFormState(initialFormState);
         }
         setDialogOpen(true);
@@ -412,8 +439,8 @@ export default function MasterDataManagementPage() {
     };
 
     const getDisplayValue = (item: any, fieldKey: string) => {
-        const field = categoryInfo.fields.find(f => f.key === fieldKey);
         if (!item) return '';
+        const field = categoryInfo.fields.find(f => f.key === fieldKey);
 
         const value = item[fieldKey];
 
@@ -665,5 +692,7 @@ export default function MasterDataManagementPage() {
         </div>
     );
 }
+
+    
 
     
