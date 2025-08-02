@@ -27,12 +27,12 @@ const initialMasterData = {
         { value: '007', label: 'Operations', type: 'department', parent: '', capacity: '40', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
     ],
     jobTitles: [
-        { value: 'software-engineer', label: 'Software Engineer' },
-        { value: 'senior-software-engineer', label: 'Senior Software Engineer' },
-        { value: 'product-manager', label: 'Product Manager' },
-        { value: 'marketing-manager', label: 'Marketing Manager' },
-        { value: 'sales-representative', label: 'Sales Representative' },
-        { value: 'hr-specialist', label: 'HR Specialist' },
+        { value: 'software-engineer', label: 'Software Engineer', jobCategory: 'professional', jobGrade: 'I-10' },
+        { value: 'senior-software-engineer', label: 'Senior Software Engineer', jobCategory: 'professional', jobGrade: 'I-12' },
+        { value: 'product-manager', label: 'Product Manager', jobCategory: 'managerial', jobGrade: 'I-15' },
+        { value: 'marketing-manager', label: 'Marketing Manager', jobCategory: 'managerial', jobGrade: 'I-14' },
+        { value: 'sales-representative', label: 'Sales Representative', jobCategory: 'clerical', jobGrade: 'I-8' },
+        { value: 'hr-specialist', label: 'HR Specialist', jobCategory: 'professional', jobGrade: 'I-9' },
     ],
     jobGrades: Array.from({ length: 22 }, (_, i) => ({ value: `I-${i + 1}`, label: `Grade I-${i + 1}` })),
     jobCategories: [

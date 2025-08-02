@@ -50,7 +50,11 @@ const dataCategoryDetails: { [key: string]: { title: string, fields: { key: stri
     ]},
     departmentTypes: { title: 'Department Types', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     workLocations: { title: 'Work Locations', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
-    jobTitles: { title: 'Job Titles', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    jobTitles: { title: 'Job Titles', fields: [
+        { key: 'label', label: 'Name', type: 'text' },
+        { key: 'jobCategory', label: 'Job Category', type: 'select', options: 'jobCategories' },
+        { key: 'jobGrade', label: 'Job Grade', type: 'select', options: 'jobGrades' },
+    ]},
     jobCategories: { title: 'Job Categories', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     jobGrades: { title: 'Job Grades', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     branchGrades: { title: 'Branch Grades', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
