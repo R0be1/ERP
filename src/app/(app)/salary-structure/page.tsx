@@ -62,6 +62,8 @@ const SalaryStructurePage = () => {
             setFormState(structure);
         } else {
             setFormState({
+                jobGrade: '',
+                effectiveDate: '',
                 status: 'active',
                 steps: [{ step: '1', salary: '' }],
                 allowances: []
@@ -153,7 +155,7 @@ const SalaryStructurePage = () => {
                     <Card>
                         <CardHeader>
                             <CardTitle>Defined Salary Structures</CardTitle>
-                            <CardDescription>Manage base salary scales and associated allowances.</CardDescription>
+                            <CardDescription>Manage base salary scales and associated allowances for each job grade.</CardDescription>
                             <Button onClick={() => handleOpenStructureDialog()} className="ml-auto">
                                 <PlusCircle className="mr-2 h-4 w-4" /> Add Structure
                             </Button>
@@ -208,7 +210,7 @@ const SalaryStructurePage = () => {
                             <CardContent className='grid md:grid-cols-2 gap-4'>
                                 <div className="grid gap-2">
                                     <Label>Job Grade</Label>
-                                    <Select value={formState.jobGrade} onValueChange={v => handleFormChange('jobGrade', v)}>
+                                    <Select value={formState.jobGrade || ''} onValueChange={v => handleFormChange('jobGrade', v)}>
                                         <SelectTrigger><SelectValue placeholder="Select..." /></SelectTrigger>
                                         <SelectContent>
                                             {masterData.jobGrades.map(g => <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>)}
@@ -217,7 +219,7 @@ const SalaryStructurePage = () => {
                                 </div>
                                 <div className="grid gap-2">
                                     <Label>Effective From</Label>
-                                    <Input type="date" value={formState.effectiveDate} onChange={e => handleFormChange('effectiveDate', e.target.value)} />
+                                    <Input type="date" value={formState.effectiveDate || ''} onChange={e => handleFormChange('effectiveDate', e.target.value)} />
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <Switch id="status" checked={formState.status === 'active'} onCheckedChange={c => handleFormChange('status', c ? 'active' : 'inactive')} />
@@ -228,7 +230,7 @@ const SalaryStructurePage = () => {
                                     {formState.steps?.map((step: any, index: number) => (
                                         <div key={index} className="flex items-center gap-2">
                                             <Label className="w-16">Step {step.step}</Label>
-                                            <Input type="number" placeholder="Base Salary" value={step.salary} onChange={e => handleStepChange(index, e.target.value)} />
+                                            <Input type="number" placeholder="Base Salary" value={step.salary || ''} onChange={e => handleStepChange(index, e.target.value)} />
                                             <Button variant="ghost" size="icon" onClick={() => removeStep(index)}><Trash2 className="h-4 w-4" /></Button>
                                         </div>
                                     ))}
@@ -245,7 +247,7 @@ const SalaryStructurePage = () => {
                                     <div key={index} className="p-4 border rounded-md grid md:grid-cols-3 gap-4 relative">
                                         <div className="grid gap-2">
                                             <Label>Allowance Type</Label>
-                                            <Select value={allowance.allowanceType} onValueChange={v => handleAllowanceChange(index, 'allowanceType', v)}>
+                                            <Select value={allowance.allowanceType || ''} onValueChange={v => handleAllowanceChange(index, 'allowanceType', v)}>
                                                 <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
                                                 <SelectContent>
                                                     {masterData.allowanceTypes.map(a => <SelectItem key={a.value} value={a.value}>{a.label}</SelectItem>)}
@@ -254,7 +256,7 @@ const SalaryStructurePage = () => {
                                         </div>
                                         <div className="grid gap-2">
                                             <Label>Basis</Label>
-                                            <Select value={allowance.basis} onValueChange={v => handleAllowanceChange(index, 'basis', v)}>
+                                            <Select value={allowance.basis || ''} onValueChange={v => handleAllowanceChange(index, 'basis', v)}>
                                                 <SelectTrigger><SelectValue placeholder="Select..."/></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="fixed">Fixed Amount</SelectItem>
@@ -264,11 +266,11 @@ const SalaryStructurePage = () => {
                                         </div>
                                         <div className="grid gap-2">
                                             <Label>Value</Label>
-                                            <Input type="number" value={allowance.value} onChange={e => handleAllowanceChange(index, 'value', e.target.value)} />
+                                            <Input type="number" value={allowance.value || ''} onChange={e => handleAllowanceChange(index, 'value', e.target.value)} />
                                         </div>
                                         <div className="md:col-span-3 grid gap-2">
                                             <Label>Eligibility Rule (Optional)</Label>
-                                            <Input placeholder="e.g., Only for managers" value={allowance.eligibilityRule} onChange={e => handleAllowanceChange(index, 'eligibilityRule', e.target.value)} />
+                                            <Input placeholder="e.g., Only for managers" value={allowance.eligibilityRule || ''} onChange={e => handleAllowanceChange(index, 'eligibilityRule', e.target.value)} />
                                         </div>
                                         <div className="flex items-center space-x-2">
                                             <Switch checked={allowance.taxable} onCheckedChange={c => handleAllowanceChange(index, 'taxable', c)} />
@@ -294,3 +296,5 @@ const SalaryStructurePage = () => {
 };
 
 export default SalaryStructurePage;
+
+    
