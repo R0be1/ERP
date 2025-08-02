@@ -145,7 +145,12 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
     const [rule, setRule] = useState(initialData || initialFormState);
 
     useEffect(() => {
-        setRule(initialData || initialFormState);
+        const data = initialData || initialFormState;
+        setRule({
+            ...data,
+            jobTitles: data.jobTitles || [],
+            positions: data.positions || [],
+        });
     }, [initialData]);
 
     const handleFieldChange = (field: string, value: any) => {
@@ -233,12 +238,13 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                         </div>
                         {rule.jobGrade && (
                              <div className="grid gap-2">
-                                <Label>Job Titles</Label>
+                                <Label>Job Titles (Optional)</Label>
+                                <p className="text-xs text-muted-foreground">If no titles are selected, the rule applies to the entire grade.</p>
                                  <MultiSelectCombobox 
                                     items={jobTitlesForGradeRule} 
                                     selected={rule.jobTitles || []}
                                     onChange={v => handleFieldChange('jobTitles', v)}
-                                    placeholder="Select job titles from the grade..."
+                                    placeholder="Select job titles to target specifically..."
                                 />
                             </div>
                         )}
@@ -488,6 +494,7 @@ const SalaryStructurePage = () => {
         return values.map(v => masterData.departments.find((d:any) => d.value === v)?.label).filter(Boolean).join(', ');
     };
     const getJobTitleLabels = (values: string[] = []) => {
+        if (!values || values.length === 0) return '';
         if (values.length > 2) return `${values.length} job titles`;
         return values.map(v => masterData.jobTitles.find((jt:any) => jt.value === v)?.label).filter(Boolean).join(', ');
     };
@@ -593,7 +600,7 @@ const SalaryStructurePage = () => {
                                             <TableCell>{rule.ruleType === 'grade' ? 'Job Grade' : 'Department'}</TableCell>
                                             <TableCell>
                                                 {rule.ruleType === 'grade' 
-                                                    ? `${getJobGradeLabel(rule.jobGrade)} / ${getJobTitleLabels(rule.jobTitles)}`
+                                                    ? `${getJobGradeLabel(rule.jobGrade)} / ${rule.jobTitles?.length > 0 ? getJobTitleLabels(rule.jobTitles) : `All Titles in ${getJobGradeLabel(rule.jobGrade)}`}`
                                                     : `${getDepartmentLabels(rule.departments)} / ${getJobTitleLabels(rule.jobTitles)}`
                                                 }
                                             </TableCell>
@@ -720,4 +727,5 @@ export default SalaryStructurePage;
 
 
     
+
 
