@@ -23,6 +23,15 @@ import {
     DialogTrigger,
     DialogClose,
   } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { MoreHorizontal, PlusCircle, Trash2, Edit } from 'lucide-react';
 import {
     DropdownMenu,
@@ -44,6 +53,7 @@ const SalaryStructurePage = () => {
     const [masterData, setMasterDataState] = useState(getMasterData());
     const [isStructureDialogOpen, setStructureDialogOpen] = useState(false);
     const [editingStructure, setEditingStructure] = useState<any | null>(null);
+    const [isConflictAlertOpen, setConflictAlertOpen] = useState(false);
     const [formState, setFormState] = useState<any>({
         effectiveDate: '',
         jobGrade: '',
@@ -132,7 +142,7 @@ const SalaryStructurePage = () => {
             );
 
             if (isDuplicate) {
-                alert("An active salary structure for this job grade and effective date already exists. Please set the existing one to inactive or choose a different date.");
+                setConflictAlertOpen(true);
                 return;
             }
         }
@@ -311,10 +321,22 @@ const SalaryStructurePage = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <AlertDialog open={isConflictAlertOpen} onOpenChange={setConflictAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Conflict Detected</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        An active salary structure for this job grade and effective date already exists. Please set the existing one to inactive or choose a different date to avoid conflicts.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogAction onClick={() => setConflictAlertOpen(false)}>OK</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };
 
 export default SalaryStructurePage;
-
-    
