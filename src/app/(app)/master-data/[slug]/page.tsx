@@ -40,7 +40,7 @@ import { Badge } from "@/components/ui/badge";
 
 type MasterDataCategoryKey = keyof typeof initialMasterData;
 
-const dataCategoryDetails: { [key: string]: { title: string, fields: { key: string, label: string, type: 'text' | 'number' | 'select' | 'hardcoded-select' | 'checkbox' | 'multi-select', options?: MasterDataCategoryKey | {value: string, label: string}[], dependsOn?: string, dependsValue?: string }[] } } = {
+const dataCategoryDetails: { [key: string]: { title: string, fields: { key: string, label: string, type: 'text' | 'number' | 'select' | 'hardcoded-select' | 'checkbox' | 'multi-select', options?: MasterDataCategoryKey | {value: string, label: string}[], dependsOn?: string, dependsValue?: any }[] } } = {
     departments: { title: 'Departments', fields: [
         { key: 'label', label: 'Department Name', type: 'text' },
         { key: 'type', label: 'Department Type', type: 'select', options: 'departmentTypes' },
@@ -57,7 +57,8 @@ const dataCategoryDetails: { [key: string]: { title: string, fields: { key: stri
         { key: 'jobCategory', label: 'Job Category', type: 'select', options: 'jobCategories' },
         { key: 'jobGrade', label: 'Job Grade', type: 'select', options: 'jobGrades' },
         { key: 'isHeadOfDepartment', label: 'Head of Department', type: 'checkbox', dependsOn: 'jobCategory', dependsValue: 'managerial'},
-        { key: 'managedDepartments', label: 'Manages Departments', type: 'multi-select', options: 'departments', dependsOn: 'isHeadOfDepartment', dependsValue: true },
+        { key: 'managesDepartmentType', label: 'Assign by Department Type', type: 'select', options: 'departmentTypes', dependsOn: 'isHeadOfDepartment', dependsValue: true},
+        { key: 'managedDepartments', label: 'Manages Specific Departments', type: 'multi-select', options: 'departments', dependsOn: 'isHeadOfDepartment', dependsValue: true },
     ]},
     jobCategories: { title: 'Job Categories', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     jobGrades: { title: 'Job Grades', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
@@ -123,7 +124,7 @@ const Combobox = ({ items, value, onChange, placeholder }: { items: {value: stri
     )
 }
 
-const MultiSelectCombobox = ({ items, selected, onChange, placeholder }: { items: {value: string, label: string}[], selected: string[], onChange: (selected: string[]) => void, placeholder: string }) => {
+const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled = false }: { items: {value: string, label: string}[], selected: string[], onChange: (selected: string[]) => void, placeholder: string, disabled?: boolean }) => {
     const [open, setOpen] = useState(false);
     const [inputValue, setInputValue] = useState("");
 
@@ -139,8 +140,8 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder }: { items
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger asChild>
-                <div className="flex flex-wrap gap-1 items-center rounded-md border border-input min-h-10 p-1 cursor-text" onClick={() => setOpen(true)}>
+            <PopoverTrigger asChild disabled={disabled}>
+                <div className={cn("flex flex-wrap gap-1 items-center rounded-md border border-input min-h-10 p-1 cursor-text", disabled && "cursor-not-allowed opacity-50 bg-muted")}>
                     {selectedItems.map(item => (
                         <Badge key={item.value} variant="secondary" className="flex items-center gap-1">
                             {item.label}
@@ -217,9 +218,29 @@ export default function MasterDataManagementPage() {
     const filteredData = categoryData.filter(item =>
         item.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
+     
+    useEffect(() => {
+        if (slug === 'jobTitles' && formState.managesDepartmentType) {
+            const departmentsToSelect = masterData.departments
+                .filter(d => d.type === formState.managesDepartmentType)
+                .map(d => d.value);
+            setFormState((prev: any) => ({ ...prev, managedDepartments: departmentsToSelect }));
+        }
+    }, [formState.managesDepartmentType, masterData.departments, slug]);
 
     const handleFormChange = (key: string, value: any) => {
         setFormState((prev: any) => ({ ...prev, [key]: value }));
+        
+        if (key === 'managesDepartmentType') {
+            if (value) {
+                const departmentsToSelect = masterData.departments
+                    .filter(d => d.type === value)
+                    .map(d => d.value);
+                setFormState((prev: any) => ({ ...prev, managedDepartments: departmentsToSelect }));
+            } else {
+                 setFormState((prev: any) => ({ ...prev, managedDepartments: [] }));
+            }
+        }
     };
 
     const handleSave = () => {
@@ -255,7 +276,6 @@ export default function MasterDataManagementPage() {
         if (item) {
             setFormState(item);
         } else {
-            const newId = String(categoryData.length + 1).padStart(3, '0');
             const initialFormState = categoryInfo.fields.reduce((acc, field) => {
                 if (field.type === 'checkbox') {
                     acc[field.key] = false;
@@ -265,7 +285,7 @@ export default function MasterDataManagementPage() {
                     acc[field.key] = '';
                 }
                 return acc;
-            }, { value: newId });
+            }, { value: '' }); // ID will be generated on save
             setFormState(initialFormState);
         }
         setDialogOpen(true);
@@ -287,6 +307,9 @@ export default function MasterDataManagementPage() {
         if (field?.type === 'multi-select' && field.options && typeof field.options === 'string') {
             const optionSet = masterData[field.options as MasterDataCategoryKey] || [];
             const selectedOptions = item[fieldKey] || [];
+            if (selectedOptions.length > 2) {
+                return `${selectedOptions.length} departments selected`;
+            }
             return selectedOptions.map((val: string) => optionSet.find(o => o.value === val)?.label).filter(Boolean).join(', ');
         }
         if (field?.type === 'checkbox') {
@@ -346,7 +369,7 @@ export default function MasterDataManagementPage() {
                                     const isDisabled = field.dependsOn && slug === 'jobTitles' && field.key === 'isHeadOfDepartment' && formState[field.dependsOn] !== 'managerial';
                                     
                                     return (
-                                    <div className={cn("grid gap-2", (field.type === 'checkbox' || (field.dependsOn === 'isHeadOfDepartment')) ? 'md:col-span-2' : '')} key={field.key}>
+                                    <div className={cn("grid gap-2", (field.type === 'checkbox' || (field.key === 'managedDepartments') || (field.key === 'managesDepartmentType') ) ? 'md:col-span-2' : '')} key={field.key}>
                                         <Label htmlFor={field.key}>{field.label}</Label>
                                         {field.type === 'text' && (
                                             <Input id={field.key} value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
@@ -368,6 +391,7 @@ export default function MasterDataManagementPage() {
                                                 selected={formState[field.key] || []}
                                                 onChange={(value) => handleFormChange(field.key, value)}
                                                 placeholder={`Select ${field.label}...`}
+                                                disabled={!!formState['managesDepartmentType']}
                                             />
                                         )}
                                         {field.type === 'hardcoded-select' && Array.isArray(field.options) && (
@@ -427,7 +451,7 @@ export default function MasterDataManagementPage() {
                             <TableRow>
                                 <TableHead>ID</TableHead>
                                 {categoryInfo.fields.map(field => {
-                                     if (field.type === 'multi-select') return null;
+                                     if (field.type === 'multi-select') return <TableHead key={field.key}>{field.label}</TableHead>;
                                      if (field.type === 'checkbox' && slug === 'jobTitles' && field.key === 'isHeadOfDepartment') return null; // Hide checkbox column
                                      return <TableHead key={field.key}>{field.label}</TableHead>
                                 })}
@@ -437,9 +461,8 @@ export default function MasterDataManagementPage() {
                         <TableBody>
                             {filteredData.map((item) => (
                                 <TableRow key={item.value}>
-                                    <TableCell className="font-mono">{item.value}</TableCell>
+                                    <TableCell className="font-mono text-xs">{item.value}</TableCell>
                                     {categoryInfo.fields.map(field => {
-                                         if (field.type === 'multi-select') return null;
                                          if (field.type === 'checkbox' && slug === 'jobTitles' && field.key === 'isHeadOfDepartment') return null;
                                         return <TableCell key={field.key}>{getDisplayValue(item, field.key)}</TableCell>
                                     })}

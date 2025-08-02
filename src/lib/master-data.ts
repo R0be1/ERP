@@ -30,8 +30,8 @@ const initialMasterData = {
     jobTitles: [
         { value: 'software-engineer', label: 'Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 10', isHeadOfDepartment: false, managedDepartments: [] },
         { value: 'senior-software-engineer', label: 'Senior Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 12', isHeadOfDepartment: false, managedDepartments: [] },
-        { value: 'product-manager', label: 'Product Manager', jobCategory: 'managerial', jobGrade: 'Grade 15', isHeadOfDepartment: true, managedDepartments: ['005'] },
-        { value: 'marketing-manager', label: 'Marketing Manager', jobCategory: 'managerial', jobGrade: 'Grade 14', isHeadOfDepartment: true, managedDepartments: ['002'] },
+        { value: 'product-manager', label: 'Product Manager', jobCategory: 'managerial', jobGrade: 'Grade 15', isHeadOfDepartment: true, managedDepartments: ['005'], managesDepartmentType: '' },
+        { value: 'marketing-manager', label: 'Marketing Manager', jobCategory: 'managerial', jobGrade: 'Grade 14', isHeadOfDepartment: true, managedDepartments: ['002'], managesDepartmentType: '' },
         { value: 'sales-representative', label: 'Sales Representative', jobCategory: 'clerical', jobGrade: 'Grade 8', isHeadOfDepartment: false, managedDepartments: [] },
         { value: 'hr-specialist', label: 'HR Specialist', jobCategory: 'professional', jobGrade: 'Grade 9', isHeadOfDepartment: false, managedDepartments: [] },
     ],
@@ -123,7 +123,7 @@ const getMasterData = () => {
             }
         }
     }
-    return masterData;
+    return initialMasterData;
 };
 
 const setMasterData = (newData: typeof initialMasterData) => {
