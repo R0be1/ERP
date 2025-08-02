@@ -107,9 +107,8 @@ const initialMasterData = {
     salaryStructures: [
         { 
             value: 'SS001', 
-            label: 'Managerial Grade 15',
+            label: 'Grade 15 Structure',
             jobGrade: 'Grade 15', 
-            jobTitle: '',
             effectiveDate: '2024-01-01',
             status: 'active',
             steps: [
@@ -125,9 +124,8 @@ const initialMasterData = {
         },
         { 
             value: 'SS002', 
-            label: 'Professional Grade 10',
+            label: 'Grade 10 Structure',
             jobGrade: 'Grade 10', 
-            jobTitle: '',
             effectiveDate: '2024-01-01',
             status: 'active',
             steps: [
@@ -158,6 +156,7 @@ const getMasterData = () => {
                         (mergedData as any)[key] = parsedData[key];
                     }
                 }
+                masterData = mergedData;
                 return mergedData;
             } catch (e) {
                 console.error("Failed to parse master data from localStorage", e);
