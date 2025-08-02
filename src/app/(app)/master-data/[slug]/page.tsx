@@ -521,7 +521,7 @@ export default function MasterDataManagementPage() {
                                                             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                                             <AlertDialogDescription>
                                                                 This action cannot be undone. This will permanently delete the record.
-                                                            </Description>
+                                                            </AlertDialogDescription>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
                                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -543,3 +543,5 @@ export default function MasterDataManagementPage() {
         </div>
     );
 }
+
+    
