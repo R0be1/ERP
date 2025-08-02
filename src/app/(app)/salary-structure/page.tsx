@@ -44,7 +44,10 @@ const SalaryStructurePage = () => {
     const [masterData, setMasterDataState] = useState(getMasterData());
     const [isStructureDialogOpen, setStructureDialogOpen] = useState(false);
     const [editingStructure, setEditingStructure] = useState<any | null>(null);
-    const [formState, setFormState] = useState<any>({});
+    const [formState, setFormState] = useState<any>({
+        effectiveDate: '',
+        jobGrade: '',
+    });
     
     const router = useRouter();
 
@@ -75,7 +78,10 @@ const SalaryStructurePage = () => {
     const handleCloseStructureDialog = () => {
         setStructureDialogOpen(false);
         setEditingStructure(null);
-        setFormState({});
+        setFormState({
+            effectiveDate: '',
+            jobGrade: '',
+        });
     };
 
     const handleFormChange = (key: string, value: any) => {
@@ -117,6 +123,20 @@ const SalaryStructurePage = () => {
     };
 
     const handleSaveStructure = () => {
+        if (formState.status === 'active') {
+            const isDuplicate = salaryStructures.some(s => 
+                s.jobGrade === formState.jobGrade &&
+                s.effectiveDate === formState.effectiveDate &&
+                s.status === 'active' &&
+                (!editingStructure || s.value !== editingStructure.value)
+            );
+
+            if (isDuplicate) {
+                alert("An active salary structure for this job grade and effective date already exists. Please set the existing one to inactive or choose a different date.");
+                return;
+            }
+        }
+        
         let updatedStructures = [...salaryStructures];
         if (editingStructure) {
             const index = updatedStructures.findIndex(s => s.value === editingStructure.value);
