@@ -125,8 +125,21 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
 const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) => {
     const [rule, setRule] = useState(initialData || {});
 
+    const initialFormState = {
+        ruleType: 'grade',
+        allowanceType: '',
+        basis: 'fixed',
+        isTaxable: false,
+        effectiveDate: '',
+        description: '',
+        jobGrade: '',
+        departments: [],
+        jobTitles: [],
+        positions: []
+    };
+
     useEffect(() => {
-        setRule(initialData || { ruleType: 'grade', isTaxable: false, basis: 'fixed' });
+        setRule(initialData || initialFormState);
     }, [initialData]);
 
     const handleFieldChange = (field: string, value: any) => {
@@ -134,21 +147,25 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
             const newState = { ...prev, [field]: value };
             
             if (field === 'ruleType') {
-                // Reset other fields when ruleType changes
-                return { 
-                    ruleType: value, 
-                    allowanceType: newState.allowanceType, 
-                    basis: newState.basis,
-                    isTaxable: newState.isTaxable,
-                    effectiveDate: newState.effectiveDate
+                const clearedState: any = {
+                    ...initialFormState,
+                    ruleType: value,
+                    allowanceType: prev.allowanceType,
+                    basis: prev.basis,
+                    isTaxable: prev.isTaxable,
+                    effectiveDate: prev.effectiveDate,
+                    description: prev.description,
                 };
+                return clearedState;
             }
+
             return newState;
         });
     };
     
     useEffect(() => {
-        // Auto-populate positions when jobGrade or jobTitles change
+        if (!rule.ruleType) return;
+    
         let newPositions: any[] = [];
         if (rule.ruleType === 'grade' && rule.jobGrade) {
             const titlesInGrade = masterData.jobTitles.filter((jt: any) => jt.jobGrade === rule.jobGrade);
@@ -168,7 +185,7 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
 
     const handlePositionValueChange = (jobTitle: string, value: string) => {
         setRule((prev: any) => {
-            const updatedPositions = prev.positions.map((p: any) => 
+            const updatedPositions = (prev.positions || []).map((p: any) => 
                 p.jobTitle === jobTitle ? { ...p, value } : p
             );
             return { ...prev, positions: updatedPositions };
@@ -631,3 +648,5 @@ const SalaryStructurePage = () => {
 };
 
 export default SalaryStructurePage;
+
+    
