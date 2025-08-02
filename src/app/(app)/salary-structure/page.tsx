@@ -70,12 +70,14 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild disabled={disabled}>
-                <button
-                    type="button"
+                <div
+                    role="combobox"
+                    aria-expanded={open}
                     className={cn(
-                        "flex flex-wrap gap-1 items-center rounded-md border border-input min-h-10 p-1 w-full text-left",
+                        "flex flex-wrap gap-1 items-center rounded-md border border-input min-h-10 p-1 w-full text-left bg-background cursor-pointer",
                         disabled ? "cursor-not-allowed opacity-50 bg-muted" : "bg-background"
                     )}
+                    onClick={() => !disabled && setOpen(!open)}
                 >
                     {selectedItems.map(item => (
                         <Badge key={item.value} variant="secondary" className="flex items-center gap-1">
@@ -91,7 +93,7 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
                     ))}
                     {selectedItems.length === 0 && <span className="text-muted-foreground text-sm flex-1 ml-1">{placeholder}</span>}
                     <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
-                </button>
+                </div>
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                 <Command>
@@ -123,8 +125,6 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
 
 
 const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) => {
-    const [rule, setRule] = useState(initialData || {});
-
     const initialFormState = {
         ruleType: 'grade',
         allowanceType: '',
@@ -137,6 +137,7 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
         jobTitles: [],
         positions: []
     };
+    const [rule, setRule] = useState(initialData || initialFormState);
 
     useEffect(() => {
         setRule(initialData || initialFormState);
@@ -163,24 +164,33 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
         });
     };
     
+    const titlesForGrade = useMemo(() => {
+        if (rule.ruleType !== 'grade' || !rule.jobGrade) return [];
+        return masterData.jobTitles.filter((jt: any) => jt.jobGrade === rule.jobGrade);
+    }, [rule.ruleType, rule.jobGrade, masterData.jobTitles]);
+
     useEffect(() => {
-        if (!rule.ruleType) return;
-    
-        let newPositions: any[] = [];
         if (rule.ruleType === 'grade' && rule.jobGrade) {
-            const titlesInGrade = masterData.jobTitles.filter((jt: any) => jt.jobGrade === rule.jobGrade);
-            newPositions = titlesInGrade.map((jt: any) => ({
-                jobTitle: jt.value,
-                value: rule.positions?.find((p: any) => p.jobTitle === jt.value)?.value || ''
-            }));
-        } else if (rule.ruleType === 'department' && rule.jobTitles?.length > 0) {
-            newPositions = rule.jobTitles.map((jtValue: string) => ({
-                jobTitle: jtValue,
-                value: rule.positions?.find((p: any) => p.jobTitle === jtValue)?.value || ''
-            }));
+            const newPositions = titlesForGrade.map((jt: any) => {
+                const existingPos = (rule.positions || []).find((p: any) => p.jobTitle === jt.value);
+                return { jobTitle: jt.value, value: existingPos?.value || '' };
+            });
+            setRule((prev: any) => ({ ...prev, positions: newPositions }));
         }
-        setRule((prev: any) => ({ ...prev, positions: newPositions }));
-    }, [rule.jobGrade, rule.jobTitles, rule.ruleType, masterData.jobTitles]);
+    }, [rule.ruleType, rule.jobGrade, titlesForGrade]);
+    
+    useEffect(() => {
+        if (rule.ruleType === 'department' && (rule.jobTitles?.length > 0 || rule.departments?.length > 0)) {
+            const newPositions = (rule.jobTitles || []).map((jtValue: string) => {
+                 const existingPos = (rule.positions || []).find((p: any) => p.jobTitle === jtValue);
+                return {
+                    jobTitle: jtValue,
+                    value: existingPos?.value || ''
+                }
+            });
+            setRule((prev: any) => ({ ...prev, positions: newPositions }));
+        }
+    }, [rule.ruleType, rule.jobTitles, rule.departments]);
 
 
     const handlePositionValueChange = (jobTitle: string, value: string) => {
@@ -191,6 +201,12 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
             return { ...prev, positions: updatedPositions };
         });
     };
+    
+    const jobTitlesForDepartmentRule = useMemo(() => {
+        if (rule.ruleType !== 'department') return [];
+        // This can be expanded with more logic if titles should be filtered by selected departments
+        return masterData.jobTitles; 
+    }, [rule.ruleType, masterData.jobTitles]);
 
     return (
         <>
@@ -202,7 +218,7 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                             <SelectTrigger><SelectValue placeholder="Select rule type..." /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="grade">Job Grade Based</SelectItem>
-                                <SelectItem value="department">Department Based</SelectItem>
+                                <SelectItem value="department">Department Names Based</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -232,7 +248,7 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                 {rule.ruleType === 'department' && (
                     <div className="grid gap-4">
                         <div className="grid gap-2">
-                            <Label>Departments</Label>
+                            <Label>Department Names</Label>
                             <MultiSelectCombobox 
                                 items={masterData.departments} 
                                 selected={rule.departments || []}
@@ -243,7 +259,7 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                         <div className="grid gap-2">
                             <Label>Job Titles</Label>
                              <MultiSelectCombobox 
-                                items={masterData.jobTitles} 
+                                items={jobTitlesForDepartmentRule} 
                                 selected={rule.jobTitles || []}
                                 onChange={v => handleFieldChange('jobTitles', v)}
                                 placeholder="Select job titles..."
@@ -278,16 +294,24 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                     <Label htmlFor="isTaxable">Is Taxable</Label>
                 </div>
                 
-                 {(rule.positions?.length > 0) && (
-                     <Card>
-                        <CardHeader><CardTitle>Allowance Values per Position</CardTitle></CardHeader>
+                {(rule.positions?.length > 0) && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Allowance Values per Position</CardTitle>
+                            <CardDescription>
+                                {rule.ruleType === 'grade' 
+                                    ? "Set values for each job title within the selected grade." 
+                                    : "Set values for each selected job title."
+                                }
+                            </CardDescription>
+                        </CardHeader>
                         <CardContent className="grid gap-4">
-                            {rule.positions?.map((pos: any, index: number) => (
+                            {rule.positions.map((pos: any, index: number) => (
                                 <div key={index} className="flex items-center gap-4">
                                     <Label className="flex-1">{masterData.jobTitles.find((jt:any) => jt.value === pos.jobTitle)?.label}</Label>
                                     <Input 
                                         type="number" 
-                                        placeholder="Value"
+                                        placeholder={rule.basis === 'percentage' ? '%' : rule.basis === 'quantity' ? 'Qty' : 'Amount'}
                                         value={pos.value || ''}
                                         onChange={(e) => handlePositionValueChange(pos.jobTitle, e.target.value)}
                                         className="w-40"
@@ -379,12 +403,17 @@ const SalaryStructurePage = () => {
     };
     
     const handleSaveStructure = () => {
-        if (formState.status === 'active' && formState.jobGrade && formState.effectiveDate) {
+        if (!formState.jobGrade || !formState.effectiveDate) {
+            // Basic validation
+            alert("Job Grade and Effective Date are required.");
+            return;
+        }
+
+        if (formState.status === 'active') {
              const isConflict = salaryStructures.some(s => 
                 s.jobGrade === formState.jobGrade &&
                 s.status === 'active' &&
-                new Date(s.effectiveDate).getTime() === new Date(formState.effectiveDate).getTime() &&
-                (!editingStructure || s.value !== editingStructure.value)
+                (!editingStructure || s.value !== editingStructure.value) // Exclude the current item being edited
             );
 
             if (isConflict) {
@@ -499,7 +528,19 @@ const SalaryStructurePage = () => {
                                                     <DropdownMenuContent>
                                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                         <DropdownMenuItem onSelect={() => handleOpenStructureDialog(structure)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-red-600" onSelect={() => handleDeleteStructure(structure.value)}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+                                                        <AlertDialog>
+                                                          <AlertDialogTrigger asChild>
+                                                            <DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+                                                          </AlertDialogTrigger>
+                                                          <AlertDialogContent>
+                                                            <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle></AlertDialogHeader>
+                                                            <AlertDialogDescription>This action cannot be undone. This will permanently delete the structure.</AlertDialogDescription>
+                                                            <AlertDialogFooter>
+                                                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                              <AlertDialogAction onClick={() => handleDeleteStructure(structure.value)}>Delete</AlertDialogAction>
+                                                            </AlertDialogFooter>
+                                                          </AlertDialogContent>
+                                                        </AlertDialog>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>
@@ -551,7 +592,19 @@ const SalaryStructurePage = () => {
                                                     <DropdownMenuContent>
                                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                         <DropdownMenuItem onSelect={() => handleOpenAllowanceRuleDialog(rule)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-red-600" onSelect={() => handleDeleteAllowanceRule(rule.id)}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+                                                          <AlertDialog>
+                                                            <AlertDialogTrigger asChild>
+                                                              <DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem>
+                                                            </AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                              <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle></AlertDialogHeader>
+                                                              <AlertDialogDescription>This action cannot be undone. This will permanently delete the rule.</AlertDialogDescription>
+                                                              <AlertDialogFooter>
+                                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                <AlertDialogAction onClick={() => handleDeleteAllowanceRule(rule.id)}>Delete</AlertDialogAction>
+                                                              </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                          </AlertDialog>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </TableCell>
@@ -635,7 +688,7 @@ const SalaryStructurePage = () => {
                     <AlertDialogHeader>
                     <AlertDialogTitle>Conflict Detected</AlertDialogTitle>
                     <AlertDialogDescription>
-                        An active salary structure for this job grade and effective date already exists. Please set the existing one to inactive or choose a different date to avoid conflicts.
+                        An active salary structure for this job grade already exists. Please set the existing one to inactive or choose a different job grade to avoid conflicts.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
