@@ -75,21 +75,23 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
                     role="combobox"
                     aria-expanded={open}
                     className={cn(
-                        "flex flex-wrap gap-1 items-center rounded-md border border-input min-h-10 p-1 w-full text-left bg-background cursor-pointer",
-                        disabled ? "cursor-not-allowed opacity-50 bg-muted" : "bg-background"
+                        "flex flex-wrap gap-1 items-center rounded-md border border-input min-h-10 p-1 w-full text-left bg-background",
+                        disabled ? "cursor-not-allowed opacity-50 bg-muted" : "cursor-pointer"
                     )}
                     onClick={() => !disabled && setOpen(!open)}
                 >
                     {selectedItems.map(item => (
                         <Badge key={item.value} variant="secondary" className="flex items-center gap-1">
                             {item.label}
-                            <button
-                                type="button"
+                            <div
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleUnselect(item.value); }}
                                 onClick={(e) => { e.stopPropagation(); handleUnselect(item.value); }}
-                                className="rounded-full hover:bg-muted-foreground/20"
+                                className="rounded-full hover:bg-muted-foreground/20 focus:ring-2 focus:ring-ring"
                             >
                                 <X className="h-3 w-3" />
-                            </button>
+                            </div>
                         </Badge>
                     ))}
                     {selectedItems.length === 0 && <span className="text-muted-foreground text-sm flex-1 ml-1">{placeholder}</span>}
@@ -157,8 +159,9 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
             }
             
             if (field === 'jobGrade') {
-                 const titlesForGrade = masterData.jobTitles.filter((jt: any) => jt.jobGrade === value);
-                 newState.positions = titlesForGrade.map((jt: any) => ({ jobTitle: jt.value, value: '' }));
+                 // Reset job titles and positions when grade changes
+                 newState.jobTitles = [];
+                 newState.positions = [];
             }
             
             if (field === 'jobTitles') {
@@ -183,10 +186,13 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
     };
     
     const jobTitlesForDepartmentRule = useMemo(() => {
-        if (rule.ruleType !== 'department') return [];
-        // This can be expanded with more logic if titles should be filtered by selected departments
         return masterData.jobTitles; 
-    }, [rule.ruleType, masterData.jobTitles]);
+    }, [masterData.jobTitles]);
+
+    const jobTitlesForGradeRule = useMemo(() => {
+        if (rule.ruleType !== 'grade' || !rule.jobGrade) return [];
+        return masterData.jobTitles.filter((jt: any) => jt.jobGrade === rule.jobGrade);
+    }, [rule.ruleType, rule.jobGrade, masterData.jobTitles]);
 
     return (
         <>
@@ -214,14 +220,27 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                 </div>
                 
                 {rule.ruleType === 'grade' && (
-                     <div className="grid gap-2">
-                        <Label>Job Grade</Label>
-                        <Select value={rule.jobGrade || ''} onValueChange={v => handleFieldChange('jobGrade', v)}>
-                            <SelectTrigger><SelectValue placeholder="Select job grade..." /></SelectTrigger>
-                            <SelectContent>
-                                {masterData.jobGrades.map((g: any) => <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
+                     <div className="grid gap-4">
+                         <div className="grid gap-2">
+                            <Label>Job Grade</Label>
+                            <Select value={rule.jobGrade || ''} onValueChange={v => handleFieldChange('jobGrade', v)}>
+                                <SelectTrigger><SelectValue placeholder="Select job grade..." /></SelectTrigger>
+                                <SelectContent>
+                                    {masterData.jobGrades.map((g: any) => <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        {rule.jobGrade && (
+                             <div className="grid gap-2">
+                                <Label>Job Titles</Label>
+                                 <MultiSelectCombobox 
+                                    items={jobTitlesForGradeRule} 
+                                    selected={rule.jobTitles || []}
+                                    onChange={v => handleFieldChange('jobTitles', v)}
+                                    placeholder="Select job titles from the grade..."
+                                />
+                            </div>
+                        )}
                     </div>
                 )}
 
@@ -277,12 +296,9 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                 {(rule.positions?.length > 0) && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Allowance Values per Position</CardTitle>
+                            <CardTitle>Allowance Values</CardTitle>
                             <CardDescription>
-                                {rule.ruleType === 'grade' 
-                                    ? "Set values for each job title within the selected grade." 
-                                    : "Set values for each selected job title."
-                                }
+                                Set values for each selected job title.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-4">
@@ -459,11 +475,11 @@ const SalaryStructurePage = () => {
     const getAllowanceTypeLabel = (value: string) => masterData.allowanceTypes.find((a:any) => a.value === value)?.label || value;
     const getDepartmentLabels = (values: string[] = []) => {
         if (values.length > 2) return `${values.length} departments`;
-        return values.map(v => masterData.departments.find((d:any) => d.value === v)?.label).join(', ');
+        return values.map(v => masterData.departments.find((d:any) => d.value === v)?.label).filter(Boolean).join(', ');
     };
     const getJobTitleLabels = (values: string[] = []) => {
         if (values.length > 2) return `${values.length} job titles`;
-        return values.map(v => masterData.jobTitles.find((jt:any) => jt.value === v)?.label).join(', ');
+        return values.map(v => masterData.jobTitles.find((jt:any) => jt.value === v)?.label).filter(Boolean).join(', ');
     };
 
     if (!isClient) return <div>Loading...</div>;
@@ -567,7 +583,7 @@ const SalaryStructurePage = () => {
                                             <TableCell>{rule.ruleType === 'grade' ? 'Job Grade' : 'Department'}</TableCell>
                                             <TableCell>
                                                 {rule.ruleType === 'grade' 
-                                                    ? getJobGradeLabel(rule.jobGrade) 
+                                                    ? `${getJobGradeLabel(rule.jobGrade)} / ${getJobTitleLabels(rule.jobTitles)}`
                                                     : `${getDepartmentLabels(rule.departments)} / ${getJobTitleLabels(rule.jobTitles)}`
                                                 }
                                             </TableCell>
