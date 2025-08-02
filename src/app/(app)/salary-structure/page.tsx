@@ -33,6 +33,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { MoreHorizontal, PlusCircle, Trash2, Edit, X } from 'lucide-react';
 import {
@@ -70,7 +71,7 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild disabled={disabled}>
-                <div
+                 <div
                     role="combobox"
                     aria-expanded={open}
                     className={cn(
@@ -409,17 +410,16 @@ const SalaryStructurePage = () => {
             return;
         }
 
-        if (formState.status === 'active') {
-             const isConflict = salaryStructures.some(s => 
-                s.jobGrade === formState.jobGrade &&
-                s.status === 'active' &&
-                (!editingStructure || s.value !== editingStructure.value) // Exclude the current item being edited
-            );
+        const isConflict = salaryStructures.some(s => 
+            s.jobGrade === formState.jobGrade &&
+            s.status === 'active' &&
+            s.effectiveDate === formState.effectiveDate &&
+            (!editingStructure || s.value !== editingStructure.value)
+        );
 
-            if (isConflict) {
-                setConflictAlertOpen(true);
-                return;
-            }
+        if (isConflict) {
+            setConflictAlertOpen(true);
+            return;
         }
         
         let updatedStructures = [...salaryStructures];
@@ -688,7 +688,7 @@ const SalaryStructurePage = () => {
                     <AlertDialogHeader>
                     <AlertDialogTitle>Conflict Detected</AlertDialogTitle>
                     <AlertDialogDescription>
-                        An active salary structure for this job grade already exists. Please set the existing one to inactive or choose a different job grade to avoid conflicts.
+                        An active salary structure for this job grade and effective date already exists. Please set the existing one to inactive or choose a different job grade/date to avoid conflicts.
                     </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
