@@ -133,6 +133,7 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
         ruleType: 'grade',
         allowanceType: '',
         basis: 'fixed',
+        value: '',
         isTaxable: false,
         effectiveDate: '',
         description: '',
@@ -167,7 +168,7 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
             if (field === 'jobTitles') {
                  newState.positions = (value || []).map((jtValue: string) => {
                     const existingPos = (prev.positions || []).find((p: any) => p.jobTitle === jtValue);
-                    return { jobTitle: jtValue, value: existingPos?.value || '' }
+                    return { jobTitle: jtValue, value: existingPos?.value || prev.value || '' }
                  });
             }
 
@@ -267,7 +268,7 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                     </div>
                 )}
 
-                 <div className="grid md:grid-cols-2 gap-4">
+                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="grid gap-2">
                         <Label>Basis</Label>
                         <Select value={rule.basis || ''} onValueChange={v => handleFieldChange('basis', v)}>
@@ -278,6 +279,15 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                                 <SelectItem value="percentage">% of Salary</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+                     <div className="grid gap-2">
+                        <Label>Value</Label>
+                        <Input 
+                            type="number" 
+                            placeholder={rule.basis === 'percentage' ? '%' : rule.basis === 'quantity' ? 'Qty' : 'Amount'}
+                            value={rule.value || ''}
+                            onChange={e => handleFieldChange('value', e.target.value)}
+                        />
                     </div>
                      <div className="grid gap-2">
                         <Label>Effective Date</Label>
@@ -296,9 +306,9 @@ const AllowanceRuleForm = ({ masterData, onSave, onCancel, initialData }: any) =
                 {(rule.positions?.length > 0) && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Allowance Values</CardTitle>
+                            <CardTitle>Allowance Values per Position</CardTitle>
                             <CardDescription>
-                                Set values for each selected job title.
+                                Set values for each selected job title. These will override the default value.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-4">
@@ -710,3 +720,4 @@ export default SalaryStructurePage;
 
 
     
+
