@@ -28,12 +28,12 @@ const initialMasterData = {
         { value: '007', label: 'Operations', type: 'department', parent: '', capacity: '40', region: 'addis-ababa', location: 'head-office', branchGrade: '' },
     ],
     jobTitles: [
-        { value: 'software-engineer', label: 'Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 10', isHeadOfDepartment: false, managedDepartments: [] },
-        { value: 'senior-software-engineer', label: 'Senior Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 12', isHeadOfDepartment: false, managedDepartments: [] },
+        { value: 'software-engineer', label: 'Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 10', isHeadOfDepartment: false, managedDepartments: [], managesDepartmentType: '' },
+        { value: 'senior-software-engineer', label: 'Senior Software Engineer', jobCategory: 'professional', jobGrade: 'Grade 12', isHeadOfDepartment: false, managedDepartments: [], managesDepartmentType: '' },
         { value: 'product-manager', label: 'Product Manager', jobCategory: 'managerial', jobGrade: 'Grade 15', isHeadOfDepartment: true, managedDepartments: ['005'], managesDepartmentType: '' },
         { value: 'marketing-manager', label: 'Marketing Manager', jobCategory: 'managerial', jobGrade: 'Grade 14', isHeadOfDepartment: true, managedDepartments: ['002'], managesDepartmentType: '' },
-        { value: 'sales-representative', label: 'Sales Representative', jobCategory: 'clerical', jobGrade: 'Grade 8', isHeadOfDepartment: false, managedDepartments: [] },
-        { value: 'hr-specialist', label: 'HR Specialist', jobCategory: 'professional', jobGrade: 'Grade 9', isHeadOfDepartment: false, managedDepartments: [] },
+        { value: 'sales-representative', label: 'Sales Representative', jobCategory: 'clerical', jobGrade: 'Grade 8', isHeadOfDepartment: false, managedDepartments: [], managesDepartmentType: '' },
+        { value: 'hr-specialist', label: 'HR Specialist', jobCategory: 'professional', jobGrade: 'Grade 9', isHeadOfDepartment: false, managedDepartments: [], managesDepartmentType: '' },
     ],
     jobGrades: Array.from({ length: 22 }, (_, i) => ({ value: `Grade ${i + 1}`, label: `Grade ${i + 1}` })),
     jobCategories: [
@@ -98,6 +98,47 @@ const initialMasterData = {
         { value: 'iii', label: 'III' },
         { value: 'iv', label: 'IV' },
         { value: 'v', label: 'V' }
+    ],
+    allowanceTypes: [
+        { value: 'housing', label: 'Housing Allowance', description: 'Allowance for housing expenses.', isTaxable: true, defaultBasis: 'fixed', defaultValue: '5000', appliesTo: 'all' },
+        { value: 'transport', label: 'Transport Allowance', description: 'Allowance for commuting expenses.', isTaxable: false, defaultBasis: 'fixed', defaultValue: '2000', appliesTo: 'all' },
+        { value: 'communication', label: 'Communication Allowance', description: 'Allowance for mobile and internet bills.', isTaxable: false, defaultBasis: 'fixed', defaultValue: '1000', appliesTo: 'managerial' },
+    ],
+    salaryStructures: [
+        { 
+            value: 'SS001', 
+            label: 'Managerial Grade 15',
+            jobGrade: 'Grade 15', 
+            jobTitle: '',
+            effectiveDate: '2024-01-01',
+            status: 'active',
+            steps: [
+                { step: '1', salary: '100000' },
+                { step: '2', salary: '105000' },
+                { step: '3', salary: '110000' },
+            ],
+            allowances: [
+                { allowanceType: 'housing', basis: 'fixed', value: '15000', taxable: true, eligibilityRule: '' },
+                { allowanceType: 'transport', basis: 'fixed', value: '5000', taxable: false, eligibilityRule: '' },
+                { allowanceType: 'communication', basis: 'fixed', value: '2000', taxable: false, eligibilityRule: '' },
+            ]
+        },
+        { 
+            value: 'SS002', 
+            label: 'Professional Grade 10',
+            jobGrade: 'Grade 10', 
+            jobTitle: '',
+            effectiveDate: '2024-01-01',
+            status: 'active',
+            steps: [
+                { step: '1', salary: '50000' },
+                { step: '2', salary: '52500' },
+            ],
+            allowances: [
+                { allowanceType: 'housing', basis: 'percentage', value: '10', taxable: true, eligibilityRule: '' },
+                { allowanceType: 'transport', basis: 'fixed', value: '2000', taxable: false, eligibilityRule: '' },
+            ]
+        }
     ]
 };
 
@@ -134,5 +175,3 @@ const setMasterData = (newData: typeof initialMasterData) => {
 };
 
 export { initialMasterData, masterData, setMasterData, getMasterData };
-
-    

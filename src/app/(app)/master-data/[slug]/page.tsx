@@ -37,10 +37,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
 type MasterDataCategoryKey = keyof typeof initialMasterData;
 
-const dataCategoryDetails: { [key: string]: { title: string, fields: { key: string, label: string, type: 'text' | 'number' | 'select' | 'hardcoded-select' | 'checkbox' | 'multi-select', options?: MasterDataCategoryKey | {value: string, label: string}[], dependsOn?: string, dependsValue?: any }[] } } = {
+const dataCategoryDetails: { [key: string]: { title: string, fields: { key: string, label: string, type: 'text' | 'number' | 'select' | 'hardcoded-select' | 'checkbox' | 'multi-select' | 'textarea', options?: MasterDataCategoryKey | {value: string, label: string}[], dependsOn?: string, dependsValue?: any }[] } } = {
     departments: { title: 'Departments', fields: [
         { key: 'label', label: 'Department Name', type: 'text' },
         { key: 'type', label: 'Department Type', type: 'select', options: 'departmentTypes' },
@@ -72,6 +73,19 @@ const dataCategoryDetails: { [key: string]: { title: string, fields: { key: stri
     ]},
     educationAwards: { title: 'Education Awards', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
     programTypes: { title: 'Program Types', fields: [{ key: 'label', label: 'Name', type: 'text' }] },
+    allowanceTypes: { title: 'Allowance Types', fields: [
+        { key: 'label', label: 'Allowance Name', type: 'text'},
+        { key: 'description', label: 'Description', type: 'textarea'},
+        { key: 'isTaxable', label: 'Is Taxable', type: 'checkbox'},
+        { key: 'defaultBasis', label: 'Default Basis', type: 'hardcoded-select', options: [{value: 'fixed', label: 'Fixed'}, {value: 'percentage', label: 'Percentage'}] },
+        { key: 'defaultValue', label: 'Default Value', type: 'number'},
+        { key: 'appliesTo', label: 'Applies To', type: 'hardcoded-select', options: [
+            {value: 'all', label: 'All'},
+            {value: 'managerial', label: 'Managerial'},
+            {value: 'field', label: 'Field Staff'},
+            {value: 'ho-only', label: 'Head Office Only'},
+        ] },
+    ]},
 };
 
 const Combobox = ({ items, value, onChange, placeholder }: { items: {value: string, label: string}[], value: string, onChange: (value: string) => void, placeholder: string }) => {
@@ -215,8 +229,8 @@ export default function MasterDataManagementPage() {
     const categoryInfo = dataCategoryDetails[slug] || { title: "Master Data", fields: [{ key: 'label', label: 'Name', type: 'text' }] };
     const categoryData = useMemo(() => masterData[slug] || [], [masterData, slug]);
 
-    const filteredData = categoryData.filter(item =>
-        item.label.toLowerCase().includes(searchTerm.toLowerCase())
+    const filteredData = categoryData.filter((item: any) =>
+        item.label && item.label.toLowerCase().includes(searchTerm.toLowerCase())
     );
      
     useEffect(() => {
@@ -265,7 +279,7 @@ export default function MasterDataManagementPage() {
     };
 
     const handleDelete = (value: string) => {
-        const updatedData = categoryData.filter(item => item.value !== value);
+        const updatedData = categoryData.filter((item: any) => item.value !== value);
         const newMasterData = { ...masterData, [slug]: updatedData };
         setMasterData(newMasterData);
         setMasterDataState(newMasterData);
@@ -276,7 +290,7 @@ export default function MasterDataManagementPage() {
         if (item) {
             setFormState(item);
         } else {
-            const initialFormState = categoryInfo.fields.reduce((acc, field) => {
+            const initialFormState = categoryInfo.fields.reduce((acc: any, field) => {
                 if (field.type === 'checkbox') {
                     acc[field.key] = false;
                 } else if (field.type === 'multi-select'){
@@ -299,23 +313,31 @@ export default function MasterDataManagementPage() {
 
     const getDisplayValue = (item: any, fieldKey: string) => {
         const field = categoryInfo.fields.find(f => f.key === fieldKey);
+        if (!item) return '';
+
+        const value = item[fieldKey];
+
         if (field?.type === 'select' && field.options && typeof field.options === 'string') {
             const optionSet = masterData[field.options as MasterDataCategoryKey] || [];
-            const option = optionSet.find(o => o.value === item[fieldKey]);
-            return option ? option.label : item[fieldKey];
+            const option = optionSet.find((o: any) => o.value === value);
+            return option ? option.label : value;
         }
         if (field?.type === 'multi-select' && field.options && typeof field.options === 'string') {
             const optionSet = masterData[field.options as MasterDataCategoryKey] || [];
-            const selectedOptions = item[fieldKey] || [];
+            const selectedOptions = value || [];
             if (selectedOptions.length > 2) {
                 return `${selectedOptions.length} departments selected`;
             }
-            return selectedOptions.map((val: string) => optionSet.find(o => o.value === val)?.label).filter(Boolean).join(', ');
+            return selectedOptions.map((val: string) => optionSet.find((o:any) => o.value === val)?.label).filter(Boolean).join(', ');
         }
         if (field?.type === 'checkbox') {
-            return item[fieldKey] ? 'Yes' : 'No';
+            return value ? 'Yes' : 'No';
         }
-        return item[fieldKey];
+        if(field?.type === 'hardcoded-select' && Array.isArray(field.options)) {
+            const option = field.options.find(o => o.value === value);
+            return option ? option.label : value;
+        }
+        return value;
     }
 
     if (!isClient) {
@@ -369,10 +391,13 @@ export default function MasterDataManagementPage() {
                                     const isDisabled = field.dependsOn && slug === 'jobTitles' && field.key === 'isHeadOfDepartment' && formState[field.dependsOn] !== 'managerial';
                                     
                                     return (
-                                    <div className={cn("grid gap-2", (field.type === 'checkbox' || (field.key === 'managedDepartments') || (field.key === 'managesDepartmentType') ) ? 'md:col-span-2' : '')} key={field.key}>
+                                    <div className={cn("grid gap-2", (field.type === 'checkbox' || field.type === 'textarea' || (field.key === 'managedDepartments') || (field.key === 'managesDepartmentType') ) ? 'md:col-span-2' : '')} key={field.key}>
                                         <Label htmlFor={field.key}>{field.label}</Label>
                                         {field.type === 'text' && (
                                             <Input id={field.key} value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
+                                        )}
+                                        {field.type === 'textarea' && (
+                                            <Textarea id={field.key} value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
                                         )}
                                         {field.type === 'number' && (
                                             <Input id={field.key} type="number" value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
@@ -495,7 +520,7 @@ export default function MasterDataManagementPage() {
                                                             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                                             <AlertDialogDescription>
                                                                 This action cannot be undone. This will permanently delete the record.
-                                                            </AlertDialogDescription>
+                                                            </Description>
                                                         </AlertDialogHeader>
                                                         <AlertDialogFooter>
                                                             <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -517,5 +542,3 @@ export default function MasterDataManagementPage() {
         </div>
     );
 }
-
-    

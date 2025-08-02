@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     Settings, GitBranch, ScrollText, Building, Briefcase, Tag, Layers, School, 
-    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star, Search
+    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star, Search, DollarSign
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,19 +20,29 @@ const configAreas = [
         icon: Settings,
         title: "System Settings",
         description: "Manage themes, notifications, and integrations.",
+        path: "/configuration/system-settings"
     },
     {
         id: "business-rules",
         icon: ScrollText,
         title: "Business Rules",
         description: "Define policies for leave, attendance, and compliance.",
+        path: "/configuration/business-rules"
     },
     {
         id: "workflow-management",
         icon: GitBranch,
         title: "Workflow Management",
         description: "Configure approval workflows for HR processes.",
+        path: "/configuration/workflow-management"
     },
+    {
+        id: "salary-structure",
+        icon: DollarSign,
+        title: "Salary Structure",
+        description: "Define structured salary scales and related allowances.",
+        path: "/salary-structure"
+    }
 ];
 
 const dataCategories = [
@@ -49,6 +59,7 @@ const dataCategories = [
     { key: 'institutions', title: 'Institutions', description: 'Manage universities, colleges, etc.', icon: School },
     { key: 'educationAwards', title: 'Award Types & Levels', description: 'Manage honors and certifications.', icon: GraduationCap },
     { key: 'programTypes', title: 'Program Types', description: 'Regular, Distance, Extension.', icon: RadioTower },
+    { key: 'allowanceTypes', title: 'Allowance Types', description: 'Manage salary allowance types.', icon: DollarSign },
 ];
 
 type MasterDataCategoryKey = keyof typeof initialMasterData;
@@ -87,8 +98,11 @@ const MasterDataCard = ({ slug, title, description, icon: Icon, count }: { slug:
 export default function ConfigurationPage() {
     const [masterData, setMasterData] = useState(initialMasterData);
     const [searchTerm, setSearchTerm] = useState("");
+    const router = useRouter();
+    const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
+        setIsClient(true);
         const storedData = localStorage.getItem('masterData');
         if (storedData) {
             try {
@@ -117,6 +131,7 @@ export default function ConfigurationPage() {
         cat.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    if (!isClient) return <div>Loading...</div>;
 
     return (
         <div className="flex flex-col gap-6">
@@ -142,7 +157,7 @@ export default function ConfigurationPage() {
                 </CardHeader>
                 <CardContent className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {filteredConfigAreas.map((area) => (
-                        <Card key={area.id}>
+                        <Card key={area.id} className="cursor-pointer hover:shadow-lg transition-shadow" onClick={() => router.push(area.path)}>
                             <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-4">
                                <area.icon className="h-8 w-8 text-primary" />
                                <div className="grid gap-1">

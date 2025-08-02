@@ -20,6 +20,7 @@ import {
   LogOut,
   Settings,
   Database,
+  DollarSign,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
