@@ -203,9 +203,32 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
              }
         }
     }, [employeeData.maritalStatus, employeeData.spouseFullName]);
+    
+    const handleSelectChange = useCallback((name: string, value: string) => {
+        setEmployeeData(prevState => {
+            const newState = { ...prevState };
+             if (name.startsWith('address.')) {
+                const addressField = name.split('.')[1];
+                newState.address = { ...newState.address, [addressField]: value };
+            } else {
+                newState[name as keyof typeof newState] = value;
+            }
+
+            // Auto-populate Job Grade and Category based on Position (Job Title)
+            if (name === 'position') {
+                const selectedJobTitle = masterData.jobTitles.find(jt => jt.value === value);
+                if (selectedJobTitle) {
+                    newState.jobGrade = selectedJobTitle.jobGrade;
+                    newState.jobCategory = selectedJobTitle.jobCategory;
+                }
+            }
+
+            return newState;
+        });
+    }, [masterData.jobTitles]);
 
     useEffect(() => {
-        if (!employeeData.department || !employeeData.position) {
+        if (!employeeData.department) {
             handleSelectChange('manager', '');
             return;
         }
@@ -223,7 +246,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
             }
             return null;
         };
-
+        
         const currentJobTitle = masterData.jobTitles.find(jt => jt.value === employeeData.position);
         
         let managerToSet = null;
@@ -239,29 +262,18 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
             managerToSet = findManagerForDepartment(employeeData.department);
         }
 
-        if (managerToSet && managerToSet.name !== `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`.trim()) {
+        const currentEmployeeName = `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`.trim();
+        if (managerToSet && managerToSet.name !== currentEmployeeName) {
             handleSelectChange('manager', managerToSet.name);
         } else {
             handleSelectChange('manager', '');
         }
 
-    }, [employeeData.department, employeeData.position, masterData.jobTitles, masterData.departments, allEmployees, employeeData.firstName, employeeData.lastName, employeeData.title]);
+    }, [employeeData.department, employeeData.position, masterData.jobTitles, masterData.departments, allEmployees, employeeData.firstName, employeeData.lastName, employeeData.title, handleSelectChange]);
 
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        if (name.startsWith('address.')) {
-            const addressField = name.split('.')[1];
-            setEmployeeData(prevState => ({
-                ...prevState,
-                address: { ...prevState.address, [addressField]: value }
-            }));
-        } else {
-            setEmployeeData(prevState => ({ ...prevState, [name]: value }));
-        }
-    }, []);
-
-    const handleSelectChange = useCallback((name: string, value: string) => {
         if (name.startsWith('address.')) {
             const addressField = name.split('.')[1];
             setEmployeeData(prevState => ({
@@ -1466,5 +1478,3 @@ export default function EmployeesPage() {
     </div>
   )
 }
-
-    
