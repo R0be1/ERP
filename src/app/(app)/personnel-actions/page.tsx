@@ -348,7 +348,7 @@ export default function PersonnelActionsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     {selectedAction && currentEmployeeRecord && (
-                        <div className="grid gap-6 py-4">
+                        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-2">
                             <Card className="border-none shadow-none">
                                 <CardHeader className="p-0 pb-4">
                                     <CardTitle className="text-md">Current Information</CardTitle>
@@ -377,7 +377,7 @@ export default function PersonnelActionsPage() {
                             </Card>
                         </div>
                     )}
-                    <DialogFooter className="sm:justify-between gap-2">
+                    <DialogFooter className="sm:justify-between gap-2 pt-4 border-t">
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="destructive" className="w-full sm:w-auto">
@@ -391,21 +391,26 @@ export default function PersonnelActionsPage() {
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleDelete(selectedAction.id)}>Delete</AlertDialogAction>
+                                    <AlertDialogAction onClick={() => selectedAction && handleDelete(selectedAction.id)}>Delete</AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
                         </AlertDialog>
 
                         {selectedAction?.status === 'Pending' && (
                             <div className="flex flex-col-reverse sm:flex-row gap-2">
-                                <Button variant="outline" onClick={() => handleReject(selectedAction.id)}>
+                                <Button variant="outline" onClick={() => selectedAction && handleReject(selectedAction.id)}>
                                     <X className="mr-2 h-4 w-4" /> Reject
                                 </Button>
-                                <Button onClick={() => handleApprove(selectedAction.id)}>
+                                <Button onClick={() => selectedAction && handleApprove(selectedAction.id)}>
                                     <Check className="mr-2 h-4 w-4" /> Approve
                                 </Button>
                             </div>
                         )}
+                         {selectedAction?.status !== 'Pending' && (
+                           <DialogClose asChild>
+                             <Button variant="outline">Close</Button>
+                           </DialogClose>
+                         )}
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
