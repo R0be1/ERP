@@ -205,25 +205,47 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
     }, [employeeData.maritalStatus, employeeData.spouseFullName]);
 
     useEffect(() => {
-        if (employeeData.department) {
-            const managerialJobTitle = masterData.jobTitles.find(jt => 
-                jt.isHeadOfDepartment && 
-                jt.managedDepartments && 
-                jt.managedDepartments.includes(employeeData.department)
-            );
-            
-            if (managerialJobTitle) {
-                const manager = allEmployees.find(emp => emp.position === managerialJobTitle.label);
-                if (manager && manager.name !== (employeeData.firstName + ' ' + employeeData.lastName)) {
-                     handleSelectChange('manager', manager.name);
-                } else {
-                     handleSelectChange('manager', '');
-                }
-            } else {
-                handleSelectChange('manager', '');
-            }
+        if (!employeeData.department || !employeeData.position) {
+            handleSelectChange('manager', '');
+            return;
         }
-    }, [employeeData.department, masterData.jobTitles, allEmployees, employeeData.firstName, employeeData.lastName]);
+
+        const findManagerForDepartment = (deptValue: string) => {
+            const managerialJobTitle = masterData.jobTitles.find(jt =>
+                jt.isHeadOfDepartment &&
+                jt.managedDepartments &&
+                jt.managedDepartments.includes(deptValue)
+            );
+
+            if (managerialJobTitle) {
+                const managerEmployee = allEmployees.find(emp => emp.position === managerialJobTitle.label);
+                return managerEmployee || null;
+            }
+            return null;
+        };
+
+        const currentJobTitle = masterData.jobTitles.find(jt => jt.value === employeeData.position);
+        
+        let managerToSet = null;
+
+        if (currentJobTitle?.isHeadOfDepartment) {
+            // This employee is a manager, find their manager from the parent department
+            const currentDept = masterData.departments.find(d => d.value === employeeData.department);
+            if (currentDept?.parent) {
+                managerToSet = findManagerForDepartment(currentDept.parent);
+            }
+        } else {
+            // This is a regular employee, find their direct manager
+            managerToSet = findManagerForDepartment(employeeData.department);
+        }
+
+        if (managerToSet && managerToSet.name !== `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`.trim()) {
+            handleSelectChange('manager', managerToSet.name);
+        } else {
+            handleSelectChange('manager', '');
+        }
+
+    }, [employeeData.department, employeeData.position, masterData.jobTitles, masterData.departments, allEmployees, employeeData.firstName, employeeData.lastName, employeeData.title]);
 
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -446,7 +468,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="manager">Manager</Label>
-                                <Input id="manager" name="manager" value={employeeData.manager} onChange={handleInputChange} />
+                                <Input id="manager" name="manager" value={employeeData.manager} onChange={handleInputChange} readOnly />
                             </div>
                              <div className="grid gap-2">
                                 <Label htmlFor="employment-type">Employment Type</Label>
