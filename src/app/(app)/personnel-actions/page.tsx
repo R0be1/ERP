@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal, Check, X, Trash2, View } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal, Check, X, Trash2, View, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -219,6 +219,11 @@ export default function PersonnelActionsPage() {
         setSelectedAction(action);
         setDetailsDialogOpen(true);
     }
+
+    const handleEdit = (action: any) => {
+        const actionTypeMachineReadable = action.type.toLowerCase().replace(/ /g, '-');
+        router.push(`/personnel-actions/new?type=${actionTypeMachineReadable}&edit=${action.id}`);
+    }
     
     const currentEmployeeRecord = useMemo(() => {
         if (!selectedAction) return null;
@@ -320,6 +325,9 @@ export default function PersonnelActionsPage() {
                                                 </DropdownMenuItem>
                                                 {action.status === 'Pending' && (
                                                     <>
+                                                        <DropdownMenuItem onSelect={() => handleEdit(action)}>
+                                                            <Edit className="mr-2 h-4 w-4" /> Edit
+                                                        </DropdownMenuItem>
                                                         <DropdownMenuSeparator />
                                                         <DropdownMenuItem onSelect={() => handleApprove(action.id)}>
                                                             <Check className="mr-2 h-4 w-4" /> Approve

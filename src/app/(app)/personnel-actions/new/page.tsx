@@ -84,6 +84,7 @@ const PersonnelActionForm = () => {
     const searchParams = useSearchParams();
     const { toast } = useToast();
     const actionType = searchParams.get('type') as ActionType | null;
+    const actionId = searchParams.get('edit');
 
     const [masterData, setMasterData] = useState(getMasterData());
     const [employees, setEmployees] = useState(initialEmployees);
@@ -101,7 +102,16 @@ const PersonnelActionForm = () => {
 
         const storedMasterData = localStorage.getItem('masterData');
         if (storedMasterData) setMasterData(JSON.parse(storedMasterData));
-    }, []);
+        
+        if (actionId) {
+            const storedActions = localStorage.getItem('personnelActions');
+            const personnelActions = storedActions ? JSON.parse(storedActions) : [];
+            const actionToEdit = personnelActions.find((a:any) => a.id === actionId);
+            if(actionToEdit) {
+                setFormState({ ...actionToEdit.details, employeeId: actionToEdit.employeeId, effectiveDate: actionToEdit.effectiveDate });
+            }
+        }
+    }, [actionId]);
 
     const employeeOptions = useMemo(() => employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.employeeId})`})), [employees]);
 
@@ -123,28 +133,51 @@ const PersonnelActionForm = () => {
         const personnelActions = storedActions ? JSON.parse(storedActions) : [];
         
         const selectedEmployee = employees.find(e => e.id === formState.employeeId);
-
-        const newAction = {
-            id: `PA${Date.now()}`,
-            employeeId: formState.employeeId,
-            employeeName: selectedEmployee?.name || 'Unknown',
-            type: actionDetails[actionType].title,
-            effectiveDate: formState.effectiveDate,
-            status: 'Pending',
-            details: { ...formState }
-        };
-
-        // Remove core fields from details object
-        delete newAction.details.employeeId;
-        delete newAction.details.effectiveDate;
-
-        const updatedActions = [...personnelActions, newAction];
-        localStorage.setItem('personnelActions', JSON.stringify(updatedActions));
         
-        toast({
-            title: "Action Submitted",
-            description: "The personnel action has been submitted and is pending approval.",
-        });
+        const details = { ...formState };
+        delete details.employeeId;
+        delete details.effectiveDate;
+
+        if (actionId) {
+            // Editing existing action
+             const updatedActions = personnelActions.map((action: any) => {
+                if (action.id === actionId) {
+                    return {
+                        ...action,
+                        employeeId: formState.employeeId,
+                        employeeName: selectedEmployee?.name || 'Unknown',
+                        effectiveDate: formState.effectiveDate,
+                        details: details,
+                    }
+                }
+                return action;
+             });
+             localStorage.setItem('personnelActions', JSON.stringify(updatedActions));
+             toast({
+                title: "Action Updated",
+                description: "The pending personnel action has been updated.",
+            });
+
+        } else {
+             // Creating new action
+            const newAction = {
+                id: `PA${Date.now()}`,
+                employeeId: formState.employeeId,
+                employeeName: selectedEmployee?.name || 'Unknown',
+                type: actionDetails[actionType].title,
+                effectiveDate: formState.effectiveDate,
+                status: 'Pending',
+                details: details
+            };
+
+            const updatedActions = [...personnelActions, newAction];
+            localStorage.setItem('personnelActions', JSON.stringify(updatedActions));
+            
+            toast({
+                title: "Action Submitted",
+                description: "The personnel action has been submitted and is pending approval.",
+            });
+        }
 
         router.push('/personnel-actions');
     };
@@ -278,8 +311,8 @@ const PersonnelActionForm = () => {
             </Button>
             <Card>
                 <CardHeader>
-                    <CardTitle>New {title} Action</CardTitle>
-                    <CardDescription>Complete the form to initiate the {title.toLowerCase()} process.</CardDescription>
+                    <CardTitle>{actionId ? `Edit ${title} Action` : `New ${title} Action`}</CardTitle>
+                    <CardDescription>Complete the form to {actionId ? 'update' : 'initiate'} the {title.toLowerCase()} process.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="grid md:grid-cols-2 gap-6">
