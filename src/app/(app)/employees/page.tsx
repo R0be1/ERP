@@ -248,7 +248,11 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                 if (newState.jobGrade) {
                     const structure = masterData.salaryStructures.find(s => s.jobGrade === newState.jobGrade && s.status === 'active');
                     if (structure && structure.steps.length > 0) {
-                        newState.basicSalary = structure.steps[0].salary;
+                        // When grade changes, reset salary if it's not in the new steps or not set
+                        const newSalaryStepExists = structure.steps.some((s:any) => s.salary === newState.basicSalary);
+                        if (!newState.basicSalary || !newSalaryStepExists) {
+                           newState.basicSalary = '';
+                        }
                     } else {
                         newState.basicSalary = ''; // Reset if no structure found
                     }
@@ -281,6 +285,9 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
 
                 // Allowances
                 newState.entitledAllowances = calculateEntitledAllowances(newState.jobGrade, newState.department, newState.position) as any;
+            }
+             if (name === 'jobGrade') {
+                newState.basicSalary = ''; // Reset salary when grade changes directly
             }
 
             return newState;
@@ -394,6 +401,10 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
     const handleSubmit = () => {
         onSubmit(employeeData, photoPreview);
     };
+    
+    const salaryStructure = useMemo(() => {
+        return masterData.salaryStructures.find(s => s.jobGrade === employeeData.jobGrade && s.status === 'active');
+    }, [employeeData.jobGrade, masterData.salaryStructures]);
     
     return (
        <>
@@ -744,7 +755,23 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                         </Tooltip>
                                     </TooltipProvider>
                                 </div>
-                                <Input id="basicSalary" name="basicSalary" value={employeeData.basicSalary} onChange={handleInputChange} readOnly />
+                                <Select
+                                    name="basicSalary"
+                                    onValueChange={(v) => handleSelectChange('basicSalary', v)}
+                                    value={employeeData.basicSalary}
+                                    disabled={!salaryStructure}
+                                >
+                                    <SelectTrigger id="basicSalary">
+                                        <SelectValue placeholder={!salaryStructure ? "Select job grade first" : "Select salary step..."} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {salaryStructure?.steps.map((step: any) => (
+                                            <SelectItem key={step.step} value={step.salary}>
+                                                Step {step.step}: {Number(step.salary).toLocaleString()} {employeeData.currency}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="currency">Currency</Label>
