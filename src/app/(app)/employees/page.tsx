@@ -191,10 +191,10 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
         // Grade-based rules (highest priority)
         const gradeRules = allRules.filter(r => r.ruleType === 'grade' && r.jobGrade === jobGrade);
         gradeRules.forEach(rule => {
-            const positionSpecific = rule.positions?.find((p: any) => p.jobTitle === position);
+            const positionSpecific = (rule.positions || []).find((p: any) => p.jobTitle === position);
             if (positionSpecific) {
                 applicableRules.set(rule.allowanceType, { ...rule, value: positionSpecific.value });
-            } else if (!rule.jobTitles || rule.jobTitles.length === 0 || rule.jobTitles.includes(position)) {
+            } else if ((!rule.jobTitles || rule.jobTitles.length === 0 || rule.jobTitles.includes(position))) {
                  if (!applicableRules.has(rule.allowanceType)) {
                     applicableRules.set(rule.allowanceType, rule);
                  }
@@ -202,11 +202,11 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
         });
 
         // Department-based rules (lower priority)
-        const departmentRules = allRules.filter(r => r.ruleType === 'department' && r.departments?.includes(department));
+        const departmentRules = allRules.filter(r => r.ruleType === 'department' && (r.departments || []).includes(department));
         departmentRules.forEach(rule => {
             if (!applicableRules.has(rule.allowanceType)) { // Only apply if no grade rule exists
-                if (rule.jobTitles?.includes(position)) {
-                     const positionSpecific = rule.positions?.find((p: any) => p.jobTitle === position);
+                if ((rule.jobTitles || []).includes(position)) {
+                     const positionSpecific = (rule.positions || []).find((p: any) => p.jobTitle === position);
                      if(positionSpecific) {
                         applicableRules.set(rule.allowanceType, { ...rule, value: positionSpecific.value });
                      } else {
@@ -234,7 +234,7 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                 newState[name as keyof typeof newState] = value;
             }
 
-            // Auto-populate Job Grade, Category, Salary, and Manager
+            // Auto-populate Job Grade, Category, Salary, Manager, and Allowances
             if (name === 'position' || name === 'department' || name === 'jobGrade') {
                 if (name === 'position') {
                     const selectedJobTitle = masterData.jobTitles.find(jt => jt.value === value);
@@ -284,7 +284,9 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                 }
 
                 // Allowances
-                newState.entitledAllowances = calculateEntitledAllowances(newState.jobGrade, newState.department, newState.position) as any;
+                if (newState.jobGrade && newState.department && newState.position) {
+                    newState.entitledAllowances = calculateEntitledAllowances(newState.jobGrade, newState.department, newState.position) as any;
+                }
             }
              if (name === 'jobGrade') {
                 newState.basicSalary = ''; // Reset salary when grade changes directly
