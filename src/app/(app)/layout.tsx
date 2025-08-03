@@ -21,6 +21,7 @@ import {
   Settings,
   Database,
   DollarSign,
+  ClipboardEdit,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -49,6 +50,7 @@ const navItems = [
   { href: "/performance", icon: TrendingUp, label: "Performance" },
   { href: "/benefits", icon: Heart, label: "Benefits" },
   { href: "/payslips", icon: Receipt, label: "Payslips" },
+  { href: "/personnel-actions", icon: ClipboardEdit, label: "Personnel Actions" },
 ]
 
 const bottomNavItems = [
