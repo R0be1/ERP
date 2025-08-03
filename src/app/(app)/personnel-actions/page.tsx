@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal, Check, X, Trash2 } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal, Check, X, Trash2, View } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -14,7 +14,17 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,6 +38,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { getMasterData } from '@/lib/master-data';
 import { useToast } from "@/hooks/use-toast";
+import { employees as initialEmployeesList } from "@/lib/data";
+import { Separator } from '@/components/ui/separator';
 
 const actionTypes = [
     {
@@ -75,17 +87,33 @@ const initialActions = [
     { id: "PA004", employeeId: "EMP004", employeeName: "Diana Miller", type: "Acting Assignment", effectiveDate: "2024-09-01", status: "Pending", details: { actingJobTitle: 'hr-manager' } },
 ];
 
+const InfoItem = ({ label, value }: { label: string, value: React.ReactNode }) => {
+    if (!value) return null;
+    return (
+        <div>
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="font-medium">{value}</p>
+        </div>
+    );
+};
+
 
 export default function PersonnelActionsPage() {
     const router = useRouter();
     const { toast } = useToast();
     const [personnelActions, setPersonnelActions] = useState(initialActions);
+    const [employees, setEmployees] = useState(initialEmployeesList);
     const [isClient, setIsClient] = useState(false);
+    const [selectedAction, setSelectedAction] = useState<any | null>(null);
+    const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
+    
     const masterData = useMemo(() => getMasterData(), []);
 
     useEffect(() => {
         setIsClient(true);
         const storedActions = localStorage.getItem('personnelActions');
+        const storedEmployees = localStorage.getItem('employees');
+
         if (storedActions) {
             try {
                 setPersonnelActions(JSON.parse(storedActions));
@@ -95,6 +123,14 @@ export default function PersonnelActionsPage() {
             }
         } else {
              localStorage.setItem('personnelActions', JSON.stringify(initialActions));
+        }
+
+        if (storedEmployees) {
+            try {
+                setEmployees(JSON.parse(storedEmployees));
+            } catch(e) {
+                console.error("Failed to parse employees from localStorage", e);
+            }
         }
     }, []);
 
@@ -109,21 +145,15 @@ export default function PersonnelActionsPage() {
     };
     
     const applyAction = (action: any) => {
-        const storedEmployees = localStorage.getItem('employees');
-        if (!storedEmployees) {
-            toast({ variant: "destructive", title: "Error", description: "Employee data not found." });
-            return;
-        }
-
-        let employees = JSON.parse(storedEmployees);
-        const employeeIndex = employees.findIndex((emp: any) => emp.id === action.employeeId);
+        let allEmployees = [...employees];
+        const employeeIndex = allEmployees.findIndex((emp: any) => emp.id === action.employeeId);
 
         if (employeeIndex === -1) {
             toast({ variant: "destructive", title: "Error", description: "Employee not found." });
             return;
         }
         
-        const updatedEmployee = { ...employees[employeeIndex] };
+        const updatedEmployee = { ...allEmployees[employeeIndex] };
 
         // Apply changes based on action type
         switch (action.type) {
@@ -139,18 +169,19 @@ export default function PersonnelActionsPage() {
                     }
                 }
                 if (action.details.newSalary) updatedEmployee.basicSalary = action.details.newSalary;
-                if (action.details.newDepartment) updatedEmployee.department = masterData.departments.find(d => d.value === action.details.newDepartment)?.label;
+                if (action.details.newDepartment) updatedEmployee.department = masterData.departments.find((d:any) => d.value === action.details.newDepartment)?.label;
                 break;
             case 'Transfer':
-                if (action.details.newDepartment) updatedEmployee.department = masterData.departments.find(d => d.value === action.details.newDepartment)?.label;
+                if (action.details.newDepartment) updatedEmployee.department = masterData.departments.find((d:any) => d.value === action.details.newDepartment)?.label;
                 if (action.details.newManager) updatedEmployee.manager = employees.find((e:any) => e.id === action.details.newManager)?.name;
                 break;
             // Acting and Disciplinary cases might not change the core employee record in this simple implementation
             // but could trigger other workflows.
         }
         
-        employees[employeeIndex] = updatedEmployee;
-        localStorage.setItem('employees', JSON.stringify(employees));
+        allEmployees[employeeIndex] = updatedEmployee;
+        setEmployees(allEmployees);
+        localStorage.setItem('employees', JSON.stringify(allEmployees));
     };
 
     const handleApprove = (actionId: string) => {
@@ -165,6 +196,7 @@ export default function PersonnelActionsPage() {
             )
         );
         toast({ title: "Success", description: "Action approved and employee record updated." });
+        setDetailsDialogOpen(false);
     };
     
     const handleReject = (actionId: string) => {
@@ -174,12 +206,41 @@ export default function PersonnelActionsPage() {
             )
         );
          toast({ title: "Action Rejected", description: "The personnel action has been marked as rejected." });
+         setDetailsDialogOpen(false);
     };
     
     const handleDelete = (actionId: string) => {
         setPersonnelActions(prevActions => prevActions.filter(action => action.id !== actionId));
         toast({ title: "Action Deleted", description: "The personnel action has been removed." });
+        setDetailsDialogOpen(false);
     };
+
+    const handleOpenDetails = (action: any) => {
+        setSelectedAction(action);
+        setDetailsDialogOpen(true);
+    }
+    
+    const currentEmployeeRecord = useMemo(() => {
+        if (!selectedAction) return null;
+        return employees.find(e => e.id === selectedAction.employeeId);
+    }, [selectedAction, employees]);
+    
+    const getChangeDetails = (action: any) => {
+        const { details } = action;
+        let changes: {label: string, value: any}[] = [];
+
+        if (details.newJobTitle) changes.push({ label: 'New Job Title', value: masterData.jobTitles.find(jt => jt.value === details.newJobTitle)?.label });
+        if (details.newSalary) changes.push({ label: 'New Salary', value: details.newSalary });
+        if (details.newDepartment) changes.push({ label: 'New Department', value: masterData.departments.find(d => d.value === details.newDepartment)?.label });
+        if (details.actingJobTitle) changes.push({ label: 'Acting Job Title', value: masterData.jobTitles.find(jt => jt.value === details.actingJobTitle)?.label });
+        if (details.startDate) changes.push({ label: 'Start Date', value: details.startDate });
+        if (details.endDate) changes.push({ label: 'End Date', value: details.endDate });
+        if (details.newManager) changes.push({ label: 'New Manager', value: employees.find(e => e.id === details.newManager)?.name });
+        if (details.caseType) changes.push({ label: 'Case Type', value: details.caseType.replace('_', ' ') });
+        
+        return changes;
+    };
+
 
     return (
         <div className="flex flex-col gap-6">
@@ -254,8 +315,12 @@ export default function PersonnelActionsPage() {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                <DropdownMenuItem onSelect={() => handleOpenDetails(action)}>
+                                                    <View className="mr-2 h-4 w-4" /> View Details
+                                                </DropdownMenuItem>
                                                 {action.status === 'Pending' && (
                                                     <>
+                                                        <DropdownMenuSeparator />
                                                         <DropdownMenuItem onSelect={() => handleApprove(action.id)}>
                                                             <Check className="mr-2 h-4 w-4" /> Approve
                                                         </DropdownMenuItem>
@@ -264,25 +329,6 @@ export default function PersonnelActionsPage() {
                                                         </DropdownMenuItem>
                                                     </>
                                                 )}
-                                                <AlertDialog>
-                                                    <AlertDialogTrigger asChild>
-                                                       <DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()}>
-                                                           <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                                       </DropdownMenuItem>
-                                                    </AlertDialogTrigger>
-                                                    <AlertDialogContent>
-                                                      <AlertDialogHeader>
-                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                        <AlertDialogDescription>
-                                                          This action cannot be undone. This will permanently delete this action record.
-                                                        </AlertDialogDescription>
-                                                      </AlertDialogHeader>
-                                                      <AlertDialogFooter>
-                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                        <AlertDialogAction onClick={() => handleDelete(action.id)}>Delete</AlertDialogAction>
-                                                      </AlertDialogFooter>
-                                                    </AlertDialogContent>
-                                                  </AlertDialog>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </TableCell>
@@ -292,6 +338,77 @@ export default function PersonnelActionsPage() {
                     </Table>
                 </CardContent>
             </Card>
+            
+            <Dialog open={isDetailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Action Details: {selectedAction?.type}</DialogTitle>
+                        <DialogDescription>
+                            Review the details below before taking an action.
+                        </DialogDescription>
+                    </DialogHeader>
+                    {selectedAction && currentEmployeeRecord && (
+                        <div className="grid gap-6 py-4">
+                            <Card className="border-none shadow-none">
+                                <CardHeader className="p-0 pb-4">
+                                    <CardTitle className="text-md">Current Information</CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-0 grid gap-2">
+                                    <InfoItem label="Employee" value={currentEmployeeRecord.name} />
+                                    <InfoItem label="Job Title" value={currentEmployeeRecord.position} />
+                                    <InfoItem label="Department" value={currentEmployeeRecord.department} />
+                                    <InfoItem label="Salary" value={currentEmployeeRecord.basicSalary} />
+                                </CardContent>
+                            </Card>
+
+                            <Separator />
+                            
+                             <Card className="border-none shadow-none">
+                                <CardHeader className="p-0 pb-4">
+                                    <CardTitle className="text-md">Proposed Changes</CardTitle>
+                                    <CardDescription>Effective from: {selectedAction.effectiveDate}</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-0 grid gap-2">
+                                   {getChangeDetails(selectedAction).map(change => (
+                                       <InfoItem key={change.label} label={change.label} value={change.value} />
+                                   ))}
+                                    <InfoItem label="Justification" value={selectedAction.details.justification} />
+                                </CardContent>
+                            </Card>
+                        </div>
+                    )}
+                    <DialogFooter className="sm:justify-between gap-2">
+                         <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" className="w-full sm:w-auto">
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Action
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                    <AlertDialogDescription>This will permanently delete this action record.</AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleDelete(selectedAction.id)}>Delete</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+
+                        {selectedAction?.status === 'Pending' && (
+                            <div className="flex flex-col-reverse sm:flex-row gap-2">
+                                <Button variant="outline" onClick={() => handleReject(selectedAction.id)}>
+                                    <X className="mr-2 h-4 w-4" /> Reject
+                                </Button>
+                                <Button onClick={() => handleApprove(selectedAction.id)}>
+                                    <Check className="mr-2 h-4 w-4" /> Approve
+                                </Button>
+                            </div>
+                        )}
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
