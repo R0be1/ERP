@@ -1,7 +1,8 @@
 
+
 "use client"
 
-import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit, List, LayoutGrid } from "lucide-react"
+import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit, List, LayoutGrid, Info } from "lucide-react"
 import { useState, useEffect, useCallback, useMemo } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Badge } from "@/components/ui/badge"
@@ -63,6 +64,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 const initialNewEmployeeState = {
   // Profile
@@ -100,11 +102,12 @@ const initialNewEmployeeState = {
   contractStartDate: '',
   contractEndDate: '',
   basicSalary: '',
-  currency: '',
+  currency: 'ETB',
   bankName: '',
   accountNumber: '',
   taxId: '',
   pensionNumber: '',
+  entitledAllowances: [],
   // History & Development
   dependents: [{ name: '', relationship: '', dob: '' }],
   internalExperience: [{ title: '', department: '', startDate: '', endDate: '', managerialRole: false }],
@@ -178,6 +181,112 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
         setPhotoPreview(isEditMode ? (initialDataProp as any).avatar : null);
     }, [initialDataProp, isEditMode]);
 
+     const calculateEntitledAllowances = useCallback((jobGrade?: string, department?: string, position?: string) => {
+        if (!jobGrade || !department || !position) return [];
+
+        const applicableRules = new Map<string, any>();
+
+        const allRules = masterData.allowanceRules || [];
+
+        // Grade-based rules (highest priority)
+        const gradeRules = allRules.filter(r => r.ruleType === 'grade' && r.jobGrade === jobGrade);
+        gradeRules.forEach(rule => {
+            const positionSpecific = rule.positions?.find((p: any) => p.jobTitle === position);
+            if (positionSpecific) {
+                applicableRules.set(rule.allowanceType, { ...rule, value: positionSpecific.value });
+            } else if (!rule.jobTitles || rule.jobTitles.length === 0 || rule.jobTitles.includes(position)) {
+                 if (!applicableRules.has(rule.allowanceType)) {
+                    applicableRules.set(rule.allowanceType, rule);
+                 }
+            }
+        });
+
+        // Department-based rules (lower priority)
+        const departmentRules = allRules.filter(r => r.ruleType === 'department' && r.departments?.includes(department));
+        departmentRules.forEach(rule => {
+            if (!applicableRules.has(rule.allowanceType)) { // Only apply if no grade rule exists
+                if (rule.jobTitles?.includes(position)) {
+                     const positionSpecific = rule.positions?.find((p: any) => p.jobTitle === position);
+                     if(positionSpecific) {
+                        applicableRules.set(rule.allowanceType, { ...rule, value: positionSpecific.value });
+                     } else {
+                        applicableRules.set(rule.allowanceType, rule);
+                     }
+                }
+            }
+        });
+
+        return Array.from(applicableRules.values()).map(rule => ({
+            type: masterData.allowanceTypes.find((t: any) => t.value === rule.allowanceType)?.label,
+            value: rule.value,
+            basis: rule.basis,
+            isTaxable: rule.isTaxable
+        }));
+    }, [masterData.allowanceRules, masterData.allowanceTypes]);
+
+    const handleSelectChange = useCallback((name: string, value: string) => {
+        setEmployeeData(prevState => {
+            let newState = { ...prevState };
+             if (name.startsWith('address.')) {
+                const addressField = name.split('.')[1];
+                newState.address = { ...newState.address, [addressField]: value };
+            } else {
+                newState[name as keyof typeof newState] = value;
+            }
+
+            // Auto-populate Job Grade, Category, Salary, and Manager
+            if (name === 'position' || name === 'department' || name === 'jobGrade') {
+                if (name === 'position') {
+                    const selectedJobTitle = masterData.jobTitles.find(jt => jt.value === value);
+                    if (selectedJobTitle) {
+                        newState.jobGrade = selectedJobTitle.jobGrade;
+                        newState.jobCategory = selectedJobTitle.jobCategory;
+                    }
+                }
+                
+                // Salary
+                if (newState.jobGrade) {
+                    const structure = masterData.salaryStructures.find(s => s.jobGrade === newState.jobGrade && s.status === 'active');
+                    if (structure && structure.steps.length > 0) {
+                        newState.basicSalary = structure.steps[0].salary;
+                    } else {
+                        newState.basicSalary = ''; // Reset if no structure found
+                    }
+                }
+
+                // Manager
+                if (newState.department) {
+                    const findManagerForDepartment = (deptValue: string) => {
+                        const managerialJobTitle = masterData.jobTitles.find(jt =>
+                            jt.isHeadOfDepartment &&
+                            jt.managedDepartments &&
+                            jt.managedDepartments.includes(deptValue)
+                        );
+                        return managerialJobTitle ? allEmployees.find(emp => emp.position === managerialJobTitle.label) || null : null;
+                    };
+                    
+                    const currentJobTitle = masterData.jobTitles.find(jt => jt.value === newState.position);
+                    let managerToSet = null;
+
+                    if (currentJobTitle?.isHeadOfDepartment) {
+                        const currentDept = masterData.departments.find(d => d.value === newState.department);
+                        if (currentDept?.parent) managerToSet = findManagerForDepartment(currentDept.parent);
+                    } else {
+                        managerToSet = findManagerForDepartment(newState.department);
+                    }
+                    
+                    const currentEmployeeName = `${newState.title} ${newState.firstName} ${newState.lastName}`.trim();
+                    newState.manager = (managerToSet && managerToSet.name !== currentEmployeeName) ? managerToSet.name : '';
+                }
+
+                // Allowances
+                newState.entitledAllowances = calculateEntitledAllowances(newState.jobGrade, newState.department, newState.position) as any;
+            }
+
+            return newState;
+        });
+    }, [masterData, allEmployees, calculateEntitledAllowances]);
+    
     useEffect(() => {
         if (employeeData.maritalStatus === 'married') {
             const hasSpouse = employeeData.dependents.some(dep => dep.relationship === 'Spouse');
@@ -203,74 +312,6 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
              }
         }
     }, [employeeData.maritalStatus, employeeData.spouseFullName]);
-    
-    const handleSelectChange = useCallback((name: string, value: string) => {
-        setEmployeeData(prevState => {
-            const newState = { ...prevState };
-             if (name.startsWith('address.')) {
-                const addressField = name.split('.')[1];
-                newState.address = { ...newState.address, [addressField]: value };
-            } else {
-                newState[name as keyof typeof newState] = value;
-            }
-
-            // Auto-populate Job Grade and Category based on Position (Job Title)
-            if (name === 'position') {
-                const selectedJobTitle = masterData.jobTitles.find(jt => jt.value === value);
-                if (selectedJobTitle) {
-                    newState.jobGrade = selectedJobTitle.jobGrade;
-                    newState.jobCategory = selectedJobTitle.jobCategory;
-                }
-            }
-
-            return newState;
-        });
-    }, [masterData.jobTitles]);
-
-    useEffect(() => {
-        if (!employeeData.department) {
-            handleSelectChange('manager', '');
-            return;
-        }
-
-        const findManagerForDepartment = (deptValue: string) => {
-            const managerialJobTitle = masterData.jobTitles.find(jt =>
-                jt.isHeadOfDepartment &&
-                jt.managedDepartments &&
-                jt.managedDepartments.includes(deptValue)
-            );
-
-            if (managerialJobTitle) {
-                const managerEmployee = allEmployees.find(emp => emp.position === managerialJobTitle.label);
-                return managerEmployee || null;
-            }
-            return null;
-        };
-        
-        const currentJobTitle = masterData.jobTitles.find(jt => jt.value === employeeData.position);
-        
-        let managerToSet = null;
-
-        if (currentJobTitle?.isHeadOfDepartment) {
-            // This employee is a manager, find their manager from the parent department
-            const currentDept = masterData.departments.find(d => d.value === employeeData.department);
-            if (currentDept?.parent) {
-                managerToSet = findManagerForDepartment(currentDept.parent);
-            }
-        } else {
-            // This is a regular employee, find their direct manager
-            managerToSet = findManagerForDepartment(employeeData.department);
-        }
-
-        const currentEmployeeName = `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`.trim();
-        if (managerToSet && managerToSet.name !== currentEmployeeName) {
-            handleSelectChange('manager', managerToSet.name);
-        } else {
-            handleSelectChange('manager', '');
-        }
-
-    }, [employeeData.department, employeeData.position, masterData.jobTitles, masterData.departments, allEmployees, employeeData.firstName, employeeData.lastName, employeeData.title, handleSelectChange]);
-
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
@@ -495,23 +536,11 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                             </div>
                             <div className="grid gap-2">
                                 <Label>Job Grade</Label>
-                                <Combobox
-                                    items={masterData.jobGrades}
-                                    value={employeeData.jobGrade}
-                                    onChange={(value) => handleSelectChange('jobGrade', value)}
-                                    placeholder="Select job grade..."
-                                />
+                                <Input value={masterData.jobGrades.find(g => g.value === employeeData.jobGrade)?.label || ''} readOnly />
                             </div>
                             <div className="grid gap-2">
                                 <Label>Job Category</Label>
-                                <Select name="jobCategory" onValueChange={(v) => handleSelectChange('jobCategory', v)} value={employeeData.jobCategory}>
-                                    <SelectTrigger id="jobCategory"><SelectValue placeholder="Select..." /></SelectTrigger>
-                                    <SelectContent>
-                                        {masterData.jobCategories.map((cat) => (
-                                            <SelectItem key={cat.value} value={cat.value}>{cat.label}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                                <Input value={masterData.jobCategories.find(c => c.value === employeeData.jobCategory)?.label || ''} readOnly />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="joinDate">Join Date</Label>
@@ -702,8 +731,20 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                 <Input id="contractEndDate" name="contractEndDate" type="date" value={employeeData.contractEndDate} onChange={handleInputChange} />
                             </div>
                             <div className="grid gap-2">
-                                <Label htmlFor="basicSalary">Basic Salary</Label>
-                                <Input id="basicSalary" name="basicSalary" value={employeeData.basicSalary} onChange={handleInputChange} />
+                                <div className="flex items-center gap-2">
+                                    <Label htmlFor="basicSalary">Basic Salary</Label>
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-3 w-3 text-muted-foreground" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Auto-populated from salary structure based on Job Grade.</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </div>
+                                <Input id="basicSalary" name="basicSalary" value={employeeData.basicSalary} onChange={handleInputChange} readOnly />
                             </div>
                             <div className="grid gap-2">
                                 <Label htmlFor="currency">Currency</Label>
@@ -715,6 +756,57 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
                                     </SelectContent>
                                 </Select>
                             </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center gap-2">
+                                <CardTitle>Allowance Details</CardTitle>
+                                 <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Info className="h-3 w-3 text-muted-foreground" />
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Allowances are auto-populated based on Job Grade and Department rules.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
+                            <CardDescription>Entitled allowances based on configured rules.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           {(employeeData.entitledAllowances && employeeData.entitledAllowances.length > 0) ? (
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Allowance Type</TableHead>
+                                        <TableHead>Value</TableHead>
+                                        <TableHead>Taxable</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {employeeData.entitledAllowances.map((allowance: any, index: number) => (
+                                        <TableRow key={index}>
+                                            <TableCell>{allowance.type}</TableCell>
+                                            <TableCell>
+                                                {allowance.basis === 'percentage' 
+                                                    ? `${allowance.value}%` 
+                                                    : `${Number(allowance.value).toLocaleString()} ${employeeData.currency}`
+                                                }
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant={allowance.isTaxable ? "destructive" : "secondary"}>
+                                                    {allowance.isTaxable ? 'Yes' : 'No'}
+                                                </Badge>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                           ) : (
+                                <p className="text-sm text-muted-foreground">No allowances applicable based on current Job and Department.</p>
+                           )}
                         </CardContent>
                     </Card>
                     <Card>
