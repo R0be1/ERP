@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { MoreHorizontal, PlusCircle, Search, Trash2, Check, ChevronsUpDown, Edit, List, LayoutGrid } from "lucide-react"
@@ -170,7 +169,7 @@ const Combobox = ({ items, value, onChange, placeholder }: { items: {value: stri
     )
 }
 
-const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubmit, onCancel, masterData }: { initialData: FormEmployeeState, isEditMode?: boolean, onSubmit: (employeeData: FormEmployeeState, photo: string | null) => void, onCancel: () => void, masterData: typeof initialMasterData }) => {
+const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubmit, onCancel, masterData, allEmployees }: { initialData: FormEmployeeState, isEditMode?: boolean, onSubmit: (employeeData: FormEmployeeState, photo: string | null) => void, onCancel: () => void, masterData: typeof initialMasterData, allEmployees: Employee[] }) => {
     const [employeeData, setEmployeeData] = useState(initialDataProp);
     const [photoPreview, setPhotoPreview] = useState<string | null>(isEditMode ? (initialDataProp as any).avatar : null);
     
@@ -204,6 +203,27 @@ const EmployeeForm = ({ initialData: initialDataProp, isEditMode = false, onSubm
              }
         }
     }, [employeeData.maritalStatus, employeeData.spouseFullName]);
+
+    useEffect(() => {
+        if (employeeData.department) {
+            const managerialJobTitle = masterData.jobTitles.find(jt => 
+                jt.isHeadOfDepartment && 
+                jt.managedDepartments && 
+                jt.managedDepartments.includes(employeeData.department)
+            );
+            
+            if (managerialJobTitle) {
+                const manager = allEmployees.find(emp => emp.position === managerialJobTitle.label);
+                if (manager && manager.name !== (employeeData.firstName + ' ' + employeeData.lastName)) {
+                     handleSelectChange('manager', manager.name);
+                } else {
+                     handleSelectChange('manager', '');
+                }
+            } else {
+                handleSelectChange('manager', '');
+            }
+        }
+    }, [employeeData.department, masterData.jobTitles, allEmployees, employeeData.firstName, employeeData.lastName]);
 
 
     const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -1222,6 +1242,7 @@ export default function EmployeesPage() {
                 onSubmit={handleAddEmployee}
                 onCancel={() => setAddEmployeeDialogOpen(false)}
                 masterData={masterData}
+                allEmployees={employees}
               />
             </DialogContent>
           </Dialog>
@@ -1415,6 +1436,7 @@ export default function EmployeesPage() {
                     onSubmit={handleUpdateEmployee}
                     onCancel={handleCloseEditDialog}
                     masterData={masterData}
+                    allEmployees={employees}
                 />
               )}
             </DialogContent>
