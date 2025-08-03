@@ -15,13 +15,14 @@ import { employees as initialEmployees } from "@/lib/data";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 const actionDetails = {
-    promotion: { title: "Promotion", fields: ['newJobTitle', 'newDepartment', 'newSalary', 'justification'] },
-    demotion: { title: "Demotion", fields: ['newJobTitle', 'newDepartment', 'newSalary', 'justification'] },
+    promotion: { title: "Promotion", fields: ['newJobTitle', 'newSalary', 'justification'] },
+    demotion: { title: "Demotion", fields: ['newJobTitle', 'newSalary', 'justification'] },
     acting: { title: "Acting Assignment", fields: ['actingJobTitle', 'startDate', 'endDate', 'specialDutyAllowance'] },
     transfer: { title: "Transfer", fields: ['newDepartment', 'newManager', 'justification'] },
-    lateral: { title: "Lateral Transfer", fields: ['newJobTitle', 'justification'] },
+    lateral: { title: "Lateral Transfer", fields: ['newJobTitle', 'newDepartment', 'justification'] },
     disciplinary: { title: "Disciplinary Case", fields: ['caseType', 'incidentDate', 'description', 'actionTaken'] }
 };
 
@@ -81,6 +82,7 @@ const Combobox = ({ items, value, onChange, placeholder }: { items: {value: stri
 const PersonnelActionForm = () => {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { toast } = useToast();
     const actionType = searchParams.get('type') as ActionType | null;
 
     const [masterData, setMasterData] = useState(getMasterData());
@@ -107,9 +109,49 @@ const PersonnelActionForm = () => {
         setFormState((prev: any) => ({ ...prev, [key]: value }));
     };
 
+    const handleSubmit = () => {
+        if (!actionType || !formState.employeeId || !formState.effectiveDate) {
+            toast({
+                variant: "destructive",
+                title: "Validation Error",
+                description: "Please select an employee and set an effective date.",
+            });
+            return;
+        }
+
+        const storedActions = localStorage.getItem('personnelActions');
+        const personnelActions = storedActions ? JSON.parse(storedActions) : [];
+        
+        const selectedEmployee = employees.find(e => e.id === formState.employeeId);
+
+        const newAction = {
+            id: `PA${Date.now()}`,
+            employeeId: formState.employeeId,
+            employeeName: selectedEmployee?.name || 'Unknown',
+            type: actionDetails[actionType].title,
+            effectiveDate: formState.effectiveDate,
+            status: 'Pending',
+            details: { ...formState }
+        };
+
+        // Remove core fields from details object
+        delete newAction.details.employeeId;
+        delete newAction.details.effectiveDate;
+
+        const updatedActions = [...personnelActions, newAction];
+        localStorage.setItem('personnelActions', JSON.stringify(updatedActions));
+        
+        toast({
+            title: "Action Submitted",
+            description: "The personnel action has been submitted and is pending approval.",
+        });
+
+        router.push('/personnel-actions');
+    };
+
     if (!isClient) return <div>Loading...</div>;
     if (!actionType || !actionDetails[actionType]) {
-        return <div>Invalid action type. <Link href="/personnel-actions" className="text-primary underline">Go back</Link></div>;
+        return <div>Invalid action type. <button onClick={() => router.push('/personnel-actions')} className="text-primary underline">Go back</button></div>;
     }
 
     const { title, fields } = actionDetails[actionType];
@@ -181,7 +223,7 @@ const PersonnelActionForm = () => {
                     <div className="grid gap-2">
                         <Label htmlFor={field}>New Manager</Label>
                          <Combobox
-                            items={employeeOptions}
+                            items={employeeOptions.filter(opt => opt.value !== formState.employeeId)}
                             value={formState[field] || ''}
                             onChange={(value) => handleFormChange(field, value)}
                             placeholder="Select new manager..."
@@ -278,7 +320,7 @@ const PersonnelActionForm = () => {
                     </div>
                      <div className="flex justify-end gap-2 mt-6">
                         <Button variant="outline" onClick={() => router.push('/personnel-actions')}>Cancel</Button>
-                        <Button>Submit Action</Button>
+                        <Button onClick={handleSubmit}>Submit Action</Button>
                     </div>
                 </CardContent>
             </Card>

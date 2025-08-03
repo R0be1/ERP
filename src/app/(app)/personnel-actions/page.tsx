@@ -1,13 +1,33 @@
 
 "use client"
 
+import { useState, useEffect, useMemo } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal } from "lucide-react";
-import Link from "next/link";
+import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal, Check, X, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { getMasterData } from '@/lib/master-data';
+import { useToast } from "@/hooks/use-toast";
 
 const actionTypes = [
     {
@@ -48,19 +68,118 @@ const actionTypes = [
     }
 ];
 
-const recentActions = [
-    { id: "PA001", employee: "Alice Johnson", type: "Promotion", effectiveDate: "2024-08-01", status: "Completed" },
-    { id: "PA002", employee: "Bob Williams", type: "Transfer", effectiveDate: "2024-07-25", status: "Completed" },
-    { id: "PA003", employee: "Charlie Brown", type: "Disciplinary Case", effectiveDate: "2024-07-20", status: "In Progress" },
-    { id: "PA004", employee: "Diana Miller", type: "Acting Assignment", effectiveDate: "2024-09-01", status: "Pending" },
+const initialActions = [
+    { id: "PA001", employeeId: "EMP001", employeeName: "Alice Johnson", type: "Promotion", effectiveDate: "2024-08-01", status: "Completed", details: { newJobTitle: 'senior-software-engineer', newSalary: '95000' } },
+    { id: "PA002", employeeId: "EMP002", employeeName: "Bob Williams", type: "Transfer", effectiveDate: "2024-07-25", status: "Completed", details: { newDepartment: '005', newManager: 'Fiona Garcia' } },
+    { id: "PA003", employeeId: "EMP003", employeeName: "Charlie Brown", type: "Disciplinary Case", effectiveDate: "2024-07-20", status: "Completed", details: { caseType: 'written_warning' } },
+    { id: "PA004", employeeId: "EMP004", employeeName: "Diana Miller", type: "Acting Assignment", effectiveDate: "2024-09-01", status: "Pending", details: { actingJobTitle: 'hr-manager' } },
 ];
+
 
 export default function PersonnelActionsPage() {
     const router = useRouter();
+    const { toast } = useToast();
+    const [personnelActions, setPersonnelActions] = useState(initialActions);
+    const [isClient, setIsClient] = useState(false);
+    const masterData = useMemo(() => getMasterData(), []);
+
+    useEffect(() => {
+        setIsClient(true);
+        const storedActions = localStorage.getItem('personnelActions');
+        if (storedActions) {
+            try {
+                setPersonnelActions(JSON.parse(storedActions));
+            } catch (e) {
+                console.error("Failed to parse actions from localStorage", e);
+                localStorage.setItem('personnelActions', JSON.stringify(initialActions));
+            }
+        } else {
+             localStorage.setItem('personnelActions', JSON.stringify(initialActions));
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isClient) {
+            localStorage.setItem('personnelActions', JSON.stringify(personnelActions));
+        }
+    }, [personnelActions, isClient]);
 
     const handleActionClick = (action: string) => {
         router.push(`/personnel-actions/new?type=${action}`);
-    }
+    };
+    
+    const applyAction = (action: any) => {
+        const storedEmployees = localStorage.getItem('employees');
+        if (!storedEmployees) {
+            toast({ variant: "destructive", title: "Error", description: "Employee data not found." });
+            return;
+        }
+
+        let employees = JSON.parse(storedEmployees);
+        const employeeIndex = employees.findIndex((emp: any) => emp.id === action.employeeId);
+
+        if (employeeIndex === -1) {
+            toast({ variant: "destructive", title: "Error", description: "Employee not found." });
+            return;
+        }
+        
+        const updatedEmployee = { ...employees[employeeIndex] };
+
+        // Apply changes based on action type
+        switch (action.type) {
+            case 'Promotion':
+            case 'Demotion':
+            case 'Lateral Transfer':
+                if (action.details.newJobTitle) {
+                    const jobTitle = masterData.jobTitles.find(jt => jt.value === action.details.newJobTitle);
+                    if(jobTitle) {
+                        updatedEmployee.position = jobTitle.label;
+                        updatedEmployee.jobGrade = jobTitle.jobGrade;
+                        updatedEmployee.jobCategory = jobTitle.jobCategory;
+                    }
+                }
+                if (action.details.newSalary) updatedEmployee.basicSalary = action.details.newSalary;
+                if (action.details.newDepartment) updatedEmployee.department = masterData.departments.find(d => d.value === action.details.newDepartment)?.label;
+                break;
+            case 'Transfer':
+                if (action.details.newDepartment) updatedEmployee.department = masterData.departments.find(d => d.value === action.details.newDepartment)?.label;
+                if (action.details.newManager) updatedEmployee.manager = employees.find((e:any) => e.id === action.details.newManager)?.name;
+                break;
+            // Acting and Disciplinary cases might not change the core employee record in this simple implementation
+            // but could trigger other workflows.
+        }
+        
+        employees[employeeIndex] = updatedEmployee;
+        localStorage.setItem('employees', JSON.stringify(employees));
+    };
+
+    const handleApprove = (actionId: string) => {
+        const actionToUpdate = personnelActions.find(a => a.id === actionId);
+        if (!actionToUpdate) return;
+
+        applyAction(actionToUpdate);
+        
+        setPersonnelActions(prevActions =>
+            prevActions.map(action =>
+                action.id === actionId ? { ...action, status: "Completed" } : action
+            )
+        );
+        toast({ title: "Success", description: "Action approved and employee record updated." });
+    };
+    
+    const handleReject = (actionId: string) => {
+        setPersonnelActions(prevActions =>
+            prevActions.map(action =>
+                action.id === actionId ? { ...action, status: "Rejected" } : action
+            )
+        );
+         toast({ title: "Action Rejected", description: "The personnel action has been marked as rejected." });
+    };
+    
+    const handleDelete = (actionId: string) => {
+        setPersonnelActions(prevActions => prevActions.filter(action => action.id !== actionId));
+        toast({ title: "Action Deleted", description: "The personnel action has been removed." });
+    };
 
     return (
         <div className="flex flex-col gap-6">
@@ -96,8 +215,8 @@ export default function PersonnelActionsPage() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Recent Action History</CardTitle>
-                    <CardDescription>An overview of the most recent personnel actions.</CardDescription>
+                    <CardTitle>Action History & Approvals</CardTitle>
+                    <CardDescription>An overview of all submitted personnel actions.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -108,26 +227,64 @@ export default function PersonnelActionsPage() {
                                 <TableHead>Action Type</TableHead>
                                 <TableHead>Effective Date</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead><span className="sr-only">Actions</span></TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {recentActions.map((action) => (
+                            {personnelActions.map((action) => (
                                 <TableRow key={action.id}>
                                     <TableCell>{action.id}</TableCell>
-                                    <TableCell>{action.employee}</TableCell>
+                                    <TableCell>{action.employeeName}</TableCell>
                                     <TableCell>{action.type}</TableCell>
                                     <TableCell>{action.effectiveDate}</TableCell>
                                     <TableCell>
                                         <Badge variant={
                                             action.status === 'Completed' ? 'secondary' :
-                                            action.status === 'In Progress' ? 'default' : 'outline'
+                                            action.status === 'Pending' ? 'default' :
+                                            action.status === 'In Progress' ? 'outline' : 'destructive'
                                         }>{action.status}</Badge>
                                     </TableCell>
-                                    <TableCell>
-                                        <Button variant="ghost" size="icon">
-                                            <MoreHorizontal className="h-4 w-4" />
-                                        </Button>
+                                    <TableCell className="text-right">
+                                         <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button aria-haspopup="true" size="icon" variant="ghost">
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                    <span className="sr-only">Toggle menu</span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                {action.status === 'Pending' && (
+                                                    <>
+                                                        <DropdownMenuItem onSelect={() => handleApprove(action.id)}>
+                                                            <Check className="mr-2 h-4 w-4" /> Approve
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => handleReject(action.id)}>
+                                                            <X className="mr-2 h-4 w-4" /> Reject
+                                                        </DropdownMenuItem>
+                                                    </>
+                                                )}
+                                                <AlertDialog>
+                                                    <AlertDialogTrigger asChild>
+                                                       <DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()}>
+                                                           <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                                       </DropdownMenuItem>
+                                                    </AlertDialogTrigger>
+                                                    <AlertDialogContent>
+                                                      <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                          This action cannot be undone. This will permanently delete this action record.
+                                                        </AlertDialogDescription>
+                                                      </AlertDialogHeader>
+                                                      <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDelete(action.id)}>Delete</AlertDialogAction>
+                                                      </AlertDialogFooter>
+                                                    </AlertDialogContent>
+                                                  </AlertDialog>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
                                     </TableCell>
                                 </TableRow>
                             ))}
