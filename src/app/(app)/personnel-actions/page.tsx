@@ -44,6 +44,8 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import jsPDF from "jspdf";
 import { format } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 
 const actionTypes = [
     {
@@ -111,6 +113,8 @@ export default function PersonnelActionsPage() {
     const [selectedAction, setSelectedAction] = useState<any | null>(null);
     const [isDetailsDialogOpen, setDetailsDialogOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
+    const [isMemoDialogOpen, setMemoDialogOpen] = useState(false);
+    const [memoContent, setMemoContent] = useState('');
     
     const masterData = useMemo(() => getMasterData(), []);
 
@@ -285,12 +289,10 @@ export default function PersonnelActionsPage() {
         return proposed;
     };
     
-    const generateTransferMemo = () => {
+    const handleGenerateMemoContent = () => {
         if (!selectedAction || !currentEmployeeRecord) return;
-        
-        const doc = new jsPDF();
-        const { details } = selectedAction;
 
+        const { details } = selectedAction;
         const effectiveDate = format(new Date(selectedAction.effectiveDate), "MMMM dd, yyyy");
         const today = format(new Date(), "MMMM dd, yyyy");
         
@@ -304,21 +306,12 @@ export default function PersonnelActionsPage() {
             newPosition = masterData.jobTitles.find((jt:any) => jt.value === details.newJobTitle)?.label || currentEmployeeRecord.position;
         }
 
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.text("Inter-Office Memorandum", 105, 20, { align: 'center' });
+        const body = `To: ${currentEmployeeRecord.name}
+From: Human Resources Department
+Date: ${today}
+Subject: Official Transfer Notification
 
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
-        
-        doc.text(`To: ${currentEmployeeRecord.name}`, 20, 40);
-        doc.text(`From: Human Resources Department`, 20, 47);
-        doc.text(`Date: ${today}`, 20, 54);
-        doc.text(`Subject: Official Transfer Notification`, 20, 61);
-
-        doc.line(20, 65, 190, 65); // Separator line
-
-        const body = `This memo is to formally confirm your transfer, effective ${effectiveDate}. Please review the details of your new assignment below:
+This memo is to formally confirm your transfer, effective ${effectiveDate}. Please review the details of your new assignment below:
 
 Employee ID: ${currentEmployeeRecord.employeeId}
 
@@ -337,9 +330,25 @@ We wish you the best of luck in your new role.
 Sincerely,
 The Management
 `;
-        doc.text(body, 20, 75, { maxWidth: 170 });
+        setMemoContent(body);
+        setMemoDialogOpen(true);
+    };
+
+    const downloadMemoPdf = () => {
+        const doc = new jsPDF();
+        const employeeName = currentEmployeeRecord?.name || 'employee';
         
-        doc.save(`Transfer_Memo_${currentEmployeeRecord.name.replace(/ /g, '_')}.pdf`);
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("Inter-Office Memorandum", 105, 20, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        
+        doc.text(memoContent, 20, 40, { maxWidth: 170 });
+
+        doc.save(`Transfer_Memo_${employeeName.replace(/ /g, '_')}.pdf`);
+        setMemoDialogOpen(false);
     };
 
     const filteredPersonnelActions = useMemo(() => {
@@ -501,9 +510,9 @@ The Management
                         </div>
                     )}
                     <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4 border-t">
-                        <div className="flex items-center gap-2">
+                         <div className="flex items-center gap-2">
                             {(selectedAction?.type === 'Transfer' || selectedAction?.type === 'Lateral Transfer') && (
-                                <Button variant="secondary" size="sm" onClick={generateTransferMemo}>
+                                <Button variant="secondary" size="sm" onClick={handleGenerateMemoContent}>
                                     <Download className="mr-2 h-4 w-4" /> Generate Memo
                                 </Button>
                             )}
@@ -541,6 +550,37 @@ The Management
                                </DialogClose>
                             )}
                          </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+             <Dialog open={isMemoDialogOpen} onOpenChange={setMemoDialogOpen}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Edit and Finalize Transfer Memo</DialogTitle>
+                        <DialogDescription>
+                            Make any necessary edits to the memo content before downloading.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid w-full gap-1.5">
+                            <Label htmlFor="memo-content">Memo Content</Label>
+                            <Textarea
+                                id="memo-content"
+                                value={memoContent}
+                                onChange={(e) => setMemoContent(e.target.value)}
+                                rows={15}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild>
+                            <Button variant="ghost">Cancel</Button>
+                        </DialogClose>
+                        <Button onClick={downloadMemoPdf}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Download PDF
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
