@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation";
@@ -23,7 +24,7 @@ const actionDetails = {
     acting: { title: "Acting Assignment", fields: ['effectiveDate', 'newDepartment', 'actingJobTitle', 'startDate', 'endDate', 'specialDutyAllowance'] },
     transfer: { title: "Transfer", fields: ['effectiveDate', 'newDepartment', 'newManager', 'justification'] },
     lateral: { title: "Lateral Transfer", fields: ['effectiveDate', 'newJobTitle', 'newDepartment', 'newManager', 'justification'] },
-    disciplinary: { title: "Disciplinary Case", fields: ['effectiveDate', 'caseType', 'incidentDate', 'salaryPenalty', 'description'] }
+    disciplinary: { title: "Disciplinary Case", fields: ['effectiveDate', 'caseType', 'incidentDate', 'salaryPenalty', 'penaltyAmount', 'description'] }
 };
 
 type ActionType = keyof typeof actionDetails;
@@ -138,7 +139,7 @@ const PersonnelActionForm = () => {
 
     const handleFormChange = (key: string, value: any) => {
         setFormState((prev: any) => {
-            const newState = { ...prev, [key]: value };
+            let newState = { ...prev, [key]: value };
             
             if ((actionType === 'transfer' || actionType === 'lateral') && key === 'newDepartment') {
                 const departmentValue = value;
@@ -162,6 +163,17 @@ const PersonnelActionForm = () => {
             if ((actionType === 'demotion' || actionType === 'promotion' || actionType === 'lateral') && key === 'newJobTitle') {
                 newState.newSalary = '';
             }
+
+            if (actionType === 'disciplinary' && key === 'salaryPenalty' && currentEmployee?.basicSalary) {
+                const penaltyPercentage = parseFloat(value);
+                const basicSalary = parseFloat(currentEmployee.basicSalary);
+                if (!isNaN(penaltyPercentage) && !isNaN(basicSalary)) {
+                    newState.penaltyAmount = (basicSalary * penaltyPercentage / 100).toFixed(2);
+                } else {
+                    newState.penaltyAmount = '';
+                }
+            }
+
 
             return newState;
         });
@@ -370,7 +382,6 @@ const PersonnelActionForm = () => {
                                 <SelectItem value="second_warning">Second Warning</SelectItem>
                                 <SelectItem value="final_warning">Final Warning</SelectItem>
                                 <SelectItem value="suspension">Suspension</SelectItem>
-                                <SelectItem value="termination">Termination</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -387,6 +398,13 @@ const PersonnelActionForm = () => {
                     <div className="grid gap-2">
                         <Label htmlFor={field}>Salary Penalty (%)</Label>
                         <Input id={field} type="number" value={formState[field] || ''} onChange={(e) => handleFormChange(field, e.target.value)} placeholder="e.g., 10 for 10%" />
+                    </div>
+                );
+            case 'penaltyAmount':
+                return (
+                    <div className="grid gap-2">
+                        <Label htmlFor={field}>Penalty Amount (ETB)</Label>
+                        <Input id={field} value={formState[field] || ''} readOnly />
                     </div>
                 );
             case 'description':
