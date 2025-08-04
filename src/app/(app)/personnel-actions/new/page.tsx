@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation";
@@ -22,7 +23,7 @@ const actionDetails = {
     demotion: { title: "Demotion", fields: ['newJobTitle', 'newSalary', 'justification'] },
     acting: { title: "Acting Assignment", fields: ['actingJobTitle', 'startDate', 'endDate', 'specialDutyAllowance'] },
     transfer: { title: "Transfer", fields: ['newDepartment', 'newManager', 'justification'] },
-    lateral: { title: "Lateral Transfer", fields: ['newJobTitle', 'newDepartment', 'justification'] },
+    lateral: { title: "Lateral Transfer", fields: ['newJobTitle', 'newDepartment', 'newManager', 'justification'] },
     disciplinary: { title: "Disciplinary Case", fields: ['caseType', 'incidentDate', 'description', 'actionTaken'] }
 };
 
@@ -127,7 +128,30 @@ const PersonnelActionForm = () => {
     const employeeOptions = useMemo(() => employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.employeeId})`})), [employees]);
 
     const handleFormChange = (key: string, value: any) => {
-        setFormState((prev: any) => ({ ...prev, [key]: value }));
+        setFormState((prev: any) => {
+            const newState = { ...prev, [key]: value };
+            
+            if ((actionType === 'transfer' || actionType === 'lateral') && key === 'newDepartment') {
+                const departmentValue = value;
+                const headOfDepartmentTitle = masterData.jobTitles.find(jt => 
+                    jt.isHeadOfDepartment && 
+                    (jt.managedDepartments || []).includes(departmentValue)
+                );
+                
+                if (headOfDepartmentTitle) {
+                    const manager = employees.find(emp => emp.position === headOfDepartmentTitle.label);
+                    if (manager && manager.id !== newState.employeeId) {
+                        newState.newManager = manager.id;
+                    } else {
+                        newState.newManager = '';
+                    }
+                } else {
+                    newState.newManager = '';
+                }
+            }
+
+            return newState;
+        });
     };
 
     const handleSubmit = () => {
@@ -206,7 +230,7 @@ const PersonnelActionForm = () => {
             case 'actingJobTitle':
                 return (
                     <div className="grid gap-2">
-                        <Label htmlFor={field}>New Job Title</Label>
+                        <Label htmlFor={field}>{field === 'actingJobTitle' ? 'Acting Job Title' : 'New Job Title'}</Label>
                         <Combobox
                             items={masterData.jobTitles}
                             value={formState[field] || ''}
