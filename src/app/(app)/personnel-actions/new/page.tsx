@@ -21,7 +21,7 @@ import { useToast } from "@/hooks/use-toast";
 const actionDetails = {
     promotion: { title: "Promotion", fields: ['effectiveDate', 'newJobTitle', 'newSalary', 'justification'] },
     demotion: { title: "Demotion", fields: ['effectiveDate', 'newJobTitle', 'newSalary', 'justification'] },
-    acting: { title: "Acting Assignment", fields: ['effectiveDate', 'actingJobTitle', 'startDate', 'endDate', 'specialDutyAllowance'] },
+    acting: { title: "Acting Assignment", fields: ['effectiveDate', 'actingJobTitle', 'newDepartment', 'startDate', 'endDate', 'specialDutyAllowance'] },
     transfer: { title: "Transfer", fields: ['effectiveDate', 'newDepartment', 'newManager', 'justification'] },
     lateral: { title: "Lateral Transfer", fields: ['effectiveDate', 'newJobTitle', 'newDepartment', 'newManager', 'justification'] },
     disciplinary: { title: "Disciplinary Case", fields: ['effectiveDate', 'caseType', 'incidentDate', 'description', 'actionTaken'] }
@@ -253,6 +253,7 @@ const PersonnelActionForm = () => {
             case 'newJobTitle':
             case 'actingJobTitle':
                 const isDemotion = actionType === 'demotion';
+                const isActing = actionType === 'acting';
                 return (
                     <>
                         <div className="grid gap-2">
@@ -264,7 +265,7 @@ const PersonnelActionForm = () => {
                                 placeholder="Select new job title..."
                             />
                         </div>
-                        {(actionType === 'lateral' || isDemotion) && newJobTitleDetails && (
+                        {(actionType === 'lateral' || isDemotion || isActing) && newJobTitleDetails && (
                             <>
                                 <div className="grid gap-2">
                                     <Label>New Job Grade</Label>
@@ -422,13 +423,13 @@ const PersonnelActionForm = () => {
                                 </div>
                                 {currentEmployee && (
                                     <>
-                                        {(actionType === 'transfer' || actionType === 'lateral') && (
+                                        {(actionType === 'transfer' || actionType === 'lateral' || actionType === 'acting') && (
                                             <div className="grid gap-2">
                                                 <Label>Current Department</Label>
                                                 <Input value={currentEmployee.department || ''} readOnly />
                                             </div>
                                         )}
-                                        {(actionType === 'lateral' || actionType === 'demotion') && (
+                                        {(actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting') && (
                                             <>
                                                 <div className="grid gap-2">
                                                     <Label>Current Job Title</Label>
@@ -444,7 +445,7 @@ const PersonnelActionForm = () => {
                                                 </div>
                                             </>
                                         )}
-                                        {actionType === 'demotion' && (
+                                        {(actionType === 'demotion' || actionType === 'acting') && (
                                              <div className="grid gap-2">
                                                 <Label>Current Basic Salary</Label>
                                                 <Input value={currentEmployee.basicSalary || ''} readOnly />
@@ -462,7 +463,7 @@ const PersonnelActionForm = () => {
                              <CardContent className="grid md:grid-cols-2 gap-4">
                                 {fields.map(field => {
                                     const isFullWidth = ['justification', 'description', 'actionTaken'].includes(field);
-                                    const isCombinedDetails = (actionType === 'lateral' || actionType === 'demotion') && (field === 'newJobTitle');
+                                    const isCombinedDetails = (actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting') && (field === 'newJobTitle' || field === 'actingJobTitle');
 
                                     return (
                                         <div key={field} className={cn(isFullWidth ? 'md:col-span-2' : '', isCombinedDetails ? 'md:col-span-2 grid md:grid-cols-3 gap-4' : '')}>
