@@ -238,7 +238,7 @@ export default function ProfilePage() {
         if (storedActions) {
             try {
                 const allActions = JSON.parse(storedActions);
-                const userActions = allActions.filter((action: any) => action.employeeId === loggedInEmployeeId);
+                const userActions = allActions.filter((action: any) => action.employeeId === loggedInEmployeeId && action.status === 'Completed');
                 setPersonnelActions(userActions);
             } catch (error) {
                 console.error("Failed to parse personnel actions from localStorage", error);
