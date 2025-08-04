@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { employees } from "@/lib/data"
@@ -10,19 +9,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award, Layers, Download, Loader2, ArrowUpRight, ArrowDownRight, UserCheck as UserCheckIcon, Shuffle, Copy, AlertTriangle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { generateExperienceLetter } from "@/ai/flows/generate-experience-letter"
 import { useToast } from "@/hooks/use-toast"
 import { jsPDF } from "jspdf"
 import 'jspdf-autotable';
 import { format } from "date-fns"
+import { getMasterData } from "@/lib/master-data"
+
 
 // In a real app, you would fetch the logged-in user's data
 const loggedInEmployeeId = "EMP001"; // Mocking logged-in user
 
 const InfoItem = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: React.ReactNode }) => {
-    if (!value) return null;
+    if (!value && typeof value !== 'boolean') return null;
     return (
         <div className="flex items-start gap-3">
             <Icon className="h-5 w-5 text-muted-foreground mt-1" />
@@ -99,14 +100,43 @@ const actionIcons: { [key: string]: React.ElementType } = {
   "Disciplinary Case": AlertTriangle,
 };
 
-const ActivityItem = ({ action }: { action: any }) => {
+const ActivityItem = ({ action, masterData, allEmployees }: { action: any, masterData: any, allEmployees: any[] }) => {
     const Icon = actionIcons[action.type] || Briefcase;
+    const { details } = action;
+
+    const getChangeDetails = () => {
+        const newJobTitleDetails = masterData.jobTitles.find((jt:any) => jt.value === (details.newJobTitle || details.actingJobTitle));
+        const newDepartmentLabel = masterData.departments.find((d:any) => d.value === details.newDepartment)?.label;
+        const newManagerName = allEmployees.find(e => e.id === details.newManager)?.name;
+        const actionTakenLabel = masterData.disciplinaryActionTypes.find((dt:any) => dt.value === details.caseType)?.label;
+
+        const detailItems: {label: string, value: any}[] = [];
+
+        if (newDepartmentLabel) detailItems.push({ label: 'New Department', value: newDepartmentLabel });
+        if (newJobTitleDetails) {
+            detailItems.push({ label: action.type === 'Acting Assignment' ? 'Acting Job Title' : 'New Job Title', value: newJobTitleDetails.label });
+            detailItems.push({ label: 'Job Grade', value: masterData.jobGrades.find((g:any) => g.value === newJobTitleDetails.jobGrade)?.label });
+        }
+        if (newManagerName) detailItems.push({ label: 'New Manager', value: newManagerName });
+        if (details.startDate) detailItems.push({ label: 'Start Date', value: formatDate(details.startDate) });
+        if (details.endDate) detailItems.push({ label: 'End Date', value: formatDate(details.endDate) });
+        if (actionTakenLabel) detailItems.push({ label: 'Action Taken', value: actionTakenLabel });
+        if (details.incidentDate) detailItems.push({ label: 'Incident Date', value: formatDate(details.incidentDate) });
+        
+        return detailItems.filter(item => item.value);
+    };
+
+    const actionDetails = getChangeDetails();
+
     return (
-        <div className="flex items-start gap-4">
-            <div className="mt-1 bg-muted p-2 rounded-full">
-                <Icon className="h-5 w-5 text-muted-foreground" />
+        <div className="relative pl-8">
+            <div className="absolute left-0 top-0 flex h-full w-8 justify-center">
+                 <div className="h-full w-px bg-border"></div>
+                 <div className="absolute top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-muted">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                 </div>
             </div>
-            <div className="grid gap-1">
+            <div className="ml-4 grid gap-1 pb-8">
                 <div className="flex items-center gap-2">
                     <h4 className="font-semibold">{action.type}</h4>
                     <Badge variant={
@@ -115,9 +145,13 @@ const ActivityItem = ({ action }: { action: any }) => {
                     }>{action.status}</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground">Effective Date: {formatDate(action.effectiveDate)}</p>
-                {action.details.newJobTitle && <p className="text-xs text-muted-foreground">To: {action.details.newJobTitle.label}</p>}
-                {action.details.actingJobTitle && <p className="text-xs text-muted-foreground">As: {action.details.actingJobTitle.label}</p>}
-                {action.details.newDepartment && <p className="text-xs text-muted-foreground">To: {action.details.newDepartment.label} department</p>}
+                {actionDetails.length > 0 && (
+                     <Card className="mt-2">
+                        <CardContent className="p-4 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                            {actionDetails.map(item => <InfoItem key={item.label} icon={Calendar} label={item.label} value={item.value} />)}
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
     )
@@ -180,20 +214,24 @@ export default function ProfilePage() {
     const [personnelActions, setPersonnelActions] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
+    
+    const masterData = useMemo(() => getMasterData(), []);
+    const [allEmployees, setAllEmployees] = useState(employees);
 
     useEffect(() => {
         setIsLoading(true);
         const storedEmployees = localStorage.getItem('employees');
-        let allEmployees = employees;
+        let allEmployeesData = employees;
         if (storedEmployees) {
             try {
-                 allEmployees = JSON.parse(storedEmployees);
+                 allEmployeesData = JSON.parse(storedEmployees);
+                 setAllEmployees(allEmployeesData);
             } catch (error) {
                 console.error("Failed to parse employees from localStorage", error);
             }
         }
         
-        const foundEmployee = allEmployees.find(e => e.id === loggedInEmployeeId);
+        const foundEmployee = allEmployeesData.find(e => e.id === loggedInEmployeeId);
         setEmployee(foundEmployee || null);
 
         const storedActions = localStorage.getItem('personnelActions');
@@ -342,7 +380,7 @@ export default function ProfilePage() {
                     <TabsTrigger value="financial">Financial</TabsTrigger>
                     <TabsTrigger value="dependents">Dependents</TabsTrigger>
                     <TabsTrigger value="guarantees">Guarantees</TabsTrigger>
-                    <TabsTrigger value="activity">Activity Log</TabsTrigger>
+                    <TabsTrigger value="career-progression">Career Progression</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="personal" className="mt-4">
@@ -512,21 +550,18 @@ export default function ProfilePage() {
                         </CardContent>
                     </Card>
                  </TabsContent>
-                 <TabsContent value="activity" className="mt-4">
+                 <TabsContent value="career-progression" className="mt-4">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Activity Log</CardTitle>
+                            <CardTitle>Career Progression</CardTitle>
                             <CardDescription>A chronological record of all personnel actions related to you.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             {personnelActions.length > 0 ? (
-                                <div className="relative pl-6">
-                                    <div className="absolute left-9 top-0 h-full w-px bg-border"></div>
-                                    <div className="space-y-8">
+                                <div className="space-y-4">
                                     {personnelActions.map(action => (
-                                        <ActivityItem key={action.id} action={action} />
+                                        <ActivityItem key={action.id} action={action} masterData={masterData} allEmployees={allEmployees} />
                                     ))}
-                                    </div>
                                 </div>
                             ) : (
                                 <p className="text-muted-foreground text-sm">No personnel actions recorded.</p>
@@ -539,5 +574,7 @@ export default function ProfilePage() {
     )
 }
 
+
+    
 
     
