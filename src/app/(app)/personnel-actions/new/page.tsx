@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { useSearchParams, useRouter } from "next/navigation";
@@ -24,7 +23,7 @@ const actionDetails = {
     acting: { title: "Acting Assignment", fields: ['effectiveDate', 'newDepartment', 'actingJobTitle', 'startDate', 'endDate', 'specialDutyAllowance'] },
     transfer: { title: "Transfer", fields: ['effectiveDate', 'newDepartment', 'newManager', 'justification'] },
     lateral: { title: "Lateral Transfer", fields: ['effectiveDate', 'newJobTitle', 'newDepartment', 'newManager', 'justification'] },
-    disciplinary: { title: "Disciplinary Case", fields: ['effectiveDate', 'caseType', 'incidentDate', 'description', 'actionTaken'] }
+    disciplinary: { title: "Disciplinary Case", fields: ['effectiveDate', 'caseType', 'incidentDate', 'description'] }
 };
 
 type ActionType = keyof typeof actionDetails;
@@ -355,7 +354,7 @@ const PersonnelActionForm = () => {
             case 'caseType':
                 return (
                     <div className="grid gap-2">
-                        <Label htmlFor={field}>Case Type</Label>
+                        <Label htmlFor={field}>Action Taken</Label>
                          <Select onValueChange={(value) => handleFormChange(field, value)} value={formState[field] || ''}>
                             <SelectTrigger id={field}><SelectValue placeholder="Select case type..." /></SelectTrigger>
                             <SelectContent>
@@ -378,13 +377,6 @@ const PersonnelActionForm = () => {
                  return (
                     <div className="grid gap-2 md:col-span-2">
                         <Label htmlFor={field}>Description of Incident</Label>
-                        <Textarea id={field} value={formState[field] || ''} onChange={(e) => handleFormChange(field, e.target.value)} />
-                    </div>
-                );
-            case 'actionTaken':
-                 return (
-                    <div className="grid gap-2 md:col-span-2">
-                        <Label htmlFor={field}>Action Taken</Label>
                         <Textarea id={field} value={formState[field] || ''} onChange={(e) => handleFormChange(field, e.target.value)} />
                     </div>
                 );
@@ -421,18 +413,22 @@ const PersonnelActionForm = () => {
                                 </div>
                                 {currentEmployee && (
                                     <>
-                                        {(actionType === 'transfer' || actionType === 'acting') && (
+                                        {(actionType === 'transfer' || actionType === 'acting' || actionType === 'promotion' || actionType === 'disciplinary') && (
                                             <div className="grid gap-2">
                                                 <Label>Current Department</Label>
                                                 <Input value={currentEmployee.department || ''} readOnly />
                                             </div>
                                         )}
-                                        {(actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting' || actionType === 'promotion') && (
+                                        {(actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting' || actionType === 'promotion' || actionType === 'disciplinary') && (
                                             <>
                                                 <div className="grid gap-2">
                                                     <Label>Current Job Title</Label>
                                                     <Input value={currentEmployee.position || ''} readOnly />
                                                 </div>
+                                            </>
+                                        )}
+                                        {(actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting' || actionType === 'promotion') && (
+                                            <>
                                                 <div className="grid gap-2">
                                                     <Label>Current Job Grade</Label>
                                                     <Input value={currentEmployee.jobGrade || ''} readOnly />
@@ -460,7 +456,7 @@ const PersonnelActionForm = () => {
                             </CardHeader>
                              <CardContent className="grid md:grid-cols-2 gap-4">
                                 {fields.map(field => {
-                                    const isFullWidth = ['justification', 'description', 'actionTaken'].includes(field);
+                                    const isFullWidth = ['justification', 'description'].includes(field);
                                     const isCombinedDetails = (actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting' || actionType === 'promotion') && (field === 'newJobTitle' || field === 'actingJobTitle');
 
                                     return (
@@ -491,3 +487,5 @@ export default function NewPersonnelActionPage() {
         </Suspense>
     )
 }
+
+    
