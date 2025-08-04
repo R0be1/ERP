@@ -378,10 +378,9 @@ const PersonnelActionForm = () => {
                          <Select onValueChange={(value) => handleFormChange(field, value)} value={formState[field] || ''}>
                             <SelectTrigger id={field}><SelectValue placeholder="Select action..." /></SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="first_warning">First Warning</SelectItem>
-                                <SelectItem value="second_warning">Second Warning</SelectItem>
-                                <SelectItem value="final_warning">Final Warning</SelectItem>
-                                <SelectItem value="suspension">Suspension</SelectItem>
+                                {(masterData.disciplinaryActionTypes || []).map((action: any) => (
+                                    <SelectItem key={action.value} value={action.value}>{action.label}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>

@@ -79,6 +79,7 @@ const dataCategoryDetails: { [key: string]: { title: string, fields: { key: stri
         { key: 'description', label: 'Description', type: 'textarea'},
         { key: 'isTaxable', label: 'Is Taxable', type: 'checkbox'},
     ]},
+    disciplinaryActionTypes: { title: 'Disciplinary Action Types', fields: [{ key: 'label', label: 'Action Name', type: 'text' }] },
 };
 
 const Combobox = ({ items, value, onChange, placeholder }: { items: {value: string, label: string}[], value: string, onChange: (value: string) => void, placeholder: string }) => {
@@ -261,7 +262,7 @@ export default function MasterDataManagementPage() {
             // Add
             const existingValues = updatedData.map(item => parseInt(item.value, 10)).filter(v => !isNaN(v));
             const newId = existingValues.length > 0 ? String(Math.max(...existingValues) + 1).padStart(3, '0') : '001';
-            const newValue = slug === 'allowanceTypes' ? formState.label.toLowerCase().replace(/\s/g, '-') : newId;
+            const newValue = (slug === 'allowanceTypes' || slug === 'disciplinaryActionTypes') ? formState.label.toLowerCase().replace(/\s+/g, '-') : newId;
             updatedData.push({ ...formState, value: newValue });
         }
         
@@ -470,7 +471,7 @@ export default function MasterDataManagementPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                {slug !== 'allowanceTypes' && <TableHead>ID</TableHead>}
+                                {(slug !== 'allowanceTypes' && slug !== 'disciplinaryActionTypes') && <TableHead>ID</TableHead>}
                                 {categoryInfo.fields.map(field => {
                                      if (field.type === 'multi-select') return <TableHead key={field.key}>{field.label}</TableHead>;
                                      if (field.type === 'checkbox' && slug === 'jobTitles' && field.key === 'isHeadOfDepartment') return null; // Hide checkbox column
@@ -482,7 +483,7 @@ export default function MasterDataManagementPage() {
                         <TableBody>
                             {filteredData.map((item) => (
                                 <TableRow key={item.value}>
-                                    {slug !== 'allowanceTypes' && <TableCell className="font-mono text-xs">{item.value}</TableCell>}
+                                    {(slug !== 'allowanceTypes' && slug !== 'disciplinaryActionTypes') && <TableCell className="font-mono text-xs">{item.value}</TableCell>}
                                     {categoryInfo.fields.map(field => {
                                          if (field.type === 'checkbox' && slug === 'jobTitles' && field.key === 'isHeadOfDepartment') return null;
                                         return <TableCell key={field.key}>{getDisplayValue(item, field.key)}</TableCell>
@@ -538,7 +539,3 @@ export default function MasterDataManagementPage() {
         </div>
     );
 }
-
-    
-
-    

@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     Settings, GitBranch, ScrollText, Building, Briefcase, Tag, Layers, School, 
-    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star, Search, DollarSign
+    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star, Search, DollarSign, AlertTriangle
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -60,6 +60,7 @@ const dataCategories = [
     { key: 'educationAwards', title: 'Award Types & Levels', description: 'Manage honors and certifications.', icon: GraduationCap },
     { key: 'programTypes', title: 'Program Types', description: 'Regular, Distance, Extension.', icon: RadioTower },
     { key: 'allowanceTypes', title: 'Allowance Types', description: 'Manage salary allowance types.', icon: DollarSign },
+    { key: 'disciplinaryActionTypes', title: 'Disciplinary Action Types', description: 'Manage types of disciplinary actions.', icon: AlertTriangle },
 ];
 
 type MasterDataCategoryKey = keyof typeof initialMasterData;

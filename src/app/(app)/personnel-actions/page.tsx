@@ -251,7 +251,7 @@ export default function PersonnelActionsPage() {
         if (details.endDate) proposed.push({ label: 'End Date', value: details.endDate });
         if (details.newManager) proposed.push({ label: 'New Manager', value: employees.find(e => e.id === details.newManager)?.name });
         
-        if (details.caseType) proposed.push({ label: 'Action Taken', value: details.caseType.replace('_', ' ').replace(/\b\w/g, (l:string) => l.toUpperCase()) });
+        if (details.caseType) proposed.push({ label: 'Action Taken', value: masterData.disciplinaryActionTypes.find(d => d.value === details.caseType)?.label });
         if (details.incidentDate) proposed.push({ label: 'Incident Date', value: details.incidentDate });
         if (details.salaryPenalty) proposed.push({ label: 'Salary Penalty (%)', value: `${details.salaryPenalty}%` });
         if (details.penaltyAmount) proposed.push({ label: 'Penalty Amount', value: `${details.penaltyAmount} ETB` });

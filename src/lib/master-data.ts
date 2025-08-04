@@ -158,7 +158,13 @@ const initialMasterData = {
                 { step: '2', salary: '52500' },
             ],
         }
-    ]
+    ],
+    disciplinaryActionTypes: [
+        { value: 'first-warning', label: 'First Warning' },
+        { value: 'second-warning', label: 'Second Warning' },
+        { value: 'final-warning', label: 'Final Warning' },
+        { value: 'suspension', label: 'Suspension' },
+    ],
 };
 
 
