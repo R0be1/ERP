@@ -158,7 +158,7 @@ export default function PersonnelActionsPage() {
             return;
         }
         
-        const updatedEmployee = { ...allEmployees[employeeIndex] };
+        let updatedEmployee = { ...allEmployees[employeeIndex] };
         const { details, type } = action;
 
         // Apply changes based on action type
@@ -500,33 +500,33 @@ The Management
                             </Card>
                         </div>
                     )}
-                    <DialogFooter className="sm:justify-between gap-2 pt-4 border-t flex-wrap">
-                         <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                                <Button variant="destructive" className="w-full sm:w-auto">
-                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Action
-                                </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                                <AlertDialogHeader>
-                                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                    <AlertDialogDescription>This will permanently delete this action record.</AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => selectedAction && handleDelete(selectedAction.id)}>Delete</AlertDialogAction>
-                                </AlertDialogFooter>
-                            </AlertDialogContent>
-                        </AlertDialog>
-
-                        <div className="flex flex-col-reverse sm:flex-row gap-2">
-                             {(selectedAction?.type === 'Transfer' || selectedAction?.type === 'Lateral Transfer') && selectedAction?.status === 'Completed' && (
-                                <Button variant="secondary" onClick={generateTransferMemo}>
+                    <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4 border-t">
+                        <div className="flex items-center gap-2">
+                            {(selectedAction?.type === 'Transfer' || selectedAction?.type === 'Lateral Transfer') && (
+                                <Button variant="secondary" size="sm" onClick={generateTransferMemo}>
                                     <Download className="mr-2 h-4 w-4" /> Generate Memo
                                 </Button>
                             )}
-
-                            {selectedAction?.status === 'Pending' && (
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="sm">
+                                        <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>This will permanently delete this action record.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => selectedAction && handleDelete(selectedAction.id)}>Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                        <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                            {selectedAction?.status === 'Pending' ? (
                                 <>
                                     <Button variant="outline" onClick={() => selectedAction && handleReject(selectedAction.id)}>
                                         <X className="mr-2 h-4 w-4" /> Reject
@@ -535,12 +535,11 @@ The Management
                                         <Check className="mr-2 h-4 w-4" /> Approve
                                     </Button>
                                 </>
-                            )}
-                             {selectedAction?.status !== 'Pending' && (
+                            ) : (
                                <DialogClose asChild>
                                  <Button variant="outline">Close</Button>
                                </DialogClose>
-                             )}
+                            )}
                          </div>
                     </DialogFooter>
                 </DialogContent>
