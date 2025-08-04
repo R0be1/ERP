@@ -14,7 +14,7 @@ import {
   Heart,
   UserCircle,
   Receipt,
-  MessageSquareQuote,
+  MessageSquare,
   Clock,
   PanelLeft,
   LogOut,
@@ -23,6 +23,7 @@ import {
   DollarSign,
   ClipboardEdit,
   UserRound,
+  UserCog,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -53,11 +54,12 @@ const navItems = [
   { href: "/payslips", icon: Receipt, label: "Payslips" },
   { href: "/personnel-actions", icon: ClipboardEdit, label: "Personnel Actions" },
   { href: "/self-service", icon: UserRound, label: "Self-Service" },
+  { href: "/manager-service", icon: UserCog, label: "Manager Service" },
 ]
 
 const bottomNavItems = [
   { href: "/profile", icon: UserCircle, label: "My Profile" },
-  { href: "/feedback", icon: MessageSquareQuote, label: "Feedback" },
+  { href: "/feedback", icon: MessageSquare, label: "Feedback" },
   { href: "/configuration", icon: Settings, label: "Configuration" },
   { href: "/offboarding", icon: LogOut, label: "Exit/Offboarding" },
 ]
