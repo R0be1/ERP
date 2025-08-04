@@ -126,6 +126,11 @@ const PersonnelActionForm = () => {
     }, [formState.employeeId, employees]);
 
     const employeeOptions = useMemo(() => employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.employeeId})`})), [employees]);
+    
+    const newJobTitleDetails = useMemo(() => {
+        if (actionType !== 'lateral' || !formState.newJobTitle) return null;
+        return masterData.jobTitles.find(jt => jt.value === formState.newJobTitle);
+    }, [actionType, formState.newJobTitle, masterData.jobTitles]);
 
     const handleFormChange = (key: string, value: any) => {
         setFormState((prev: any) => {
@@ -229,15 +234,29 @@ const PersonnelActionForm = () => {
             case 'newJobTitle':
             case 'actingJobTitle':
                 return (
-                    <div className="grid gap-2">
-                        <Label htmlFor={field}>{field === 'actingJobTitle' ? 'Acting Job Title' : 'New Job Title'}</Label>
-                        <Combobox
-                            items={masterData.jobTitles}
-                            value={formState[field] || ''}
-                            onChange={(value) => handleFormChange(field, value)}
-                            placeholder="Select new job title..."
-                        />
-                    </div>
+                    <>
+                        <div className="grid gap-2">
+                            <Label htmlFor={field}>{field === 'actingJobTitle' ? 'Acting Job Title' : 'New Job Title'}</Label>
+                            <Combobox
+                                items={masterData.jobTitles}
+                                value={formState[field] || ''}
+                                onChange={(value) => handleFormChange(field, value)}
+                                placeholder="Select new job title..."
+                            />
+                        </div>
+                        {actionType === 'lateral' && newJobTitleDetails && (
+                            <>
+                                <div className="grid gap-2">
+                                    <Label>New Job Grade</Label>
+                                    <Input value={masterData.jobGrades.find(g => g.value === newJobTitleDetails.jobGrade)?.label || ''} readOnly />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label>New Job Category</Label>
+                                    <Input value={masterData.jobCategories.find(c => c.value === newJobTitleDetails.jobCategory)?.label || ''} readOnly />
+                                </div>
+                            </>
+                        )}
+                    </>
                 );
             case 'newDepartment':
                  return (
@@ -355,7 +374,7 @@ const PersonnelActionForm = () => {
                             <CardHeader>
                                 <CardTitle className="text-lg">Core Information</CardTitle>
                             </CardHeader>
-                            <CardContent className="grid md:grid-cols-2 gap-4">
+                            <CardContent className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="employeeId">Employee</Label>
                                     <Combobox
@@ -365,16 +384,37 @@ const PersonnelActionForm = () => {
                                         placeholder="Select employee..."
                                     />
                                 </div>
-                                {(actionType === 'transfer' || actionType === 'lateral') && currentEmployee && (
-                                     <div className="grid gap-2">
-                                        <Label htmlFor="currentDepartment">Current Department</Label>
-                                        <Input id="currentDepartment" value={currentEmployee.department || ''} readOnly />
-                                    </div>
-                                )}
                                 <div className="grid gap-2">
                                     <Label htmlFor="effectiveDate">Effective Date</Label>
                                     <Input id="effectiveDate" type="date" value={formState.effectiveDate} onChange={e => handleFormChange('effectiveDate', e.target.value)} />
                                 </div>
+
+                                {currentEmployee && (
+                                    <>
+                                        {(actionType === 'transfer' || actionType === 'lateral') && (
+                                            <div className="grid gap-2">
+                                                <Label>Current Department</Label>
+                                                <Input value={currentEmployee.department || ''} readOnly />
+                                            </div>
+                                        )}
+                                        {actionType === 'lateral' && (
+                                            <>
+                                                <div className="grid gap-2">
+                                                    <Label>Current Job Title</Label>
+                                                    <Input value={currentEmployee.position || ''} readOnly />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Current Job Grade</Label>
+                                                    <Input value={currentEmployee.jobGrade || ''} readOnly />
+                                                </div>
+                                                <div className="grid gap-2">
+                                                    <Label>Current Job Category</Label>
+                                                    <Input value={currentEmployee.jobCategory || ''} readOnly />
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                )}
                             </CardContent>
                         </Card>
 
@@ -383,11 +423,16 @@ const PersonnelActionForm = () => {
                                 <CardTitle className="text-lg">{title} Details</CardTitle>
                             </CardHeader>
                              <CardContent className="grid md:grid-cols-2 gap-4">
-                                {fields.map(field => (
-                                    <div key={field} className={['justification', 'description', 'actionTaken'].includes(field) ? 'md:col-span-2' : ''}>
-                                        {renderField(field)}
-                                    </div>
-                                ))}
+                                {fields.map(field => {
+                                    const isFullWidth = ['justification', 'description', 'actionTaken'].includes(field);
+                                    const isLateralNewDetails = actionType === 'lateral' && (field === 'newJobTitle');
+
+                                    return (
+                                        <div key={field} className={cn(isFullWidth ? 'md:col-span-2' : '', isLateralNewDetails ? 'md:col-span-2 grid md:grid-cols-3 gap-4' : '')}>
+                                            {renderField(field)}
+                                        </div>
+                                    )
+                                })}
                             </CardContent>
                         </Card>
                         
