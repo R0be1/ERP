@@ -19,9 +19,9 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 const actionDetails = {
-    promotion: { title: "Promotion", fields: ['effectiveDate', 'newJobTitle', 'newSalary', 'justification'] },
-    demotion: { title: "Demotion", fields: ['effectiveDate', 'newJobTitle', 'newDepartment', 'newSalary', 'justification'] },
-    acting: { title: "Acting Assignment", fields: ['effectiveDate', 'actingJobTitle', 'newDepartment', 'startDate', 'endDate', 'specialDutyAllowance'] },
+    promotion: { title: "Promotion", fields: ['effectiveDate', 'newDepartment', 'newJobTitle', 'newSalary', 'justification'] },
+    demotion: { title: "Demotion", fields: ['effectiveDate', 'newDepartment', 'newJobTitle', 'newSalary', 'justification'] },
+    acting: { title: "Acting Assignment", fields: ['effectiveDate', 'newDepartment', 'actingJobTitle', 'startDate', 'endDate', 'specialDutyAllowance'] },
     transfer: { title: "Transfer", fields: ['effectiveDate', 'newDepartment', 'newManager', 'justification'] },
     lateral: { title: "Lateral Transfer", fields: ['effectiveDate', 'newJobTitle', 'newDepartment', 'newManager', 'justification'] },
     disciplinary: { title: "Disciplinary Case", fields: ['effectiveDate', 'caseType', 'incidentDate', 'description', 'actionTaken'] }
@@ -169,7 +169,7 @@ const PersonnelActionForm = () => {
     };
 
     const handleSubmit = () => {
-        if (!actionType || !formState.employeeId) {
+        if (!actionType || !formState.employeeId || !formState.effectiveDate) {
             toast({
                 variant: "destructive",
                 title: "Validation Error",
@@ -251,6 +251,7 @@ const PersonnelActionForm = () => {
                 const isDemotion = actionType === 'demotion';
                 const isLateral = actionType === 'lateral';
                 const isActing = actionType === 'acting';
+                const isPromotion = actionType === 'promotion';
                 return (
                     <>
                         <div className="grid gap-2">
@@ -262,7 +263,7 @@ const PersonnelActionForm = () => {
                                 placeholder="Select new job title..."
                             />
                         </div>
-                        {(isLateral || isDemotion || isActing) && newJobTitleDetails && (
+                        {(isLateral || isDemotion || isActing || isPromotion) && newJobTitleDetails && (
                             <>
                                 <div className="grid gap-2">
                                     <Label>New Job Grade</Label>
@@ -420,13 +421,13 @@ const PersonnelActionForm = () => {
                                 </div>
                                 {currentEmployee && (
                                     <>
-                                        {(actionType === 'transfer' || actionType === 'lateral' || actionType === 'acting' || actionType === 'demotion') && (
+                                        {(actionType === 'transfer' || actionType === 'acting') && (
                                             <div className="grid gap-2">
                                                 <Label>Current Department</Label>
                                                 <Input value={currentEmployee.department || ''} readOnly />
                                             </div>
                                         )}
-                                        {(actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting') && (
+                                        {(actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting' || actionType === 'promotion') && (
                                             <>
                                                 <div className="grid gap-2">
                                                     <Label>Current Job Title</Label>
@@ -442,7 +443,7 @@ const PersonnelActionForm = () => {
                                                 </div>
                                             </>
                                         )}
-                                        {(actionType === 'demotion' || actionType === 'acting') && (
+                                        {(actionType === 'demotion' || actionType === 'acting' || actionType === 'promotion') && (
                                              <div className="grid gap-2">
                                                 <Label>Current Basic Salary</Label>
                                                 <Input value={currentEmployee.basicSalary || ''} readOnly />
@@ -460,7 +461,7 @@ const PersonnelActionForm = () => {
                              <CardContent className="grid md:grid-cols-2 gap-4">
                                 {fields.map(field => {
                                     const isFullWidth = ['justification', 'description', 'actionTaken'].includes(field);
-                                    const isCombinedDetails = (actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting') && (field === 'newJobTitle' || field === 'actingJobTitle');
+                                    const isCombinedDetails = (actionType === 'lateral' || actionType === 'demotion' || actionType === 'acting' || actionType === 'promotion') && (field === 'newJobTitle' || field === 'actingJobTitle');
 
                                     return (
                                         <div key={field} className={cn(isFullWidth ? 'md:col-span-2' : '', isCombinedDetails ? 'md:col-span-2 grid md:grid-cols-3 gap-4' : '')}>
@@ -490,5 +491,3 @@ export default function NewPersonnelActionPage() {
         </Suspense>
     )
 }
-
-    
