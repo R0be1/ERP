@@ -110,7 +110,7 @@ const PersonnelActionForm = () => {
             const personnelActions = storedActions ? JSON.parse(storedActions) : [];
             const actionToEdit = personnelActions.find((a:any) => a.id === actionId);
             if(actionToEdit) {
-                setFormState({ ...actionToEdit.details, employeeId: actionToEdit.employeeId });
+                setFormState({ ...actionToEdit.details, employeeId: actionToEdit.employeeId, effectiveDate: actionToEdit.effectiveDate });
             }
         }
     }, [actionId]);
@@ -127,9 +127,15 @@ const PersonnelActionForm = () => {
     const employeeOptions = useMemo(() => employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.employeeId})`})), [employees]);
     
     const newJobTitleDetails = useMemo(() => {
-        if (actionType !== 'lateral' || !formState.newJobTitle) return null;
-        return masterData.jobTitles.find(jt => jt.value === formState.newJobTitle);
-    }, [actionType, formState.newJobTitle, masterData.jobTitles]);
+        const fieldName = actionType === 'acting' ? 'actingJobTitle' : 'newJobTitle';
+        if (!actionType || !formState[fieldName]) return null;
+        return masterData.jobTitles.find(jt => jt.value === formState[fieldName]);
+    }, [actionType, formState, masterData.jobTitles]);
+
+    const newSalaryStructure = useMemo(() => {
+        if (!newJobTitleDetails) return null;
+        return masterData.salaryStructures.find(s => s.jobGrade === newJobTitleDetails.jobGrade && s.status === 'active');
+    }, [newJobTitleDetails, masterData.salaryStructures]);
 
     const handleFormChange = (key: string, value: any) => {
         setFormState((prev: any) => {
@@ -152,6 +158,10 @@ const PersonnelActionForm = () => {
                 } else {
                     newState.newManager = '';
                 }
+            }
+
+            if ((actionType === 'demotion' || actionType === 'promotion' || actionType === 'lateral') && key === 'newJobTitle') {
+                newState.newSalary = '';
             }
 
             return newState;
@@ -206,7 +216,7 @@ const PersonnelActionForm = () => {
                 id: `PA${Date.now()}`,
                 employeeId: formState.employeeId,
                 employeeName: selectedEmployee?.name || 'Unknown',
-                type: actionDetails[actionType].title,
+                type: actionDetails[actionType as ActionType].title,
                 effectiveDate: effectiveDate,
                 status: 'Pending',
                 details: details
@@ -237,11 +247,12 @@ const PersonnelActionForm = () => {
                 return (
                     <div className="grid gap-2">
                         <Label htmlFor={field}>Effective Date</Label>
-                        <Input id={field} type="date" value={formState.effectiveDate} onChange={e => handleFormChange('effectiveDate', e.target.value)} />
+                        <Input id={field} type="date" value={formState.effectiveDate || ''} onChange={e => handleFormChange('effectiveDate', e.target.value)} />
                     </div>
                 );
             case 'newJobTitle':
             case 'actingJobTitle':
+                const isDemotion = actionType === 'demotion';
                 return (
                     <>
                         <div className="grid gap-2">
@@ -253,7 +264,7 @@ const PersonnelActionForm = () => {
                                 placeholder="Select new job title..."
                             />
                         </div>
-                        {actionType === 'lateral' && newJobTitleDetails && (
+                        {(actionType === 'lateral' || isDemotion) && newJobTitleDetails && (
                             <>
                                 <div className="grid gap-2">
                                     <Label>New Job Grade</Label>
@@ -283,7 +294,23 @@ const PersonnelActionForm = () => {
                  return (
                     <div className="grid gap-2">
                         <Label htmlFor={field}>New Basic Salary</Label>
-                        <Input id={field} type="number" value={formState[field] || ''} onChange={(e) => handleFormChange(field, e.target.value)} />
+                        <Select
+                            name="newSalary"
+                            onValueChange={(v) => handleFormChange('newSalary', v)}
+                            value={formState.newSalary || ''}
+                            disabled={!newSalaryStructure}
+                        >
+                            <SelectTrigger id="newSalary">
+                                <SelectValue placeholder={!newSalaryStructure ? "Select job title first" : "Select salary step..."} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {newSalaryStructure?.steps.map((step: any) => (
+                                    <SelectItem key={step.step} value={step.salary}>
+                                        Step {step.step}: {Number(step.salary).toLocaleString()}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 );
             case 'justification':
@@ -401,7 +428,7 @@ const PersonnelActionForm = () => {
                                                 <Input value={currentEmployee.department || ''} readOnly />
                                             </div>
                                         )}
-                                        {actionType === 'lateral' && (
+                                        {(actionType === 'lateral' || actionType === 'demotion') && (
                                             <>
                                                 <div className="grid gap-2">
                                                     <Label>Current Job Title</Label>
@@ -417,6 +444,12 @@ const PersonnelActionForm = () => {
                                                 </div>
                                             </>
                                         )}
+                                        {actionType === 'demotion' && (
+                                             <div className="grid gap-2">
+                                                <Label>Current Basic Salary</Label>
+                                                <Input value={currentEmployee.basicSalary || ''} readOnly />
+                                            </div>
+                                        )}
                                     </>
                                 )}
                             </CardContent>
@@ -429,10 +462,10 @@ const PersonnelActionForm = () => {
                              <CardContent className="grid md:grid-cols-2 gap-4">
                                 {fields.map(field => {
                                     const isFullWidth = ['justification', 'description', 'actionTaken'].includes(field);
-                                    const isLateralNewDetails = actionType === 'lateral' && (field === 'newJobTitle');
+                                    const isCombinedDetails = (actionType === 'lateral' || actionType === 'demotion') && (field === 'newJobTitle');
 
                                     return (
-                                        <div key={field} className={cn(isFullWidth ? 'md:col-span-2' : '', isLateralNewDetails ? 'md:col-span-2 grid md:grid-cols-3 gap-4' : '')}>
+                                        <div key={field} className={cn(isFullWidth ? 'md:col-span-2' : '', isCombinedDetails ? 'md:col-span-2 grid md:grid-cols-3 gap-4' : '')}>
                                             {renderField(field)}
                                         </div>
                                     )
