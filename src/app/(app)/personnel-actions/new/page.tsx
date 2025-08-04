@@ -19,12 +19,12 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 const actionDetails = {
-    promotion: { title: "Promotion", fields: ['newJobTitle', 'newSalary', 'justification'] },
-    demotion: { title: "Demotion", fields: ['newJobTitle', 'newSalary', 'justification'] },
-    acting: { title: "Acting Assignment", fields: ['actingJobTitle', 'startDate', 'endDate', 'specialDutyAllowance'] },
-    transfer: { title: "Transfer", fields: ['newDepartment', 'newManager', 'justification'] },
-    lateral: { title: "Lateral Transfer", fields: ['newJobTitle', 'newDepartment', 'newManager', 'justification'] },
-    disciplinary: { title: "Disciplinary Case", fields: ['caseType', 'incidentDate', 'description', 'actionTaken'] }
+    promotion: { title: "Promotion", fields: ['effectiveDate', 'newJobTitle', 'newSalary', 'justification'] },
+    demotion: { title: "Demotion", fields: ['effectiveDate', 'newJobTitle', 'newSalary', 'justification'] },
+    acting: { title: "Acting Assignment", fields: ['effectiveDate', 'actingJobTitle', 'startDate', 'endDate', 'specialDutyAllowance'] },
+    transfer: { title: "Transfer", fields: ['effectiveDate', 'newDepartment', 'newManager', 'justification'] },
+    lateral: { title: "Lateral Transfer", fields: ['effectiveDate', 'newJobTitle', 'newDepartment', 'newManager', 'justification'] },
+    disciplinary: { title: "Disciplinary Case", fields: ['effectiveDate', 'caseType', 'incidentDate', 'description', 'actionTaken'] }
 };
 
 type ActionType = keyof typeof actionDetails;
@@ -93,7 +93,6 @@ const PersonnelActionForm = () => {
 
     const [formState, setFormState] = useState<any>({
         employeeId: '',
-        effectiveDate: ''
     });
 
     const [currentEmployee, setCurrentEmployee] = useState<any | null>(null);
@@ -111,7 +110,7 @@ const PersonnelActionForm = () => {
             const personnelActions = storedActions ? JSON.parse(storedActions) : [];
             const actionToEdit = personnelActions.find((a:any) => a.id === actionId);
             if(actionToEdit) {
-                setFormState({ ...actionToEdit.details, employeeId: actionToEdit.employeeId, effectiveDate: actionToEdit.effectiveDate });
+                setFormState({ ...actionToEdit.details, employeeId: actionToEdit.employeeId });
             }
         }
     }, [actionId]);
@@ -176,7 +175,10 @@ const PersonnelActionForm = () => {
         
         const details = { ...formState };
         delete details.employeeId;
+        
+        const effectiveDate = details.effectiveDate;
         delete details.effectiveDate;
+
 
         if (actionId) {
             // Editing existing action
@@ -186,7 +188,7 @@ const PersonnelActionForm = () => {
                         ...action,
                         employeeId: formState.employeeId,
                         employeeName: selectedEmployee?.name || 'Unknown',
-                        effectiveDate: formState.effectiveDate,
+                        effectiveDate: effectiveDate,
                         details: details,
                     }
                 }
@@ -205,7 +207,7 @@ const PersonnelActionForm = () => {
                 employeeId: formState.employeeId,
                 employeeName: selectedEmployee?.name || 'Unknown',
                 type: actionDetails[actionType].title,
-                effectiveDate: formState.effectiveDate,
+                effectiveDate: effectiveDate,
                 status: 'Pending',
                 details: details
             };
@@ -231,6 +233,13 @@ const PersonnelActionForm = () => {
 
     const renderField = (field: string) => {
         switch (field) {
+            case 'effectiveDate':
+                return (
+                    <div className="grid gap-2">
+                        <Label htmlFor={field}>Effective Date</Label>
+                        <Input id={field} type="date" value={formState.effectiveDate} onChange={e => handleFormChange('effectiveDate', e.target.value)} />
+                    </div>
+                );
             case 'newJobTitle':
             case 'actingJobTitle':
                 return (
@@ -384,11 +393,6 @@ const PersonnelActionForm = () => {
                                         placeholder="Select employee..."
                                     />
                                 </div>
-                                <div className="grid gap-2">
-                                    <Label htmlFor="effectiveDate">Effective Date</Label>
-                                    <Input id="effectiveDate" type="date" value={formState.effectiveDate} onChange={e => handleFormChange('effectiveDate', e.target.value)} />
-                                </div>
-
                                 {currentEmployee && (
                                     <>
                                         {(actionType === 'transfer' || actionType === 'lateral') && (
