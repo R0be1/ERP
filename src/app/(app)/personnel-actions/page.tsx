@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal, Check, X, Trash2, View, Edit, Search } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal, Check, X, Trash2, View, Edit, Search, Download } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -42,6 +42,8 @@ import { useToast } from "@/hooks/use-toast";
 import { employees as initialEmployeesList } from "@/lib/data";
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
+import jsPDF from "jspdf";
+import { format } from 'date-fns';
 
 const actionTypes = [
     {
@@ -204,13 +206,18 @@ export default function PersonnelActionsPage() {
 
         applyAction(actionToUpdate);
         
-        setPersonnelActions(prevActions =>
-            prevActions.map(action =>
-                action.id === actionId ? { ...action, status: "Completed" } : action
-            )
+        const updatedActions = personnelActions.map(action =>
+            action.id === actionId ? { ...action, status: "Completed" } : action
         );
+        
+        setPersonnelActions(updatedActions);
+        
+        // Update selectedAction as well if it's the one being approved
+        if (selectedAction && selectedAction.id === actionId) {
+            setSelectedAction({ ...selectedAction, status: "Completed" });
+        }
+
         toast({ title: "Success", description: "Action approved and employee record updated." });
-        setDetailsDialogOpen(false);
     };
     
     const handleReject = (actionId: string) => {
@@ -276,6 +283,63 @@ export default function PersonnelActionsPage() {
         }
         
         return proposed;
+    };
+    
+    const generateTransferMemo = () => {
+        if (!selectedAction || !currentEmployeeRecord) return;
+        
+        const doc = new jsPDF();
+        const { details } = selectedAction;
+
+        const effectiveDate = format(new Date(selectedAction.effectiveDate), "MMMM dd, yyyy");
+        const today = format(new Date(), "MMMM dd, yyyy");
+        
+        const newDepartment = masterData.departments.find((d:any) => d.value === details.newDepartment)?.label || 'N/A';
+        const oldDepartment = currentEmployeeRecord.department;
+        const newManager = employees.find(e => e.id === details.newManager)?.name || 'N/A';
+        const oldManager = currentEmployeeRecord.manager || 'N/A';
+        let newPosition = currentEmployeeRecord.position;
+
+        if (selectedAction.type === 'Lateral Transfer' && details.newJobTitle) {
+            newPosition = masterData.jobTitles.find((jt:any) => jt.value === details.newJobTitle)?.label || currentEmployeeRecord.position;
+        }
+
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("Inter-Office Memorandum", 105, 20, { align: 'center' });
+
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        
+        doc.text(`To: ${currentEmployeeRecord.name}`, 20, 40);
+        doc.text(`From: Human Resources Department`, 20, 47);
+        doc.text(`Date: ${today}`, 20, 54);
+        doc.text(`Subject: Official Transfer Notification`, 20, 61);
+
+        doc.line(20, 65, 190, 65); // Separator line
+
+        const body = `This memo is to formally confirm your transfer, effective ${effectiveDate}. Please review the details of your new assignment below:
+
+Employee ID: ${currentEmployeeRecord.employeeId}
+
+Previous Department: ${oldDepartment}
+New Department: ${newDepartment}
+
+Position: ${newPosition}
+
+Previous Supervisor: ${oldManager}
+New Supervisor: ${newManager}
+
+We are confident that your skills and experience will be a valuable asset to your new team. Please coordinate with both your current and new supervisors to ensure a smooth transition of your duties and responsibilities.
+
+We wish you the best of luck in your new role.
+
+Sincerely,
+The Management
+`;
+        doc.text(body, 20, 75, { maxWidth: 170 });
+        
+        doc.save(`Transfer_Memo_${currentEmployeeRecord.name.replace(/ /g, '_')}.pdf`);
     };
 
     const filteredPersonnelActions = useMemo(() => {
@@ -436,7 +500,7 @@ export default function PersonnelActionsPage() {
                             </Card>
                         </div>
                     )}
-                    <DialogFooter className="sm:justify-between gap-2 pt-4 border-t">
+                    <DialogFooter className="sm:justify-between gap-2 pt-4 border-t flex-wrap">
                          <AlertDialog>
                             <AlertDialogTrigger asChild>
                                 <Button variant="destructive" className="w-full sm:w-auto">
@@ -455,21 +519,29 @@ export default function PersonnelActionsPage() {
                             </AlertDialogContent>
                         </AlertDialog>
 
-                        {selectedAction?.status === 'Pending' && (
-                            <div className="flex flex-col-reverse sm:flex-row gap-2">
-                                <Button variant="outline" onClick={() => selectedAction && handleReject(selectedAction.id)}>
-                                    <X className="mr-2 h-4 w-4" /> Reject
+                        <div className="flex flex-col-reverse sm:flex-row gap-2">
+                             {(selectedAction?.type === 'Transfer' || selectedAction?.type === 'Lateral Transfer') && selectedAction?.status === 'Completed' && (
+                                <Button variant="secondary" onClick={generateTransferMemo}>
+                                    <Download className="mr-2 h-4 w-4" /> Generate Memo
                                 </Button>
-                                <Button onClick={() => selectedAction && handleApprove(selectedAction.id)}>
-                                    <Check className="mr-2 h-4 w-4" /> Approve
-                                </Button>
-                            </div>
-                        )}
-                         {selectedAction?.status !== 'Pending' && (
-                           <DialogClose asChild>
-                             <Button variant="outline">Close</Button>
-                           </DialogClose>
-                         )}
+                            )}
+
+                            {selectedAction?.status === 'Pending' && (
+                                <>
+                                    <Button variant="outline" onClick={() => selectedAction && handleReject(selectedAction.id)}>
+                                        <X className="mr-2 h-4 w-4" /> Reject
+                                    </Button>
+                                    <Button onClick={() => selectedAction && handleApprove(selectedAction.id)}>
+                                        <Check className="mr-2 h-4 w-4" /> Approve
+                                    </Button>
+                                </>
+                            )}
+                             {selectedAction?.status !== 'Pending' && (
+                               <DialogClose asChild>
+                                 <Button variant="outline">Close</Button>
+                               </DialogClose>
+                             )}
+                         </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
