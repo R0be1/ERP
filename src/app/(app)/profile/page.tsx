@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award, Layers, Download, Loader2 } from "lucide-react"
+import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award, Layers, Download, Loader2, ArrowUpRight, ArrowDownRight, UserCheck as UserCheckIcon, Shuffle, Copy, AlertTriangle } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -90,6 +90,40 @@ const DependentItem = ({ dependent }: { dependent: any }) => (
     </div>
 )
 
+const actionIcons: { [key: string]: React.ElementType } = {
+  Promotion: ArrowUpRight,
+  Demotion: ArrowDownRight,
+  "Acting Assignment": UserCheckIcon,
+  Transfer: Shuffle,
+  "Lateral Transfer": Copy,
+  "Disciplinary Case": AlertTriangle,
+};
+
+const ActivityItem = ({ action }: { action: any }) => {
+    const Icon = actionIcons[action.type] || Briefcase;
+    return (
+        <div className="flex items-start gap-4">
+            <div className="mt-1 bg-muted p-2 rounded-full">
+                <Icon className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <div className="grid gap-1">
+                <div className="flex items-center gap-2">
+                    <h4 className="font-semibold">{action.type}</h4>
+                    <Badge variant={
+                        action.status === 'Completed' ? 'secondary' :
+                        action.status === 'Pending' ? 'default' : 'destructive'
+                    }>{action.status}</Badge>
+                </div>
+                <p className="text-sm text-muted-foreground">Effective Date: {formatDate(action.effectiveDate)}</p>
+                {action.details.newJobTitle && <p className="text-xs text-muted-foreground">To: {action.details.newJobTitle.label}</p>}
+                {action.details.actingJobTitle && <p className="text-xs text-muted-foreground">As: {action.details.actingJobTitle.label}</p>}
+                {action.details.newDepartment && <p className="text-xs text-muted-foreground">To: {action.details.newDepartment.label} department</p>}
+            </div>
+        </div>
+    )
+}
+
+
 interface jsPDFWithAutoTable extends jsPDF {
   autoTable: (options: any) => jsPDF;
 }
@@ -143,6 +177,7 @@ export default function ProfilePage() {
     const router = useRouter();
     const { toast } = useToast();
     const [employee, setEmployee] = useState<(typeof employees)[number] | null>(null);
+    const [personnelActions, setPersonnelActions] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
 
@@ -160,6 +195,18 @@ export default function ProfilePage() {
         
         const foundEmployee = allEmployees.find(e => e.id === loggedInEmployeeId);
         setEmployee(foundEmployee || null);
+
+        const storedActions = localStorage.getItem('personnelActions');
+        if (storedActions) {
+            try {
+                const allActions = JSON.parse(storedActions);
+                const userActions = allActions.filter((action: any) => action.employeeId === loggedInEmployeeId);
+                setPersonnelActions(userActions);
+            } catch (error) {
+                console.error("Failed to parse personnel actions from localStorage", error);
+            }
+        }
+
         setIsLoading(false);
     }, []);
     
@@ -469,9 +516,21 @@ export default function ProfilePage() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Activity Log</CardTitle>
+                            <CardDescription>A chronological record of all personnel actions related to you.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <p className="text-muted-foreground">Activity log coming soon.</p>
+                            {personnelActions.length > 0 ? (
+                                <div className="relative pl-6">
+                                    <div className="absolute left-9 top-0 h-full w-px bg-border"></div>
+                                    <div className="space-y-8">
+                                    {personnelActions.map(action => (
+                                        <ActivityItem key={action.id} action={action} />
+                                    ))}
+                                    </div>
+                                </div>
+                            ) : (
+                                <p className="text-muted-foreground text-sm">No personnel actions recorded.</p>
+                            )}
                         </CardContent>
                     </Card>
                  </TabsContent>
