@@ -95,6 +95,8 @@ const PersonnelActionForm = () => {
         effectiveDate: ''
     });
 
+    const [currentEmployee, setCurrentEmployee] = useState<any | null>(null);
+
     useEffect(() => {
         setIsClient(true);
         const storedEmployees = localStorage.getItem('employees');
@@ -112,6 +114,15 @@ const PersonnelActionForm = () => {
             }
         }
     }, [actionId]);
+
+     useEffect(() => {
+        if (formState.employeeId && employees.length > 0) {
+            const employee = employees.find(e => e.id === formState.employeeId);
+            setCurrentEmployee(employee || null);
+        } else {
+            setCurrentEmployee(null);
+        }
+    }, [formState.employeeId, employees]);
 
     const employeeOptions = useMemo(() => employees.map(emp => ({ value: emp.id, label: `${emp.name} (${emp.employeeId})`})), [employees]);
 
@@ -330,6 +341,12 @@ const PersonnelActionForm = () => {
                                         placeholder="Select employee..."
                                     />
                                 </div>
+                                {(actionType === 'transfer' || actionType === 'lateral') && currentEmployee && (
+                                     <div className="grid gap-2">
+                                        <Label htmlFor="currentDepartment">Current Department</Label>
+                                        <Input id="currentDepartment" value={currentEmployee.department || ''} readOnly />
+                                    </div>
+                                )}
                                 <div className="grid gap-2">
                                     <Label htmlFor="effectiveDate">Effective Date</Label>
                                     <Input id="effectiveDate" type="date" value={formState.effectiveDate} onChange={e => handleFormChange('effectiveDate', e.target.value)} />
