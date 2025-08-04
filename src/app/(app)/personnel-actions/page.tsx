@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal, Check, X, Trash2, View, Edit, Search, Download } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, UserCheck, Shuffle, Copy, AlertTriangle, MoreHorizontal, Check, X, Trash2, View, Edit, Search, Download, FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -290,7 +290,16 @@ export default function PersonnelActionsPage() {
     };
     
     const handleGenerateMemoContent = () => {
-        if (!selectedAction || !currentEmployeeRecord) return;
+        if (!selectedAction) return;
+        
+        // If a memo already exists, use it. Otherwise, generate a new one.
+        if (selectedAction.memoContent) {
+            setMemoContent(selectedAction.memoContent);
+            setMemoDialogOpen(true);
+            return;
+        }
+
+        if (!currentEmployeeRecord) return;
 
         const { details } = selectedAction;
         const effectiveDate = format(new Date(selectedAction.effectiveDate), "MMMM dd, yyyy");
@@ -332,6 +341,20 @@ The Management
 `;
         setMemoContent(body);
         setMemoDialogOpen(true);
+    };
+
+    const handleSaveMemo = () => {
+        if (!selectedAction) return;
+
+        const updatedActions = personnelActions.map(action => 
+            action.id === selectedAction.id ? { ...action, memoContent: memoContent } : action
+        );
+        setPersonnelActions(updatedActions);
+        
+        // Also update the selectedAction in state to reflect the change immediately
+        setSelectedAction(prev => ({...prev, memoContent: memoContent }));
+
+        toast({ title: "Memo Saved", description: "The memo content has been saved with this action." });
     };
 
     const downloadMemoPdf = () => {
@@ -513,7 +536,8 @@ The Management
                          <div className="flex items-center gap-2">
                             {(selectedAction?.type === 'Transfer' || selectedAction?.type === 'Lateral Transfer') && (
                                 <Button variant="secondary" size="sm" onClick={handleGenerateMemoContent}>
-                                    <Download className="mr-2 h-4 w-4" /> Generate Memo
+                                    {selectedAction.memoContent ? <FileText className="mr-2 h-4 w-4 text-green-500" /> : <Download className="mr-2 h-4 w-4" />}
+                                    {selectedAction.memoContent ? 'Edit Memo' : 'Generate Memo'}
                                 </Button>
                             )}
                              <AlertDialog>
@@ -577,6 +601,7 @@ The Management
                         <DialogClose asChild>
                             <Button variant="ghost">Cancel</Button>
                         </DialogClose>
+                        <Button variant="outline" onClick={handleSaveMemo}>Save Memo</Button>
                         <Button onClick={downloadMemoPdf}>
                             <Download className="mr-2 h-4 w-4" />
                             Download PDF
@@ -587,3 +612,4 @@ The Management
         </div>
     )
 }
+
