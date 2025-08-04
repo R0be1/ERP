@@ -23,7 +23,7 @@ const actionDetails = {
     acting: { title: "Acting Assignment", fields: ['effectiveDate', 'newDepartment', 'actingJobTitle', 'startDate', 'endDate', 'specialDutyAllowance'] },
     transfer: { title: "Transfer", fields: ['effectiveDate', 'newDepartment', 'newManager', 'justification'] },
     lateral: { title: "Lateral Transfer", fields: ['effectiveDate', 'newJobTitle', 'newDepartment', 'newManager', 'justification'] },
-    disciplinary: { title: "Disciplinary Case", fields: ['effectiveDate', 'caseType', 'incidentDate', 'description'] }
+    disciplinary: { title: "Disciplinary Case", fields: ['effectiveDate', 'caseType', 'incidentDate', 'salaryPenalty', 'description'] }
 };
 
 type ActionType = keyof typeof actionDetails;
@@ -184,6 +184,14 @@ const PersonnelActionForm = () => {
         
         const details = { ...formState };
         delete details.employeeId;
+
+        if (actionType === 'disciplinary' && details.salaryPenalty && selectedEmployee?.basicSalary) {
+            const penaltyPercentage = parseFloat(details.salaryPenalty);
+            const basicSalary = parseFloat(selectedEmployee.basicSalary);
+            if (!isNaN(penaltyPercentage) && !isNaN(basicSalary)) {
+                details.penaltyAmount = (basicSalary * penaltyPercentage / 100).toFixed(2);
+            }
+        }
         
         if (actionId) {
             // Editing existing action
@@ -356,10 +364,11 @@ const PersonnelActionForm = () => {
                     <div className="grid gap-2">
                         <Label htmlFor={field}>Action Taken</Label>
                          <Select onValueChange={(value) => handleFormChange(field, value)} value={formState[field] || ''}>
-                            <SelectTrigger id={field}><SelectValue placeholder="Select case type..." /></SelectTrigger>
+                            <SelectTrigger id={field}><SelectValue placeholder="Select action..." /></SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="verbal_warning">Verbal Warning</SelectItem>
-                                <SelectItem value="written_warning">Written Warning</SelectItem>
+                                <SelectItem value="first_warning">First Warning</SelectItem>
+                                <SelectItem value="second_warning">Second Warning</SelectItem>
+                                <SelectItem value="final_warning">Final Warning</SelectItem>
                                 <SelectItem value="suspension">Suspension</SelectItem>
                                 <SelectItem value="termination">Termination</SelectItem>
                             </SelectContent>
@@ -371,6 +380,13 @@ const PersonnelActionForm = () => {
                     <div className="grid gap-2">
                         <Label htmlFor={field}>Incident Date</Label>
                         <Input id={field} type="date" value={formState[field] || ''} onChange={(e) => handleFormChange(field, e.target.value)} />
+                    </div>
+                );
+            case 'salaryPenalty':
+                return (
+                    <div className="grid gap-2">
+                        <Label htmlFor={field}>Salary Penalty (%)</Label>
+                        <Input id={field} type="number" value={formState[field] || ''} onChange={(e) => handleFormChange(field, e.target.value)} placeholder="e.g., 10 for 10%" />
                     </div>
                 );
             case 'description':
@@ -413,7 +429,7 @@ const PersonnelActionForm = () => {
                                 </div>
                                 {currentEmployee && (
                                     <>
-                                        {(actionType === 'transfer' || actionType === 'acting' || actionType === 'promotion' || actionType === 'disciplinary') && (
+                                        {(actionType === 'transfer' || actionType === 'acting' || actionType === 'promotion' || actionType === 'disciplinary' || actionType === 'demotion' || actionType === 'lateral') && (
                                             <div className="grid gap-2">
                                                 <Label>Current Department</Label>
                                                 <Input value={currentEmployee.department || ''} readOnly />
@@ -439,7 +455,7 @@ const PersonnelActionForm = () => {
                                                 </div>
                                             </>
                                         )}
-                                        {(actionType === 'demotion' || actionType === 'acting' || actionType === 'promotion') && (
+                                        {(actionType === 'demotion' || actionType === 'acting' || actionType === 'promotion' || actionType === 'disciplinary') && (
                                              <div className="grid gap-2">
                                                 <Label>Current Basic Salary</Label>
                                                 <Input value={currentEmployee.basicSalary || ''} readOnly />
@@ -487,5 +503,3 @@ export default function NewPersonnelActionPage() {
         </Suspense>
     )
 }
-
-    

@@ -89,7 +89,7 @@ const initialActions = [
 ];
 
 const InfoItem = ({ label, value }: { label: string, value: React.ReactNode }) => {
-    if (!value) return null;
+    if (!value && value !== 0) return null;
     return (
         <div>
             <p className="text-sm text-muted-foreground">{label}</p>
@@ -242,7 +242,10 @@ export default function PersonnelActionsPage() {
         if (details.startDate) changes.push({ label: 'Start Date', value: details.startDate });
         if (details.endDate) changes.push({ label: 'End Date', value: details.endDate });
         if (details.newManager) changes.push({ label: 'New Manager', value: employees.find(e => e.id === details.newManager)?.name });
-        if (details.caseType) changes.push({ label: 'Case Type', value: details.caseType.replace('_', ' ') });
+        if (details.caseType) changes.push({ label: 'Action Taken', value: details.caseType.replace('_', ' ') });
+        if (details.incidentDate) changes.push({ label: 'Incident Date', value: details.incidentDate });
+        if (details.salaryPenalty) changes.push({ label: 'Salary Penalty (%)', value: `${details.salaryPenalty}%` });
+        if (details.penaltyAmount) changes.push({ label: 'Penalty Amount', value: `${details.penaltyAmount} ETB` });
         
         return changes;
     };
@@ -381,7 +384,7 @@ export default function PersonnelActionsPage() {
                                    {getChangeDetails(selectedAction).map(change => (
                                        <InfoItem key={change.label} label={change.label} value={change.value} />
                                    ))}
-                                    <InfoItem label="Justification" value={selectedAction.details.justification} />
+                                    <InfoItem label="Justification/Description" value={selectedAction.details.justification || selectedAction.details.description} />
                                 </CardContent>
                             </Card>
                         </div>
