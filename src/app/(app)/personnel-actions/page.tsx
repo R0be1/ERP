@@ -157,29 +157,40 @@ export default function PersonnelActionsPage() {
         }
         
         const updatedEmployee = { ...allEmployees[employeeIndex] };
+        const { details, type } = action;
 
         // Apply changes based on action type
-        switch (action.type) {
+        switch (type) {
             case 'Promotion':
             case 'Demotion':
             case 'Lateral Transfer':
-                if (action.details.newJobTitle) {
-                    const jobTitle = masterData.jobTitles.find(jt => jt.value === action.details.newJobTitle);
+                if (details.newJobTitle) {
+                    const jobTitle = masterData.jobTitles.find(jt => jt.value === details.newJobTitle);
                     if(jobTitle) {
                         updatedEmployee.position = jobTitle.label;
                         updatedEmployee.jobGrade = jobTitle.jobGrade;
                         updatedEmployee.jobCategory = jobTitle.jobCategory;
                     }
                 }
-                if (action.details.newSalary) updatedEmployee.basicSalary = action.details.newSalary;
-                if (action.details.newDepartment) updatedEmployee.department = masterData.departments.find((d:any) => d.value === action.details.newDepartment)?.label;
+                if (details.newSalary) updatedEmployee.basicSalary = details.newSalary;
+                if (details.newDepartment) {
+                    const department = masterData.departments.find((d:any) => d.value === details.newDepartment);
+                    if(department) updatedEmployee.department = department.label;
+                }
                 break;
             case 'Transfer':
-                if (action.details.newDepartment) updatedEmployee.department = masterData.departments.find((d:any) => d.value === action.details.newDepartment)?.label;
-                if (action.details.newManager) updatedEmployee.manager = employees.find((e:any) => e.id === action.details.newManager)?.name;
+                if (details.newDepartment) {
+                    const department = masterData.departments.find((d:any) => d.value === details.newDepartment);
+                     if(department) updatedEmployee.department = department.label;
+                }
+                if (details.newManager) {
+                    const manager = employees.find((e:any) => e.id === details.newManager);
+                    if(manager) updatedEmployee.manager = manager.name;
+                }
                 break;
             // Acting and Disciplinary cases might not change the core employee record in this simple implementation
-            // but could trigger other workflows.
+            // but could trigger other workflows like temporary allowance changes or payroll adjustments.
+            // For now, we only update the record for permanent changes.
         }
         
         allEmployees[employeeIndex] = updatedEmployee;
@@ -243,8 +254,10 @@ export default function PersonnelActionsPage() {
         if (details.newJobTitle || details.actingJobTitle) {
             const label = type === 'Acting Assignment' ? 'Acting Job Title' : 'New Job Title';
             proposed.push({ label, value: newJobTitleDetails?.label });
-            proposed.push({ label: 'New Job Grade', value: newJobTitleDetails ? masterData.jobGrades.find(g => g.value === newJobTitleDetails.jobGrade)?.label : '' });
-            proposed.push({ label: 'New Job Category', value: newJobTitleDetails ? masterData.jobCategories.find(c => c.value === newJobTitleDetails.jobCategory)?.label : '' });
+            if (newJobTitleDetails) {
+              proposed.push({ label: 'New Job Grade', value: masterData.jobGrades.find(g => g.value === newJobTitleDetails.jobGrade)?.label || '' });
+              proposed.push({ label: 'New Job Category', value: masterData.jobCategories.find(c => c.value === newJobTitleDetails.jobCategory)?.label || '' });
+            }
         }
         
         if (details.newSalary) proposed.push({ label: 'New Salary', value: details.newSalary });
