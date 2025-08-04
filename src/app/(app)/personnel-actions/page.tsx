@@ -89,11 +89,11 @@ const initialActions = [
 ];
 
 const InfoItem = ({ label, value }: { label: string, value: React.ReactNode }) => {
-    if (!value && value !== 0) return null;
+    if (!value && typeof value !== 'number' && typeof value !== 'boolean') return null;
     return (
         <div>
             <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="font-medium">{value}</p>
+            <p className="font-medium">{String(value)}</p>
         </div>
     );
 };
@@ -232,22 +232,35 @@ export default function PersonnelActionsPage() {
     }, [selectedAction, employees]);
     
     const getChangeDetails = (action: any) => {
-        const { details } = action;
-        let changes: {label: string, value: any}[] = [];
+        const { details, type } = action;
+        const proposed: {label: string, value: any}[] = [];
+        const newJobTitleDetails = masterData.jobTitles.find(jt => jt.value === (details.newJobTitle || details.actingJobTitle));
 
-        if (details.newJobTitle) changes.push({ label: 'New Job Title', value: masterData.jobTitles.find(jt => jt.value === details.newJobTitle)?.label });
-        if (details.newSalary) changes.push({ label: 'New Salary', value: details.newSalary });
-        if (details.newDepartment) changes.push({ label: 'New Department', value: masterData.departments.find(d => d.value === details.newDepartment)?.label });
-        if (details.actingJobTitle) changes.push({ label: 'Acting Job Title', value: masterData.jobTitles.find(jt => jt.value === details.actingJobTitle)?.label });
-        if (details.startDate) changes.push({ label: 'Start Date', value: details.startDate });
-        if (details.endDate) changes.push({ label: 'End Date', value: details.endDate });
-        if (details.newManager) changes.push({ label: 'New Manager', value: employees.find(e => e.id === details.newManager)?.name });
-        if (details.caseType) changes.push({ label: 'Action Taken', value: details.caseType.replace('_', ' ') });
-        if (details.incidentDate) changes.push({ label: 'Incident Date', value: details.incidentDate });
-        if (details.salaryPenalty) changes.push({ label: 'Salary Penalty (%)', value: `${details.salaryPenalty}%` });
-        if (details.penaltyAmount) changes.push({ label: 'Penalty Amount', value: `${details.penaltyAmount} ETB` });
+        if (details.newDepartment) proposed.push({ label: 'New Department', value: masterData.departments.find(d => d.value === details.newDepartment)?.label });
         
-        return changes;
+        if (details.newJobTitle || details.actingJobTitle) {
+            const label = type === 'Acting Assignment' ? 'Acting Job Title' : 'New Job Title';
+            proposed.push({ label, value: newJobTitleDetails?.label });
+            proposed.push({ label: 'New Job Grade', value: newJobTitleDetails ? masterData.jobGrades.find(g => g.value === newJobTitleDetails.jobGrade)?.label : '' });
+            proposed.push({ label: 'New Job Category', value: newJobTitleDetails ? masterData.jobCategories.find(c => c.value === newJobTitleDetails.jobCategory)?.label : '' });
+        }
+        
+        if (details.newSalary) proposed.push({ label: 'New Salary', value: details.newSalary });
+        if (details.specialDutyAllowance) proposed.push({ label: 'Special Duty Allowance', value: details.specialDutyAllowance });
+        if (details.startDate) proposed.push({ label: 'Start Date', value: details.startDate });
+        if (details.endDate) proposed.push({ label: 'End Date', value: details.endDate });
+        if (details.newManager) proposed.push({ label: 'New Manager', value: employees.find(e => e.id === details.newManager)?.name });
+        
+        if (details.caseType) proposed.push({ label: 'Action Taken', value: details.caseType.replace('_', ' ').replace(/\b\w/g, (l:string) => l.toUpperCase()) });
+        if (details.incidentDate) proposed.push({ label: 'Incident Date', value: details.incidentDate });
+        if (details.salaryPenalty) proposed.push({ label: 'Salary Penalty (%)', value: `${details.salaryPenalty}%` });
+        if (details.penaltyAmount) proposed.push({ label: 'Penalty Amount', value: `${details.penaltyAmount} ETB` });
+        
+        if (details.justification || details.description) {
+            proposed.push({ label: 'Justification/Description', value: details.justification || details.description });
+        }
+        
+        return proposed;
     };
 
 
@@ -360,16 +373,18 @@ export default function PersonnelActionsPage() {
                         </DialogDescription>
                     </DialogHeader>
                     {selectedAction && currentEmployeeRecord && (
-                        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-2">
+                        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto p-1 pr-2">
                             <Card className="border-none shadow-none">
                                 <CardHeader className="p-0 pb-4">
                                     <CardTitle className="text-md">Current Information</CardTitle>
                                 </CardHeader>
-                                <CardContent className="p-0 grid gap-2">
+                                <CardContent className="p-0 grid grid-cols-2 gap-4">
                                     <InfoItem label="Employee" value={currentEmployeeRecord.name} />
-                                    <InfoItem label="Job Title" value={currentEmployeeRecord.position} />
                                     <InfoItem label="Department" value={currentEmployeeRecord.department} />
-                                    <InfoItem label="Salary" value={currentEmployeeRecord.basicSalary} />
+                                    <InfoItem label="Job Title" value={currentEmployeeRecord.position} />
+                                    <InfoItem label="Job Grade" value={currentEmployeeRecord.jobGrade} />
+                                    <InfoItem label="Job Category" value={currentEmployeeRecord.jobCategory} />
+                                    <InfoItem label="Basic Salary" value={currentEmployeeRecord.basicSalary} />
                                 </CardContent>
                             </Card>
 
@@ -378,13 +393,12 @@ export default function PersonnelActionsPage() {
                              <Card className="border-none shadow-none">
                                 <CardHeader className="p-0 pb-4">
                                     <CardTitle className="text-md">Proposed Changes</CardTitle>
-                                    <CardDescription>Effective from: {selectedAction.effectiveDate}</CardDescription>
+                                    <CardDescription>Effective from: {selectedAction.details.effectiveDate}</CardDescription>
                                 </CardHeader>
-                                <CardContent className="p-0 grid gap-2">
+                                <CardContent className="p-0 grid grid-cols-2 gap-4">
                                    {getChangeDetails(selectedAction).map(change => (
                                        <InfoItem key={change.label} label={change.label} value={change.value} />
                                    ))}
-                                    <InfoItem label="Justification/Description" value={selectedAction.details.justification || selectedAction.details.description} />
                                 </CardContent>
                             </Card>
                         </div>
