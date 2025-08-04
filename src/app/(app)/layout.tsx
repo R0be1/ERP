@@ -19,8 +19,7 @@ import {
   PanelLeft,
   LogOut,
   Settings,
-  Database,
-  DollarSign,
+  Bell,
   ClipboardEdit,
   UserRound,
   UserCog,
@@ -58,6 +57,7 @@ const navItems = [
 ]
 
 const bottomNavItems = [
+  { href: "/notifications", icon: Bell, label: "Notifications" },
   { href: "/profile", icon: UserCircle, label: "My Profile" },
   { href: "/feedback", icon: MessageSquare, label: "Feedback" },
   { href: "/configuration", icon: Settings, label: "Configuration" },

@@ -1,0 +1,48 @@
+
+export const notifications = [
+  {
+    id: 1,
+    title: "Leave Request Approved",
+    description: "Your request for vacation from 2024-08-15 to 2024-08-22 has been approved by your manager.",
+    time: "2 hours ago",
+    href: "/leave",
+    avatar: "https://placehold.co/40x40.png",
+    fallback: "JD",
+  },
+  {
+    id: 2,
+    title: "New Payslip Available",
+    description: "Your payslip for July 2024 is now available to view and download.",
+    time: "1 day ago",
+    href: "/payslips",
+    avatar: "https://placehold.co/40x40.png",
+    fallback: "PS",
+  },
+  {
+    id: 3,
+    title: "Performance Review Reminder",
+    description: "Your Q3-2024 self-assessment is due in 3 days. Please complete it on time.",
+    time: "2 days ago",
+    href: "/performance",
+    avatar: "https://placehold.co/40x40.png",
+    fallback: "PR",
+  },
+  {
+    id: 4,
+    title: "Team Member's Leave",
+    description: "Charlie Brown from your team will be on leave from 2024-07-25 to 2024-07-28.",
+    time: "3 days ago",
+    href: "/manager-service",
+    avatar: "https://placehold.co/40x40.png",
+    fallback: "CB",
+  },
+  {
+    id: 5,
+    title: "New Company Policy",
+    description: "A new Work From Home policy has been published. Please review it in the documents section.",
+    time: "1 week ago",
+    href: "/documents",
+    avatar: "https://placehold.co/40x40.png",
+    fallback: "CP",
+  },
+];
