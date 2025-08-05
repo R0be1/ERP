@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { employees } from "@/lib/data"
@@ -126,6 +127,23 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
         return detailItems.filter(item => item.value);
     };
 
+    const handleDownloadMemo = () => {
+        if (!action.memoContent) return;
+        const doc = new jsPDF();
+        const employeeName = allEmployees.find(e => e.id === action.employeeId)?.name || 'employee';
+
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("Inter-Office Memorandum", 105, 20, { align: 'center' });
+        
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        
+        doc.text(action.memoContent, 20, 40, { maxWidth: 170 });
+
+        doc.save(`Memo_${action.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
+    };
+
     const actionDetails = getChangeDetails();
 
     return (
@@ -137,12 +155,20 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
                  </div>
             </div>
             <div className="ml-4 grid gap-1 pb-8">
-                <div className="flex items-center gap-2">
-                    <h4 className="font-semibold">{action.type}</h4>
-                    <Badge variant={
-                        action.status === 'Completed' ? 'secondary' :
-                        action.status === 'Pending' ? 'default' : 'destructive'
-                    }>{action.status}</Badge>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                        <h4 className="font-semibold">{action.type}</h4>
+                        <Badge variant={
+                            action.status === 'Completed' ? 'secondary' :
+                            action.status === 'Pending' ? 'default' : 'destructive'
+                        }>{action.status}</Badge>
+                    </div>
+                    {action.memoContent && (
+                        <Button variant="outline" size="sm" onClick={handleDownloadMemo}>
+                            <Download className="mr-2 h-4 w-4" />
+                            Download Memo
+                        </Button>
+                    )}
                 </div>
                 <p className="text-sm text-muted-foreground">Effective Date: {formatDate(action.effectiveDate)}</p>
                 {actionDetails.length > 0 && (
@@ -580,4 +606,5 @@ export default function ProfilePage() {
     
 
     
+
 
