@@ -290,32 +290,31 @@ export default function PersonnelActionsPage() {
     };
     
     const handleGenerateMemoContent = () => {
-        if (!selectedAction) return;
-        
-        // If a memo already exists, use it. Otherwise, generate a new one.
+        if (!selectedAction || !currentEmployeeRecord) return;
+
         if (selectedAction.memoContent) {
             setMemoContent(selectedAction.memoContent);
             setMemoDialogOpen(true);
             return;
         }
 
-        if (!currentEmployeeRecord) return;
-
-        const { details } = selectedAction;
+        const { details, type } = selectedAction;
         const effectiveDate = format(new Date(selectedAction.effectiveDate), "MMMM dd, yyyy");
         const today = format(new Date(), "MMMM dd, yyyy");
+        let body = '';
         
-        const newDepartment = masterData.departments.find((d:any) => d.value === details.newDepartment)?.label || 'N/A';
-        const oldDepartment = currentEmployeeRecord.department;
-        const newManager = employees.find(e => e.id === details.newManager)?.name || 'N/A';
-        const oldManager = currentEmployeeRecord.manager || 'N/A';
-        let newPosition = currentEmployeeRecord.position;
-
-        if (selectedAction.type === 'Lateral Transfer' && details.newJobTitle) {
-            newPosition = masterData.jobTitles.find((jt:any) => jt.value === details.newJobTitle)?.label || currentEmployeeRecord.position;
-        }
-
-        const body = `To: ${currentEmployeeRecord.name}
+        switch (type) {
+            case 'Transfer':
+            case 'Lateral Transfer':
+                const newDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || 'N/A';
+                const oldDepartment = currentEmployeeRecord.department;
+                const newManager = employees.find(e => e.id === details.newManager)?.name || 'N/A';
+                const oldManager = currentEmployeeRecord.manager || 'N/A';
+                let newPosition = currentEmployeeRecord.position;
+                if (type === 'Lateral Transfer' && details.newJobTitle) {
+                    newPosition = masterData.jobTitles.find((jt: any) => jt.value === details.newJobTitle)?.label || currentEmployeeRecord.position;
+                }
+                body = `To: ${currentEmployeeRecord.name}
 From: Human Resources Department
 Date: ${today}
 Subject: Official Transfer Notification
@@ -337,8 +336,51 @@ We are confident that your skills and experience will be a valuable asset to you
 We wish you the best of luck in your new role.
 
 Sincerely,
-The Management
-`;
+The Management`;
+                break;
+            
+            case 'Demotion':
+                const demotionPosition = masterData.jobTitles.find((jt: any) => jt.value === details.newJobTitle)?.label || 'N/A';
+                const demotionDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
+                body = `To: ${currentEmployeeRecord.name}
+From: Human Resources Department
+Date: ${today}
+Subject: Notification of Position Change
+
+This memo is to inform you of a change in your position, effective ${effectiveDate}.
+
+Your new position will be ${demotionPosition} in the ${demotionDepartment} department. This decision was made based on [Refer to official reason/performance review - e.g., the recent performance evaluation cycle, organizational restructuring].
+
+Further details regarding this transition will be discussed with you by your supervisor.
+
+Sincerely,
+The Management`;
+                break;
+
+            case 'Acting Assignment':
+                const actingPosition = masterData.jobTitles.find((jt: any) => jt.value === details.actingJobTitle)?.label || 'N/A';
+                const actingDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
+                const startDate = format(new Date(details.startDate), "MMMM dd, yyyy");
+                const endDate = format(new Date(details.endDate), "MMMM dd, yyyy");
+                const allowance = details.specialDutyAllowance ? `You will be entitled to a special duty allowance of ${details.specialDutyAllowance} ETB for the duration of this assignment.` : '';
+
+                body = `To: ${currentEmployeeRecord.name}
+From: Human Resources Department
+Date: ${today}
+Subject: Acting Assignment Notification
+
+This memo is to confirm your assignment to an acting position, effective from ${startDate} to ${endDate}.
+
+You will be assuming the responsibilities of ${actingPosition} in the ${actingDepartment} department. 
+${allowance}
+
+Upon completion of this period, you will return to your substantive post. We are confident in your ability to handle these additional responsibilities.
+
+Sincerely,
+The Management`;
+                break;
+        }
+
         setMemoContent(body);
         setMemoDialogOpen(true);
     };
@@ -370,7 +412,7 @@ The Management
         
         doc.text(memoContent, 20, 40, { maxWidth: 170 });
 
-        doc.save(`Transfer_Memo_${employeeName.replace(/ /g, '_')}.pdf`);
+        doc.save(`Memo_${selectedAction?.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
         setMemoDialogOpen(false);
     };
 
@@ -534,7 +576,7 @@ The Management
                     )}
                     <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4 border-t">
                          <div className="flex items-center gap-2">
-                            {(selectedAction?.type === 'Transfer' || selectedAction?.type === 'Lateral Transfer') && (
+                            {(['Transfer', 'Lateral Transfer', 'Demotion', 'Acting Assignment'].includes(selectedAction?.type)) && (
                                 <Button variant="secondary" size="sm" onClick={handleGenerateMemoContent}>
                                     {selectedAction.memoContent ? <FileText className="mr-2 h-4 w-4 text-green-500" /> : <Download className="mr-2 h-4 w-4" />}
                                     {selectedAction.memoContent ? 'Edit Memo' : 'Generate Memo'}
@@ -581,7 +623,7 @@ The Management
              <Dialog open={isMemoDialogOpen} onOpenChange={setMemoDialogOpen}>
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>Edit and Finalize Transfer Memo</DialogTitle>
+                        <DialogTitle>Edit and Finalize Memo</DialogTitle>
                         <DialogDescription>
                             Make any necessary edits to the memo content before downloading.
                         </DialogDescription>
@@ -613,3 +655,6 @@ The Management
     )
 }
 
+
+
+    
