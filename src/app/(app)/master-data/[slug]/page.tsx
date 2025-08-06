@@ -109,9 +109,9 @@ const Combobox = ({ items, value, onChange, placeholder }: { items: {value: stri
                     {items.map((item) => (
                         <CommandItem
                         key={item.value}
-                        value={item.value}
-                        onSelect={(currentValue) => {
-                            onChange(currentValue === value ? "" : currentValue)
+                        value={`${item.value} ${item.label}`}
+                        onSelect={() => {
+                            onChange(item.value === value ? "" : item.value)
                             setOpen(false)
                         }}
                         >
@@ -550,4 +550,3 @@ export default function MasterDataManagementPage() {
         </div>
     );
 }
-
