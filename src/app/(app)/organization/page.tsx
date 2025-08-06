@@ -15,6 +15,7 @@ type Department = {
     label: string;
     parent: string;
     children?: Department[];
+    isMatch?: boolean;
     [key: string]: any;
 };
 
@@ -24,28 +25,19 @@ const filterTree = (nodes: Department[], searchTerm: string): Department[] => {
 
     const lowercasedTerm = searchTerm.toLowerCase();
 
-    const filter = (node: Department): Department | null => {
-        const isMatch = node.label.toLowerCase().includes(lowercasedTerm);
-        
-        let children: Department[] = [];
-        if (node.children) {
-            children = node.children
-                .map(filter)
-                .filter(child => child !== null) as Department[];
-        }
+    return nodes.map(node => {
+        const children = node.children ? filterTree(node.children, searchTerm) : [];
+        const isMatch = node.label.toLowerCase().includes(lowercasedTerm) || children.some(child => child.isMatch);
 
         if (isMatch || children.length > 0) {
-            return { 
-                ...node, 
-                children: children,
-                isMatch: isMatch // Add a flag to indicate a direct match
+            return {
+                ...node,
+                children: children.length > 0 ? children : undefined, // Keep children if they exist
+                isMatch,
             };
         }
-
         return null;
-    };
-
-    return nodes.map(filter).filter(node => node !== null) as Department[];
+    }).filter((node): node is Department => node !== null && (node.isMatch || (node.children && node.children.length > 0)));
 };
 
 
