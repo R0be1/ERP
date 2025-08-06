@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -211,6 +210,10 @@ export default function PersonnelActionsPage() {
                 if (details.newDepartment) {
                     const department = masterData.departments.find((d:any) => d.value === details.newDepartment);
                     if(department) updatedEmployee.department = department.label;
+                }
+                 if (details.newManager) {
+                    const manager = employees.find((e:any) => e.id === details.newManager);
+                    if(manager) updatedEmployee.manager = manager.name;
                 }
                 break;
             case 'Transfer':
@@ -702,4 +705,5 @@ The Management`;
     )
 }
 
+    
     
