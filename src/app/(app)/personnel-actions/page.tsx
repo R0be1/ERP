@@ -166,24 +166,21 @@ export default function PersonnelActionsPage() {
         let updatedEmployee = { ...allEmployees[employeeIndex] };
         const { details, type, effectiveDate } = action;
 
-        // Ensure internalExperience is an array
         if (!Array.isArray(updatedEmployee.internalExperience)) {
             updatedEmployee.internalExperience = [];
         }
 
         const actionsThatChangeRole = ['Promotion', 'Demotion', 'Lateral Transfer', 'Acting Assignment'];
         if (actionsThatChangeRole.includes(type)) {
-            // End the current active role
             const currentExperienceIndex = updatedEmployee.internalExperience.findIndex((exp: any) => !exp.endDate || exp.endDate === 'Present' || exp.endDate === '');
             if (currentExperienceIndex > -1) {
                 updatedEmployee.internalExperience[currentExperienceIndex].endDate = format(subDays(new Date(effectiveDate), 1), 'yyyy-MM-dd');
             }
 
-            // Add the new role
             const jobTitleValue = details.newJobTitle || details.actingJobTitle;
-            const jobTitle = masterData.jobTitles.find(jt => jt.value === jobTitleValue);
-            const departmentValue = details.newDepartment || updatedEmployee.departmentValue; // use current if not changing
-            const department = masterData.departments.find(d => d.value === departmentValue);
+            const jobTitle = masterData.jobTitles.find((jt:any) => jt.value === jobTitleValue);
+            const departmentValue = details.newDepartment || updatedEmployee.departmentValue;
+            const department = masterData.departments.find((d:any) => d.value === departmentValue);
 
             const newExperience = {
                 title: jobTitle?.label || 'N/A',
@@ -195,17 +192,16 @@ export default function PersonnelActionsPage() {
             updatedEmployee.internalExperience.push(newExperience);
         }
 
-        // Apply direct changes to employee record based on action type
         switch (type) {
             case 'Promotion':
             case 'Demotion':
             case 'Lateral Transfer':
                 if (details.newJobTitle) {
-                    const jobTitle = masterData.jobTitles.find(jt => jt.value === details.newJobTitle);
+                    const jobTitle = masterData.jobTitles.find((jt:any) => jt.value === details.newJobTitle);
                     if(jobTitle) {
                         updatedEmployee.position = jobTitle.label;
-                        updatedEmployee.jobGrade = masterData.jobGrades.find(jg => jg.value === jobTitle.jobGrade)?.label || jobTitle.jobGrade;
-                        updatedEmployee.jobCategory = masterData.jobCategories.find(jc => jc.value === jobTitle.jobCategory)?.label || jobTitle.jobCategory;
+                        updatedEmployee.jobGrade = masterData.jobGrades.find((jg:any) => jg.value === jobTitle.jobGrade)?.label || jobTitle.jobGrade;
+                        updatedEmployee.jobCategory = masterData.jobCategories.find((jc:any) => jc.value === jobTitle.jobCategory)?.label || jobTitle.jobCategory;
                     }
                 }
                 if (details.newSalary) updatedEmployee.basicSalary = details.newSalary;
@@ -224,9 +220,6 @@ export default function PersonnelActionsPage() {
                     if(manager) updatedEmployee.manager = manager.name;
                 }
                 break;
-            // Acting and Disciplinary cases might not change the core employee record in this simple implementation
-            // but could trigger other workflows like temporary allowance changes or payroll adjustments.
-            // For now, we only update the record for permanent changes.
         }
         
         allEmployees[employeeIndex] = updatedEmployee;
@@ -246,7 +239,6 @@ export default function PersonnelActionsPage() {
         
         setPersonnelActions(updatedActions);
         
-        // Update selectedAction as well if it's the one being approved
         if (selectedAction && selectedAction.id === actionId) {
             setSelectedAction({ ...selectedAction, status: "Completed" });
         }
@@ -288,16 +280,16 @@ export default function PersonnelActionsPage() {
     const getChangeDetails = (action: any) => {
         const { details, type } = action;
         const proposed: {label: string, value: any}[] = [];
-        const newJobTitleDetails = masterData.jobTitles.find(jt => jt.value === (details.newJobTitle || details.actingJobTitle));
+        const newJobTitleDetails = masterData.jobTitles.find((jt:any) => jt.value === (details.newJobTitle || details.actingJobTitle));
 
-        if (details.newDepartment) proposed.push({ label: 'New Department', value: masterData.departments.find(d => d.value === details.newDepartment)?.label });
+        if (details.newDepartment) proposed.push({ label: 'New Department', value: masterData.departments.find((d:any) => d.value === details.newDepartment)?.label });
         
         if (details.newJobTitle || details.actingJobTitle) {
             const label = type === 'Acting Assignment' ? 'Acting Job Title' : 'New Job Title';
             proposed.push({ label, value: newJobTitleDetails?.label });
             if (newJobTitleDetails) {
-              proposed.push({ label: 'New Job Grade', value: masterData.jobGrades.find(g => g.value === newJobTitleDetails.jobGrade)?.label || '' });
-              proposed.push({ label: 'New Job Category', value: masterData.jobCategories.find(c => c.value === newJobTitleDetails.jobCategory)?.label || '' });
+              proposed.push({ label: 'New Job Grade', value: masterData.jobGrades.find((g:any) => g.value === newJobTitleDetails.jobGrade)?.label || '' });
+              proposed.push({ label: 'New Job Category', value: masterData.jobCategories.find((c:any) => c.value === newJobTitleDetails.jobCategory)?.label || '' });
             }
         }
         
@@ -307,7 +299,7 @@ export default function PersonnelActionsPage() {
         if (details.endDate) proposed.push({ label: 'End Date', value: details.endDate });
         if (details.newManager) proposed.push({ label: 'New Manager', value: employees.find(e => e.id === details.newManager)?.name });
         
-        if (details.caseType) proposed.push({ label: 'Action Taken', value: masterData.disciplinaryActionTypes.find(d => d.value === details.caseType)?.label });
+        if (details.caseType) proposed.push({ label: 'Action Taken', value: masterData.disciplinaryActionTypes.find((d:any) => d.value === details.caseType)?.label });
         if (details.incidentDate) proposed.push({ label: 'Incident Date', value: details.incidentDate });
         if (details.salaryPenalty) proposed.push({ label: 'Salary Penalty (%)', value: `${details.salaryPenalty}%` });
         if (details.penaltyAmount) proposed.push({ label: 'Penalty Amount', value: `${details.penaltyAmount} ETB` });
@@ -423,7 +415,6 @@ The Management`;
         );
         setPersonnelActions(updatedActions);
         
-        // Also update the selectedAction in state to reflect the change immediately
         setSelectedAction(prev => ({...prev, memoContent: memoContent }));
 
         toast({ title: "Memo Saved", description: "The memo content has been saved with this action." });
@@ -568,15 +559,15 @@ The Management`;
             </Card>
             
             <Dialog open={isDetailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-                <DialogContent className="sm:max-w-md">
+                <DialogContent className="sm:max-w-md grid-rows-[auto_1fr_auto]">
                     <DialogHeader>
                         <DialogTitle>Action Details: {selectedAction?.type}</DialogTitle>
                         <DialogDescription>
                             Review the details below before taking an action.
                         </DialogDescription>
                     </DialogHeader>
-                    {selectedAction && currentEmployeeRecord && (
-                        <ScrollArea className="max-h-[60vh] p-1 pr-4">
+                    <div className="overflow-y-auto max-h-[60vh] pr-4">
+                        {selectedAction && currentEmployeeRecord && (
                             <div className="grid gap-6 py-4">
                                 <Card className="border-none shadow-none">
                                     <CardHeader className="p-0 pb-4">
@@ -606,8 +597,8 @@ The Management`;
                                     </CardContent>
                                 </Card>
                             </div>
-                        </ScrollArea>
-                    )}
+                        )}
+                    </div>
                     <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4 border-t">
                          <div className="flex items-center gap-2">
                             {(['Transfer', 'Lateral Transfer', 'Demotion', 'Acting Assignment'].includes(selectedAction?.type)) && (
@@ -692,3 +683,4 @@ The Management`;
 
 
     
+
