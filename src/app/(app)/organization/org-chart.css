@@ -1,0 +1,69 @@
+
+.org-chart {
+    display: flex;
+    justify-content: center;
+    min-width: fit-content;
+}
+
+.org-chart ul {
+    padding-top: 20px;
+    position: relative;
+    transition: all 0.5s;
+    display: flex;
+}
+
+.org-chart li {
+    float: left;
+    text-align: center;
+    list-style-type: none;
+    position: relative;
+    padding: 20px 5px 0 5px;
+    transition: all 0.5s;
+}
+
+/*We will use ::before and ::after to draw the connectors*/
+.org-chart li::before, .org-chart li::after{
+	content: '';
+	position: absolute; top: 0; right: 50%;
+	border-top: 2px solid #ccc;
+	width: 50%; height: 20px;
+}
+.org-chart li::after{
+	right: auto; left: 50%;
+	border-left: 2px solid #ccc;
+}
+
+/*We need to remove left-right connectors from elements without 
+any siblings*/
+.org-chart li:only-child::after, .org-chart li:only-child::before {
+	display: none;
+}
+
+/*Remove space from the top of single children*/
+.org-chart li:only-child{ padding-top: 0;}
+
+/*Remove left connector from first child and 
+right connector from last child*/
+.org-chart li:first-child::before, .org-chart li:last-child::after{
+	border: 0 none;
+}
+/*Adding back the vertical connector to the last child*/
+.org-chart li:last-child::before{
+	border-right: 2px solid #ccc;
+	border-radius: 0 5px 0 0;
+}
+.org-chart li:first-child::after{
+	border-radius: 5px 0 0 0;
+}
+
+/*Time to add downward connectors from parents*/
+.org-chart ul ul::before{
+	content: '';
+	position: absolute; top: 0; left: 50%;
+	border-left: 2px solid #ccc;
+	width: 0; height: 20px;
+}
+
+.org-chart .node-content {
+    min-width: 200px; /* equivalent to w-52 in tailwind */
+}
