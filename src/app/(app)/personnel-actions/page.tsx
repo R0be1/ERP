@@ -446,8 +446,10 @@ The Management`;
     };
 
     const filteredPersonnelActions = useMemo(() => {
-        if (!searchTerm) return personnelActions;
-        return personnelActions.filter(action =>
+        const sortedActions = [...personnelActions].sort((a, b) => new Date(b.effectiveDate).getTime() - new Date(a.effectiveDate).getTime());
+        if (!searchTerm) return sortedActions;
+        
+        return sortedActions.filter(action =>
             (action.employeeName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (action.type || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
             (action.id || '').toLowerCase().includes(searchTerm.toLowerCase())

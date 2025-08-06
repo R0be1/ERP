@@ -372,8 +372,8 @@ export default function ProfilePage() {
     const address = employee.address || { country: '', region: '', city: '', subcity: '', woreda: '', kebele: '', houseNo: ''};
     const emergencyContacts = employee.emergencyContacts || [];
     const dependents = employee.dependents || [];
-    const internalExperience = employee.internalExperience || [];
-    const externalExperience = employee.externalExperience || [];
+    const internalExperience = employee.internalExperience ? [...employee.internalExperience].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()) : [];
+    const externalExperience = employee.externalExperience ? [...employee.externalExperience].sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime()) : [];
     const education = employee.education || [];
     const training = employee.training || [];
     const incomingGuarantees = employee.incomingGuarantees || [];
