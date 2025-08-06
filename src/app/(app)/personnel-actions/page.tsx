@@ -400,8 +400,8 @@ The Management`;
             case 'Acting Assignment':
                 const actingPosition = masterData.jobTitles.find((jt: any) => jt.value === details.actingJobTitle)?.label || 'N/A';
                 const actingDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
-                const startDate = format(new Date(details.startDate), "MMMM dd, yyyy");
-                const endDate = format(new Date(details.endDate), "MMMM dd, yyyy");
+                const startDate = details.startDate ? format(new Date(details.startDate), "MMMM dd, yyyy") : 'N/A';
+                const endDate = details.endDate ? format(new Date(details.endDate), "MMMM dd, yyyy") : 'N/A';
                 const allowance = details.specialDutyAllowance ? `You will be entitled to a special duty allowance of ${details.specialDutyAllowance} ETB for the duration of this assignment.` : '';
 
                 body = `To: ${currentEmployeeRecord.name}
@@ -697,12 +697,5 @@ The Management`;
         </div>
     )
 }
-
-
-
-    
-
-
-
 
     
