@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -188,9 +189,12 @@ export default function PersonnelActionsPage() {
                 title: finalTitle,
                 department: department?.label || updatedEmployee.department,
                 startDate: effectiveDate,
-                endDate: type === 'Acting Assignment' ? details.endDate : '',
+                endDate: '',
                 managerialRole: jobTitle?.jobCategory === 'managerial' || jobTitle?.isHeadOfDepartment
             };
+            if (type === 'Acting Assignment' && details.endDate) {
+                newExperience.endDate = details.endDate;
+            }
             updatedEmployee.internalExperience.push(newExperience);
         }
 
@@ -222,6 +226,23 @@ export default function PersonnelActionsPage() {
                      if(department) updatedEmployee.department = department.label;
                 }
                 if (details.newManager) {
+                    const manager = employees.find((e:any) => e.id === details.newManager);
+                    if(manager) updatedEmployee.manager = manager.name;
+                }
+                break;
+            case 'Acting Assignment':
+                 if (details.actingJobTitle) {
+                    const jobTitle = masterData.jobTitles.find((jt: any) => jt.value === details.actingJobTitle);
+                    if (jobTitle) {
+                        updatedEmployee.position = `Acting ${jobTitle.label}`;
+                        // For acting roles, we might not want to change grade and category permanently.
+                    }
+                }
+                if (details.newDepartment) {
+                    const department = masterData.departments.find((d:any) => d.value === details.newDepartment);
+                    if(department) updatedEmployee.department = department.label;
+                }
+                 if (details.newManager) {
                     const manager = employees.find((e:any) => e.id === details.newManager);
                     if(manager) updatedEmployee.manager = manager.name;
                 }
