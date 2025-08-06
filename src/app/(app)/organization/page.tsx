@@ -22,8 +22,7 @@ export default function OrganizationPage() {
     const [tree, setTree] = useState<Department[]>([]);
     const [isClient, setIsClient] = useState(false);
 
-    useEffect(() => {
-        setIsClient(true);
+    const loadData = () => {
         const storedMasterData = localStorage.getItem('masterData');
         if (storedMasterData) {
             try {
@@ -40,6 +39,21 @@ export default function OrganizationPage() {
                 console.error("Failed to parse employees from localStorage", e);
             }
         }
+    };
+
+    useEffect(() => {
+        setIsClient(true);
+        loadData();
+
+        const handleStorageChange = () => {
+            loadData();
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, []);
 
     useEffect(() => {
