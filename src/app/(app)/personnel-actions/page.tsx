@@ -46,6 +46,7 @@ import jsPDF from "jspdf";
 import { format, subDays } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const actionTypes = [
     {
@@ -173,7 +174,7 @@ export default function PersonnelActionsPage() {
         const actionsThatChangeRole = ['Promotion', 'Demotion', 'Lateral Transfer', 'Acting Assignment'];
         if (actionsThatChangeRole.includes(type)) {
             // End the current active role
-            const currentExperienceIndex = updatedEmployee.internalExperience.findIndex((exp: any) => !exp.endDate || exp.endDate === 'Present');
+            const currentExperienceIndex = updatedEmployee.internalExperience.findIndex((exp: any) => !exp.endDate || exp.endDate === 'Present' || exp.endDate === '');
             if (currentExperienceIndex > -1) {
                 updatedEmployee.internalExperience[currentExperienceIndex].endDate = format(subDays(new Date(effectiveDate), 1), 'yyyy-MM-dd');
             }
@@ -203,7 +204,7 @@ export default function PersonnelActionsPage() {
                     const jobTitle = masterData.jobTitles.find(jt => jt.value === details.newJobTitle);
                     if(jobTitle) {
                         updatedEmployee.position = jobTitle.label;
-                        updatedEmployee.jobGrade = jobTitle.jobGrade;
+                        updatedEmployee.jobGrade = masterData.jobGrades.find(jg => jg.value === jobTitle.jobGrade)?.label || jobTitle.jobGrade;
                         updatedEmployee.jobCategory = masterData.jobCategories.find(jc => jc.value === jobTitle.jobCategory)?.label || jobTitle.jobCategory;
                     }
                 }
@@ -575,35 +576,37 @@ The Management`;
                         </DialogDescription>
                     </DialogHeader>
                     {selectedAction && currentEmployeeRecord && (
-                        <div className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto p-1 pr-2">
-                            <Card className="border-none shadow-none">
-                                <CardHeader className="p-0 pb-4">
-                                    <CardTitle className="text-md">Current Information</CardTitle>
-                                </CardHeader>
-                                <CardContent className="p-0 grid grid-cols-2 gap-4">
-                                    <InfoItem label="Employee" value={currentEmployeeRecord.name} />
-                                    <InfoItem label="Department" value={currentEmployeeRecord.department} />
-                                    <InfoItem label="Job Title" value={currentEmployeeRecord.position} />
-                                    <InfoItem label="Job Grade" value={currentEmployeeRecord.jobGrade} />
-                                    <InfoItem label="Job Category" value={currentEmployeeRecord.jobCategory} />
-                                    <InfoItem label="Basic Salary" value={currentEmployeeRecord.basicSalary} />
-                                </CardContent>
-                            </Card>
+                        <ScrollArea className="max-h-[60vh] p-1 pr-4">
+                            <div className="grid gap-6 py-4">
+                                <Card className="border-none shadow-none">
+                                    <CardHeader className="p-0 pb-4">
+                                        <CardTitle className="text-md">Current Information</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-0 grid grid-cols-2 gap-4">
+                                        <InfoItem label="Employee" value={currentEmployeeRecord.name} />
+                                        <InfoItem label="Department" value={currentEmployeeRecord.department} />
+                                        <InfoItem label="Job Title" value={currentEmployeeRecord.position} />
+                                        <InfoItem label="Job Grade" value={currentEmployeeRecord.jobGrade} />
+                                        <InfoItem label="Job Category" value={currentEmployeeRecord.jobCategory} />
+                                        <InfoItem label="Basic Salary" value={currentEmployeeRecord.basicSalary} />
+                                    </CardContent>
+                                </Card>
 
-                            <Separator />
-                            
-                             <Card className="border-none shadow-none">
-                                <CardHeader className="p-0 pb-4">
-                                    <CardTitle className="text-md">Proposed Changes</CardTitle>
-                                    <CardDescription>Effective from: {selectedAction.details.effectiveDate}</CardDescription>
-                                </CardHeader>
-                                <CardContent className="p-0 grid grid-cols-2 gap-4">
-                                   {getChangeDetails(selectedAction).map(change => (
-                                       <InfoItem key={change.label} label={change.label} value={change.value} />
-                                   ))}
-                                </CardContent>
-                            </Card>
-                        </div>
+                                <Separator />
+                                
+                                <Card className="border-none shadow-none">
+                                    <CardHeader className="p-0 pb-4">
+                                        <CardTitle className="text-md">Proposed Changes</CardTitle>
+                                        <CardDescription>Effective from: {selectedAction.details.effectiveDate}</CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="p-0 grid grid-cols-2 gap-4">
+                                    {getChangeDetails(selectedAction).map(change => (
+                                        <InfoItem key={change.label} label={change.label} value={change.value} />
+                                    ))}
+                                    </CardContent>
+                                </Card>
+                            </div>
+                        </ScrollArea>
                     )}
                     <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4 border-t">
                          <div className="flex items-center gap-2">
