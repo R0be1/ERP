@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getMasterData } from "@/lib/master-data";
 import { employees as initialEmployees } from "@/lib/data";
 import { OrgChartNode } from '@/components/org-chart-node';
+import { Input } from "@/components/ui/input";
+import { Search } from "lucide-react";
 import './org-chart.css';
 
 type Department = {
@@ -16,11 +18,43 @@ type Department = {
     [key: string]: any;
 };
 
+// Function to recursively filter the tree
+const filterTree = (nodes: Department[], searchTerm: string): Department[] => {
+    if (!searchTerm) return nodes;
+
+    const lowercasedTerm = searchTerm.toLowerCase();
+
+    const filter = (node: Department): Department | null => {
+        const isMatch = node.label.toLowerCase().includes(lowercasedTerm);
+        
+        let children: Department[] = [];
+        if (node.children) {
+            children = node.children
+                .map(filter)
+                .filter(child => child !== null) as Department[];
+        }
+
+        if (isMatch || children.length > 0) {
+            return { 
+                ...node, 
+                children: children,
+                isMatch: isMatch // Add a flag to indicate a direct match
+            };
+        }
+
+        return null;
+    };
+
+    return nodes.map(filter).filter(node => node !== null) as Department[];
+};
+
+
 export default function OrganizationPage() {
     const [masterData, setMasterData] = useState(getMasterData());
     const [employees, setEmployees] = useState(initialEmployees);
     const [tree, setTree] = useState<Department[]>([]);
     const [isClient, setIsClient] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
 
     const loadData = () => {
         const storedMasterData = localStorage.getItem('masterData');
@@ -77,6 +111,8 @@ export default function OrganizationPage() {
             setTree(rootNodes);
         }
     }, [masterData.departments]);
+    
+    const filteredTree = filterTree(tree, searchTerm);
 
     if (!isClient) {
         return <div>Loading...</div>;
@@ -101,23 +137,33 @@ export default function OrganizationPage() {
                 <CardHeader>
                     <CardTitle>Company Hierarchy</CardTitle>
                     <CardDescription>
-                        An interactive visualization of the company's reporting structure.
+                        An interactive visualization of the company's reporting structure. Search for departments below.
                     </CardDescription>
+                    <div className="relative pt-2">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search departments..."
+                            className="pl-10"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
                 </CardHeader>
                 <CardContent className="w-full overflow-x-auto p-6">
-                    {tree.length > 0 ? (
+                    {filteredTree.length > 0 ? (
                          <div className="org-chart">
-                            {tree.map(node => (
+                            {filteredTree.map(node => (
                                 <OrgChartNode 
                                     key={node.value} 
                                     node={node} 
                                     getDepartmentHead={getDepartmentHead} 
                                     allDepartments={masterData.departments}
+                                    searchTerm={searchTerm}
                                 />
                             ))}
                         </div>
                     ) : (
-                        <p className="text-muted-foreground">No organizational data to display.</p>
+                        <p className="text-muted-foreground">No matching departments found.</p>
                     )}
                 </CardContent>
             </Card>

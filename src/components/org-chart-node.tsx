@@ -1,18 +1,20 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Building, Mail, Phone, Users, PlusCircle, MinusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { cn } from '@/lib/utils';
 
 type Department = {
     value: string;
     label: string;
     parent: string;
     children?: Department[];
+    isMatch?: boolean; // Flag for search match
     [key: string]: any;
 };
 
@@ -27,10 +29,17 @@ interface OrgChartNodeProps {
     node: Department;
     getDepartmentHead: (departmentId: string) => Employee | null | undefined;
     allDepartments: Department[];
+    searchTerm: string;
 }
 
-export function OrgChartNode({ node, getDepartmentHead, allDepartments }: OrgChartNodeProps) {
+export function OrgChartNode({ node, getDepartmentHead, allDepartments, searchTerm }: OrgChartNodeProps) {
+    // Expand all nodes when a search is active to show the results
     const [isExpanded, setIsExpanded] = useState(true);
+    
+    useEffect(() => {
+        setIsExpanded(!!searchTerm);
+    }, [searchTerm]);
+
     const departmentHead = getDepartmentHead(node.value);
 
     const handleToggle = (e: React.MouseEvent) => {
@@ -56,7 +65,10 @@ export function OrgChartNode({ node, getDepartmentHead, allDepartments }: OrgCha
                 <Tooltip>
                     <TooltipTrigger asChild>
                          <div className="node-content relative">
-                            <Card className="text-left shadow-md hover:shadow-xl transition-shadow min-w-64">
+                            <Card className={cn(
+                                "text-left shadow-md hover:shadow-xl transition-shadow min-w-64",
+                                node.isMatch && "ring-2 ring-primary"
+                                )}>
                                 <CardHeader>
                                     <div className="flex items-center gap-3">
                                         <Building className="h-6 w-6 text-primary" />
@@ -78,7 +90,7 @@ export function OrgChartNode({ node, getDepartmentHead, allDepartments }: OrgCha
                                     </CardContent>
                                )}
                                {node.children && node.children.length > 0 && (
-                                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2">
+                                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 z-10">
                                         <Button
                                             variant="secondary"
                                             size="icon"
@@ -107,7 +119,8 @@ export function OrgChartNode({ node, getDepartmentHead, allDepartments }: OrgCha
                             key={childNode.value} 
                             node={childNode} 
                             getDepartmentHead={getDepartmentHead}
-                            allDepartments={allDepartments} 
+                            allDepartments={allDepartments}
+                            searchTerm={searchTerm} 
                         />
                     ))}
                 </ul>
