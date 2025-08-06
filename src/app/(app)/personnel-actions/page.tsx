@@ -43,7 +43,7 @@ import { employees as initialEmployeesList } from "@/lib/data";
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import jsPDF from "jspdf";
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 
@@ -163,9 +163,38 @@ export default function PersonnelActionsPage() {
         }
         
         let updatedEmployee = { ...allEmployees[employeeIndex] };
-        const { details, type } = action;
+        const { details, type, effectiveDate } = action;
 
-        // Apply changes based on action type
+        // Ensure internalExperience is an array
+        if (!Array.isArray(updatedEmployee.internalExperience)) {
+            updatedEmployee.internalExperience = [];
+        }
+
+        const actionsThatChangeRole = ['Promotion', 'Demotion', 'Lateral Transfer', 'Acting Assignment'];
+        if (actionsThatChangeRole.includes(type)) {
+            // End the current active role
+            const currentExperienceIndex = updatedEmployee.internalExperience.findIndex((exp: any) => !exp.endDate || exp.endDate === 'Present');
+            if (currentExperienceIndex > -1) {
+                updatedEmployee.internalExperience[currentExperienceIndex].endDate = format(subDays(new Date(effectiveDate), 1), 'yyyy-MM-dd');
+            }
+
+            // Add the new role
+            const jobTitleValue = details.newJobTitle || details.actingJobTitle;
+            const jobTitle = masterData.jobTitles.find(jt => jt.value === jobTitleValue);
+            const departmentValue = details.newDepartment || updatedEmployee.departmentValue; // use current if not changing
+            const department = masterData.departments.find(d => d.value === departmentValue);
+
+            const newExperience = {
+                title: jobTitle?.label || 'N/A',
+                department: department?.label || updatedEmployee.department,
+                startDate: effectiveDate,
+                endDate: type === 'Acting Assignment' ? details.endDate : '',
+                managerialRole: jobTitle?.jobCategory === 'managerial' || jobTitle?.isHeadOfDepartment
+            };
+            updatedEmployee.internalExperience.push(newExperience);
+        }
+
+        // Apply direct changes to employee record based on action type
         switch (type) {
             case 'Promotion':
             case 'Demotion':
@@ -175,7 +204,7 @@ export default function PersonnelActionsPage() {
                     if(jobTitle) {
                         updatedEmployee.position = jobTitle.label;
                         updatedEmployee.jobGrade = jobTitle.jobGrade;
-                        updatedEmployee.jobCategory = jobTitle.jobCategory;
+                        updatedEmployee.jobCategory = masterData.jobCategories.find(jc => jc.value === jobTitle.jobCategory)?.label || jobTitle.jobCategory;
                     }
                 }
                 if (details.newSalary) updatedEmployee.basicSalary = details.newSalary;
