@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -181,8 +182,11 @@ export default function PersonnelActionsPage() {
             const departmentValue = details.newDepartment || updatedEmployee.departmentValue;
             const department = masterData.departments.find((d:any) => d.value === departmentValue);
 
+            const baseTitle = jobTitle?.label || 'N/A';
+            const finalTitle = type === 'Acting Assignment' ? `Acting ${baseTitle}` : baseTitle;
+
             const newExperience = {
-                title: jobTitle?.label || 'N/A',
+                title: finalTitle,
                 department: department?.label || updatedEmployee.department,
                 startDate: effectiveDate,
                 endDate: type === 'Acting Assignment' ? details.endDate : '',
