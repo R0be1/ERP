@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { useState, useEffect, useMemo } from 'react';
@@ -326,15 +325,34 @@ export default function PersonnelActionsPage() {
         let body = '';
         
         switch (type) {
+            case 'Promotion':
+                const newPosition = masterData.jobTitles.find((jt: any) => jt.value === details.newJobTitle)?.label || 'N/A';
+                const newDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
+                const newSalary = details.newSalary ? `Your new basic salary will be ${Number(details.newSalary).toLocaleString()} ETB.` : '';
+
+                body = `To: ${currentEmployeeRecord.name}
+From: Human Resources Department
+Date: ${today}
+Subject: Notification of Promotion
+
+This memo is to formally congratulate you on your promotion to the position of ${newPosition} within the ${newDepartment} department, effective ${effectiveDate}.
+
+This promotion is in recognition of your hard work, dedication, and significant contributions to the company. ${newSalary}
+
+We are confident that you will continue to excel and wish you the best in your new role.
+
+Sincerely,
+The Management`;
+                break;
             case 'Transfer':
             case 'Lateral Transfer':
-                const newDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || 'N/A';
+                const transferNewDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || 'N/A';
                 const oldDepartment = currentEmployeeRecord.department;
                 const newManager = employees.find(e => e.id === details.newManager)?.name || 'N/A';
                 const oldManager = currentEmployeeRecord.manager || 'N/A';
-                let newPosition = currentEmployeeRecord.position;
+                let transferNewPosition = currentEmployeeRecord.position;
                 if (type === 'Lateral Transfer' && details.newJobTitle) {
-                    newPosition = masterData.jobTitles.find((jt: any) => jt.value === details.newJobTitle)?.label || currentEmployeeRecord.position;
+                    transferNewPosition = masterData.jobTitles.find((jt: any) => jt.value === details.newJobTitle)?.label || currentEmployeeRecord.position;
                 }
                 body = `To: ${currentEmployeeRecord.name}
 From: Human Resources Department
@@ -346,9 +364,9 @@ This memo is to formally confirm your transfer, effective ${effectiveDate}. Plea
 Employee ID: ${currentEmployeeRecord.employeeId}
 
 Previous Department: ${oldDepartment}
-New Department: ${newDepartment}
+New Department: ${transferNewDepartment}
 
-Position: ${newPosition}
+Position: ${transferNewPosition}
 
 Previous Supervisor: ${oldManager}
 New Supervisor: ${newManager}
@@ -601,7 +619,7 @@ The Management`;
                     </div>
                     <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4 border-t">
                          <div className="flex items-center gap-2">
-                            {(['Transfer', 'Lateral Transfer', 'Demotion', 'Acting Assignment'].includes(selectedAction?.type)) && (
+                            {(['Promotion', 'Transfer', 'Lateral Transfer', 'Demotion', 'Acting Assignment'].includes(selectedAction?.type)) && (
                                 <Button variant="secondary" size="sm" onClick={handleGenerateMemoContent}>
                                     {selectedAction.memoContent ? <FileText className="mr-2 h-4 w-4 text-green-500" /> : <Download className="mr-2 h-4 w-4" />}
                                     {selectedAction.memoContent ? 'Edit Memo' : 'Generate Memo'}
@@ -685,3 +703,6 @@ The Management`;
     
 
 
+
+
+    
