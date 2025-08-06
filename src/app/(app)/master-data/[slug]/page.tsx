@@ -356,6 +356,17 @@ export default function MasterDataManagementPage() {
              </div>
         )
     }
+    
+    const getSelectOptions = (field: any) => {
+        if (field.options && typeof field.options === 'string') {
+            let options = masterData[field.options as MasterDataCategoryKey] || [];
+            if (field.options === 'departments' && editingItem) {
+                options = options.filter((dept: any) => dept.value !== editingItem.value);
+            }
+            return options;
+        }
+        return [];
+    };
 
     return (
         <div className="flex flex-col gap-4">
@@ -398,9 +409,9 @@ export default function MasterDataManagementPage() {
                                         {field.type === 'number' && (
                                             <Input id={field.key} type="number" value={formState[field.key] || ''} onChange={(e) => handleFormChange(field.key, e.target.value)} />
                                         )}
-                                        {field.type === 'select' && field.options && typeof field.options === 'string' && (
+                                        {field.type === 'select' && (
                                             <Combobox 
-                                                items={masterData[field.options as MasterDataCategoryKey] || []}
+                                                items={getSelectOptions(field)}
                                                 value={formState[field.key] || ''}
                                                 onChange={(value) => handleFormChange(field.key, value)}
                                                 placeholder={`Select ${field.label}...`}
@@ -539,3 +550,4 @@ export default function MasterDataManagementPage() {
         </div>
     );
 }
+
