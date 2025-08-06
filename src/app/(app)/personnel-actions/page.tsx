@@ -559,7 +559,7 @@ The Management`;
             </Card>
             
             <Dialog open={isDetailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-                <DialogContent className="sm:max-w-md grid-rows-[auto_1fr_auto]">
+                <DialogContent className="sm:max-w-lg grid-rows-[auto_1fr_auto]">
                     <DialogHeader>
                         <DialogTitle>Action Details: {selectedAction?.type}</DialogTitle>
                         <DialogDescription>
