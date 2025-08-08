@@ -2,9 +2,22 @@
 "use client";
 
 import dynamic from 'next/dynamic';
+import { useRef, useMemo } from 'react';
 import 'react-quill/dist/quill.snow.css';
 
-const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
+// The dynamic import for react-quill remains, but we use it inside the component.
+// This is to ensure we can properly handle refs.
+const ReactQuill = dynamic(
+  async () => {
+    const { default: RQ } = await import('react-quill');
+    // The ref is forwarded to the underlying Quill instance.
+    return function ReactQuillHOC({ forwardedRef, ...props }: any) {
+      return <RQ ref={forwardedRef} {...props} />;
+    };
+  },
+  { ssr: false }
+);
+
 
 const formats = [
   'header', 'font', 'size',
@@ -36,9 +49,12 @@ interface RichTextEditorProps {
 }
 
 export function RichTextEditor({ value, onChange, placeholder, className }: RichTextEditorProps) {
+  const quillRef = useRef<any>(null);
+
   return (
     <div className={className}>
       <ReactQuill
+        forwardedRef={quillRef}
         theme="snow"
         value={value}
         onChange={onChange}
