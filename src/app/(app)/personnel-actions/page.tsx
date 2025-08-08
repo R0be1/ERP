@@ -395,7 +395,7 @@ export default function PersonnelActionsPage() {
     const handleGenerateMemoContent = () => {
         if (!selectedAction || !currentEmployeeRecord) return;
 
-        if (selectedAction.memoContent && selectedAction.carbonCopyList) {
+        if (selectedAction.memoContent) {
             setMemoContent(selectedAction.memoContent);
             setMemoDialogOpen(true);
             return;
@@ -531,7 +531,7 @@ export default function PersonnelActionsPage() {
             (!r.endDate || new Date(r.endDate) >= today)
         );
 
-        let updatedActionData = { memoContent: content, carbonCopyList: sortedCcList } as any;
+        let updatedActionData = { memoContent: content } as any;
 
         if (signatureRule) {
             updatedActionData.signature = signatureRule;
@@ -591,7 +591,8 @@ export default function PersonnelActionsPage() {
                 doc.addImage(signatureImg, 'PNG', 20, signatureBlockY, 50, 20); // x, y, width, height
             }
             if(selectedAction.signature.stampImage) {
-                doc.addImage(stampImg, 'PNG', 70, signatureBlockY - 5, 25, 25);
+                const stampSize = 40.64; // 1.6 inches in mm
+                doc.addImage(stampImg, 'PNG', 70, signatureBlockY - 5, stampSize, stampSize);
             }
             doc.text(selectedAction.signature.signatoryName, 20, signatureBlockY + 25);
             doc.text(selectedAction.signature.signatoryTitle, 20, signatureBlockY + 30);
@@ -857,6 +858,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 

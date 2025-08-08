@@ -132,17 +132,17 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
         const doc = new jsPDF() as jsPDFWithAutoTable;
         const employeeName = allEmployees.find(e => e.id === action.employeeId)?.name || 'employee';
 
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.text("Inter-Office Memorandum", 105, 20, { align: 'center' });
-        
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         
-        const textLines = doc.splitTextToSize(action.memoContent, 170);
-        doc.text(textLines, 20, 40);
+        const memoParts = action.memoContent.split('\n\nCC:\n');
+        const mainBody = memoParts[0];
+        const ccListString = memoParts.length > 1 ? `CC:\n${memoParts[1]}` : '';
+
+        const textLines = doc.splitTextToSize(mainBody, 170);
+        doc.text(textLines, 20, 20);
         
-        let lastY = doc.getTextDimensions(textLines).h + 40;
+        let lastY = doc.getTextDimensions(textLines).h + 20;
         
         // Add signature and stamp if they exist on the action
         if (action.signature) {
@@ -155,9 +155,22 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
             const finalY = lastY + 20;
 
             if (action.signature.signatureImage) doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
-            if (action.signature.stampImage) doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
+            if (action.signature.stampImage) {
+                const stampSize = 40.64; // 1.6 inches in mm
+                doc.addImage(stampImg, 'PNG', 70, finalY - 5, stampSize, stampSize);
+            }
             doc.text(action.signature.signatoryName, 20, finalY + 25);
             doc.text(action.signature.signatoryTitle, 20, finalY + 30);
+            lastY = finalY + 35;
+        } else {
+             lastY += 20;
+             doc.text("Nib International Bank", 20, lastY);
+             lastY += 5;
+        }
+
+        if (ccListString) {
+            const ccLines = doc.splitTextToSize(ccListString, 170);
+            doc.text(ccLines, 20, lastY + 10);
         }
 
         doc.save(`Memo_${action.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
@@ -320,10 +333,11 @@ export default function ProfilePage() {
             // Find the correct signature rule
             const signatureRules = masterData.signatureRules || [];
             const today = new Date();
+            const employeeJobCategoryValue = masterData.jobCategories.find(jc => jc.label === employee.jobCategory)?.value || '';
             const rule = signatureRules.find((r: any) => 
                 r.documentType === 'letter' &&
                 r.status === 'active' &&
-                r.jobCategories.includes(employee.jobCategory.toLowerCase().replace(/\s+/g, '-')) && // Assuming jobCategory value is stored this way
+                r.jobCategories.includes(employeeJobCategoryValue) &&
                 new Date(r.startDate) <= today &&
                 (!r.endDate || new Date(r.endDate) >= today)
             );
@@ -343,7 +357,11 @@ export default function ProfilePage() {
                 doc.setFontSize(12);
                 const joinDate = formatDate(employee.joinDate);
                 const introText = `This is to certify that ${employee.name} has been in the service of Nib International Bank since ${joinDate}. During this period, the captioned employee has been serving on the following job position(s):`;
-                doc.text(introText, 20, 70, { maxWidth: doc.internal.pageSize.getWidth() - 40, align: 'justify' });
+                const introTextLines = doc.splitTextToSize(introText, doc.internal.pageSize.getWidth() - 40);
+                doc.text(introTextLines, 20, 70, { align: 'justify' });
+                
+                let lastY = 70 + (introTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
+
 
                 const tableData = employee.internalExperience.map(exp => [
                     formatDate(exp.startDate),
@@ -354,24 +372,26 @@ export default function ProfilePage() {
                 doc.autoTable({
                     head: [['Start Date', 'End Date', 'Job Titles']],
                     body: tableData,
-                    startY: 85,
+                    startY: lastY + 5,
                     headStyles: { fillColor: [70, 130, 180] }, // Soft blue
                 });
                 
-                let lastTableY = (doc as any).autoTable.previous.finalY;
+                lastY = (doc as any).autoTable.previous.finalY;
                 
                 const pronoun = employee.gender === 'female' ? 'She' : 'He';
                 const salaryInBirr = Number(employee.basicSalary).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 const salaryInWords = numberToWords(Number(employee.basicSalary));
                 const salaryText = `${pronoun} is entitled a monthly basic salary of Birr ${salaryInBirr} (Birr ${salaryInWords}). All necessary income tax has been regularly deducted from the employee’s taxable income(s) and duly paid to the concerned government organ(s).`;
                 
-                const salaryTextDimensions = (doc as any).getTextDimensions(salaryText, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
-                doc.text(salaryText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40, align: 'justify' });
-
-                lastTableY += 15 + salaryTextDimensions.h;
+                const salaryTextLines = doc.splitTextToSize(salaryText, doc.internal.pageSize.getWidth() - 40);
+                doc.text(salaryTextLines, 20, lastY + 15, { align: 'justify' });
+                lastY += 15 + (salaryTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
 
                 const closingText = "Please note that this work experience letter does not serve as a release paper.";
-                doc.text(closingText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+                const closingTextLines = doc.splitTextToSize(closingText, doc.internal.pageSize.getWidth() - 40);
+                doc.text(closingTextLines, 20, lastY + 10, {});
+                lastY += 10 + (closingTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
+
                 
                 if (signature) {
                     const signatureImg = new Image();
@@ -379,14 +399,17 @@ export default function ProfilePage() {
                     const stampImg = new Image();
                     stampImg.src = signature.stampImage;
 
-                    const finalY = lastTableY + 40;
+                    const finalY = lastY + 20;
                     
                     if (signature.signatureImage) doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
-                    if (signature.stampImage) doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
+                    if (signature.stampImage) {
+                         const stampSize = 40.64; // 1.6 inches in mm
+                         doc.addImage(stampImg, 'PNG', 70, finalY - 5, stampSize, stampSize);
+                    }
                     doc.text(signature.signatoryName, 20, finalY + 25);
                     doc.text(signature.signatoryTitle, 20, finalY + 30);
                 } else {
-                    doc.text("Nib International Bank", 20, lastTableY + 60);
+                    doc.text("Nib International Bank", 20, lastY + 40);
                 }
 
 
@@ -659,6 +682,7 @@ export default function ProfilePage() {
 
 
     
+
 
 
 
