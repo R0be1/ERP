@@ -497,17 +497,13 @@ export default function PersonnelActionsPage() {
         const doc = new jsPDF() as any;
         const employeeName = currentEmployeeRecord?.name || 'employee';
         
-        doc.setFontSize(18);
-        doc.setFont("helvetica", "bold");
-        doc.text("Inter-Office Memorandum", 105, 20, { align: 'center' });
-        
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         
         const textLines = doc.splitTextToSize(memoContent, 170);
-        doc.text(textLines, 20, 40);
+        doc.text(textLines, 20, 20);
 
-        let lastY = doc.getTextDimensions(textLines).h + 40;
+        let lastY = doc.getTextDimensions(textLines).h + 20;
         
         // Add signature and stamp if they exist on the action
         if (selectedAction.signature) {
@@ -774,6 +770,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
