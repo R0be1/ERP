@@ -368,24 +368,30 @@ export default function ProfilePage() {
                 const pdfWidth = doc.internal.pageSize.getWidth();
                 const pdfHeight = doc.internal.pageSize.getHeight();
 
-                // Add letterhead if applicable
                 if (masterData.letterhead?.applyToLetters && masterData.letterhead.image) {
                     const letterheadImg = new Image();
                     letterheadImg.src = masterData.letterhead.image;
                     doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                    yPos = 50; // Set a top margin if letterhead is used
+                    yPos = 50; 
+                }
+
+                if (employee.avatar) {
+                    const photoImg = new Image();
+                    photoImg.src = employee.avatar;
+                    // Place photo on top right, for example 30x40 size
+                    doc.addImage(photoImg, 'PNG', pdfWidth - 45, yPos - 10, 30, 40);
                 }
                 
                 const todayDate = new Date();
                 const date = format(todayDate, "MMMM dd, yyyy");
 
                 doc.setFontSize(12);
-                doc.text(date, doc.internal.pageSize.getWidth() - 20, yPos, { align: 'right' });
+                doc.text(date, pdfWidth - 20, yPos, { align: 'right' });
                 
-                yPos += 20;
+                yPos += 15;
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text("To Whom It May Concern", doc.internal.pageSize.getWidth() / 2, yPos, { align: 'center' });
+                doc.text("To Whom It May Concern", pdfWidth / 2, yPos, { align: 'center' });
                 yPos += 10;
                 
                 doc.setFont('helvetica', 'normal');
@@ -393,10 +399,10 @@ export default function ProfilePage() {
 
                 const joinDate = formatDate(employee.joinDate);
                 const introText = `This is to certify that ${employee.name} has been in the service of Nib International Bank since ${joinDate}. During this period, the captioned employee has been serving on the following job position(s):`;
-                const introTextLines = doc.splitTextToSize(introText, doc.internal.pageSize.getWidth() - 40);
-                doc.text(introTextLines, 20, yPos + 10, { align: 'justify' });
+                const introTextLines = doc.splitTextToSize(introText, pdfWidth - 40);
+                doc.text(introTextLines, 20, yPos + 5, { align: 'justify' });
                 
-                let lastY = yPos + 10 + (introTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
+                let lastY = yPos + 5 + (introTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
 
 
                 const tableData = employee.internalExperience.map(exp => [
@@ -419,12 +425,12 @@ export default function ProfilePage() {
                 const salaryInWords = numberToWords(Number(employee.basicSalary));
                 const salaryText = `${pronoun} is entitled a monthly basic salary of Birr ${salaryInBirr} (Birr ${salaryInWords}). All necessary income tax has been regularly deducted from the employee’s taxable income(s) and duly paid to the concerned government organ(s).`;
                 
-                const salaryTextLines = doc.splitTextToSize(salaryText, doc.internal.pageSize.getWidth() - 40);
-                doc.text(salaryTextLines, 20, lastY + 15, { align: 'justify' });
-                lastY += 15 + (salaryTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
+                const salaryTextLines = doc.splitTextToSize(salaryText, pdfWidth - 40);
+                doc.text(salaryTextLines, 20, lastY + 10, { align: 'justify' });
+                lastY += 10 + (salaryTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
 
                 const closingText = "Please note that this work experience letter does not serve as a release paper.";
-                const closingTextLines = doc.splitTextToSize(closingText, doc.internal.pageSize.getWidth() - 40);
+                const closingTextLines = doc.splitTextToSize(closingText, pdfWidth - 40);
                 doc.text(closingTextLines, 20, lastY + 10, {});
                 lastY += 10 + (closingTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
 
@@ -435,7 +441,7 @@ export default function ProfilePage() {
                     const stampImg = new Image();
                     stampImg.src = signature.stampImage;
 
-                    const finalY = lastY + 20;
+                    const finalY = lastY + 15;
                     
                     if (signature.signatureImage) doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
                     if (signature.stampImage) {
@@ -445,7 +451,7 @@ export default function ProfilePage() {
                     doc.text(signature.signatoryName, 20, finalY + 25);
                     doc.text(signature.signatoryTitle, 20, finalY + 30);
                 } else {
-                    doc.text("Nib International Bank", 20, lastY + 40);
+                    doc.text("Nib International Bank", 20, lastY + 30);
                 }
 
 
@@ -718,6 +724,7 @@ export default function ProfilePage() {
 
 
     
+
 
 
 
