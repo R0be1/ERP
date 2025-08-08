@@ -509,6 +509,13 @@ export default function PersonnelActionsPage() {
 
         const sortedCcList = [...sortedDepts, ...freeTextRecipients];
         
+        if (sortedCcList.length > 0) {
+            content += "\n\nCC:\n";
+            sortedCcList.forEach(recipient => {
+                content += `- ${recipient}\n`;
+            });
+        }
+        
         setMemoContent(content);
 
         // Find and attach the signature rule automatically
@@ -587,18 +594,6 @@ export default function PersonnelActionsPage() {
             lastY += 20;
             doc.text("Nib International Bank", 20, lastY);
             lastY += 5;
-        }
-
-        if (selectedAction.carbonCopyList && selectedAction.carbonCopyList.length > 0) {
-            const ccSectionY = lastY + 10;
-            const ccTitle = "CC:";
-            doc.text(ccTitle, 20, ccSectionY);
-            
-            let ccY = ccSectionY + 5;
-            selectedAction.carbonCopyList.forEach((recipient: string) => {
-                doc.text(`- ${recipient}`, 20, ccY);
-                ccY += 5;
-            });
         }
 
 
@@ -851,6 +846,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
