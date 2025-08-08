@@ -63,7 +63,7 @@ const TemplateForm = ({ onSave, onCancel, initialData }: { onSave: (template: an
                     <Label htmlFor="content">Template Content</Label>
                     <Textarea id="content" value={template.content} onChange={e => handleFieldChange('content', e.target.value)} rows={12} />
                     <p className="text-xs text-muted-foreground">
-                        Use placeholders like '{{employeeName}}', '{{newPosition}}', '{{effectiveDate}}', etc.
+                        Use placeholders like {'\'{{employeeName}}\''}, {'\'{{newPosition}}\''}, {'\'{{effectiveDate}}\''}, etc.
                     </p>
                 </div>
                 <div className="flex items-center space-x-2">
