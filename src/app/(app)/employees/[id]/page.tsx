@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Separator } from "@/components/ui/separator"
 import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, GraduationCap, Hash, Heart, Home, Mail, MapPin, Phone, User, Users, Venus, Building2, Tag, BadgeInfo, ChevronsRight, FileText, UserCheck, Shield, ShieldCheck, CheckSquare, Award, Layers } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { format } from "date-fns"
 
 const formatDate = (dateString: string) => {
@@ -89,12 +89,11 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
     const params = useParams();
     const employeeId = (params?.id || serverParams.id) as string;
     
-    // This state will hold all employees, including newly added ones.
     const [employees, setEmployees] = useState(initialEmployees);
     const [isLoading, setIsLoading] = useState(true);
     const [employee, setEmployee] = useState<(typeof initialEmployees)[number] | undefined>(undefined);
 
-    const loadEmployeeData = () => {
+    const loadEmployeeData = useCallback(() => {
         setIsLoading(true);
         const storedEmployees = localStorage.getItem('employees');
         let allEmployees = initialEmployees;
@@ -110,7 +109,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
         const foundEmployee = allEmployees.find(e => e.id === employeeId);
         setEmployee(foundEmployee);
         setIsLoading(false);
-    };
+    }, [employeeId]);
 
     useEffect(() => {
         loadEmployeeData();
@@ -126,7 +125,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
         return () => {
             window.removeEventListener('storage', handleStorageChange);
         };
-    }, [employeeId]);
+    }, [employeeId, loadEmployeeData]);
 
 
     if (isLoading) {

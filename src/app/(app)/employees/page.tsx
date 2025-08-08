@@ -1242,7 +1242,7 @@ export default function EmployeesPage() {
   const [isEditEmployeeDialogOpen, setEditEmployeeDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
-  const loadData = () => {
+  const loadData = useCallback(() => {
     const storedEmployees = localStorage.getItem('employees');
     if (storedEmployees) {
         try {
@@ -1261,7 +1261,7 @@ export default function EmployeesPage() {
             setMasterData(initialMasterData);
         }
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
@@ -1277,7 +1277,7 @@ export default function EmployeesPage() {
     return () => {
         window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [loadData]);
 
   useEffect(() => {
     // Only run on client
@@ -1326,13 +1326,14 @@ export default function EmployeesPage() {
     
     const jobTitleLabel = masterData.jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position;
     const departmentLabel = masterData.departments.find(d => d.value === employeeData.department)?.label || employeeData.department;
+    const jobCategory = masterData.jobCategories.find(c => c.value === employeeData.jobCategory)
 
     const initialExperience = {
         title: jobTitleLabel,
         department: departmentLabel,
         startDate: employeeData.joinDate,
         endDate: '',
-        managerialRole: employeeData.jobCategory === 'managerial'
+        managerialRole: jobCategory?.label === 'Managerial'
     };
       
     const newEmp: Employee = {
@@ -1343,7 +1344,7 @@ export default function EmployeesPage() {
       email: employeeData.workEmail,
       position: jobTitleLabel,
       department: departmentLabel,
-      jobCategory: masterData.jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
+      jobCategory: jobCategory?.label || employeeData.jobCategory,
       status: 'Active',
       avatar: photo || `https://placehold.co/40x40.png?text=${employeeData.firstName[0]}${employeeData.lastName[0]}`,
       internalExperience: [initialExperience],

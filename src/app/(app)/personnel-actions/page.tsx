@@ -2,7 +2,7 @@
 
 "use client"
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -119,7 +119,7 @@ export default function PersonnelActionsPage() {
     
     const masterData = useMemo(() => getMasterData(), []);
 
-    const loadData = () => {
+    const loadData = useCallback(() => {
         const storedActions = localStorage.getItem('personnelActions');
         const storedEmployees = localStorage.getItem('employees');
 
@@ -141,7 +141,7 @@ export default function PersonnelActionsPage() {
                 console.error("Failed to parse employees from localStorage", e);
             }
         }
-    };
+    }, []);
     
     useEffect(() => {
         setIsClient(true);
@@ -157,7 +157,7 @@ export default function PersonnelActionsPage() {
         return () => {
             window.removeEventListener('storage', handleStorageChange);
         };
-    }, []);
+    }, [loadData]);
 
     useEffect(() => {
         if (isClient) {
@@ -744,6 +744,7 @@ The Management`;
 
     
     
+
 
 
 
