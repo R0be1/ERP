@@ -119,8 +119,7 @@ export default function PersonnelActionsPage() {
     
     const masterData = useMemo(() => getMasterData(), []);
 
-    useEffect(() => {
-        setIsClient(true);
+    const loadData = () => {
         const storedActions = localStorage.getItem('personnelActions');
         const storedEmployees = localStorage.getItem('employees');
 
@@ -142,6 +141,22 @@ export default function PersonnelActionsPage() {
                 console.error("Failed to parse employees from localStorage", e);
             }
         }
+    };
+    
+    useEffect(() => {
+        setIsClient(true);
+        loadData();
+         const handleStorageChange = (event: StorageEvent) => {
+            if (event.key === 'personnelActions' || event.key === 'employees') {
+                loadData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, []);
 
     useEffect(() => {
@@ -179,10 +194,12 @@ export default function PersonnelActionsPage() {
 
             const jobTitleValue = details.newJobTitle || details.actingJobTitle;
             const jobTitle = masterData.jobTitles.find((jt:any) => jt.value === jobTitleValue);
+            
+            // For transfers, the department might change without the job title changing, so use existing department if not provided
             const departmentValue = details.newDepartment || updatedEmployee.departmentValue;
             const department = masterData.departments.find((d:any) => d.value === departmentValue);
 
-            const baseTitle = jobTitle?.label || 'N/A';
+            const baseTitle = jobTitle?.label || updatedEmployee.position;
             const finalTitle = type === 'Acting Assignment' ? `Acting ${baseTitle}` : baseTitle;
 
             const newExperience = {
@@ -190,8 +207,10 @@ export default function PersonnelActionsPage() {
                 department: department?.label || updatedEmployee.department,
                 startDate: effectiveDate,
                 endDate: '',
-                managerialRole: jobTitle?.jobCategory === 'managerial' || jobTitle?.isHeadOfDepartment
+                managerialRole: jobTitle?.jobCategory === 'managerial' || jobTitle?.isHeadOfDepartment || false
             };
+
+            // If it's a temporary acting assignment with a known end, set it
             if (type === 'Acting Assignment' && details.endDate) {
                 newExperience.endDate = details.endDate;
             }
@@ -235,7 +254,6 @@ export default function PersonnelActionsPage() {
                     const jobTitle = masterData.jobTitles.find((jt: any) => jt.value === details.actingJobTitle);
                     if (jobTitle) {
                         updatedEmployee.position = `Acting ${jobTitle.label}`;
-                        // For acting roles, we might not want to change grade and category permanently.
                     }
                 }
                 if (details.newDepartment) {
@@ -612,7 +630,7 @@ The Management`;
                             Review the details below before taking an action.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="overflow-y-auto max-h-[60vh] pr-4">
+                    <ScrollArea className="max-h-[60vh] pr-4">
                         {selectedAction && currentEmployeeRecord && (
                             <div className="grid gap-6 py-4">
                                 <Card className="border-none shadow-none">
@@ -634,7 +652,7 @@ The Management`;
                                 <Card className="border-none shadow-none">
                                     <CardHeader className="p-0 pb-4">
                                         <CardTitle className="text-md">Proposed Changes</CardTitle>
-                                        <CardDescription>Effective from: {selectedAction.details.effectiveDate}</CardDescription>
+                                        <CardDescription>Effective from: {selectedAction.effectiveDate}</CardDescription>
                                     </CardHeader>
                                     <CardContent className="p-0 grid grid-cols-2 gap-4">
                                     {getChangeDetails(selectedAction).map(change => (
@@ -644,7 +662,7 @@ The Management`;
                                 </Card>
                             </div>
                         )}
-                    </div>
+                    </ScrollArea>
                     <DialogFooter className="flex-col-reverse sm:flex-row sm:justify-between sm:items-center gap-2 pt-4 border-t">
                          <div className="flex items-center gap-2">
                             {(['Promotion', 'Transfer', 'Lateral Transfer', 'Demotion', 'Acting Assignment'].includes(selectedAction?.type)) && (
@@ -728,3 +746,4 @@ The Management`;
 
     
     
+
