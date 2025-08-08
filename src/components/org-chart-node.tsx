@@ -56,17 +56,17 @@ export function OrgChartNode({ node, getDepartmentHead, allDepartments }: OrgCha
                 <Tooltip>
                     <TooltipTrigger asChild>
                          <div className="node-content relative">
-                            <Card className="text-left shadow-md hover:shadow-xl transition-shadow min-w-64">
+                            <Card className="text-center shadow-md hover:shadow-xl transition-shadow min-w-64">
                                 <CardHeader>
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center justify-center gap-3">
                                         <Building className="h-6 w-6 text-primary" />
                                         <CardTitle className="text-base">{node.label}</CardTitle>
                                     </div>
                                 </CardHeader>
                                {departmentHead && (
                                      <CardContent>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-10 w-10">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <Avatar className="h-12 w-12">
                                                 <AvatarImage src={departmentHead.avatar} data-ai-hint="person portrait" />
                                                 <AvatarFallback>{departmentHead.name.split(' ').map(n=>n[0]).join('')}</AvatarFallback>
                                             </Avatar>
