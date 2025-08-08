@@ -244,7 +244,7 @@ export default function ProfilePage() {
     const masterData = useMemo(() => getMasterData(), []);
     const [allEmployees, setAllEmployees] = useState(employees);
 
-    useEffect(() => {
+    const loadData = () => {
         setIsLoading(true);
         const storedEmployees = localStorage.getItem('employees');
         let allEmployeesData = employees;
@@ -274,6 +274,22 @@ export default function ProfilePage() {
         }
 
         setIsLoading(false);
+    };
+
+    useEffect(() => {
+        loadData();
+
+        const handleStorageChange = (event: StorageEvent) => {
+            if (event.key === 'employees' || event.key === 'personnelActions') {
+                loadData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, []);
     
     const handleGenerateLetter = async () => {

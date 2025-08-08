@@ -1242,7 +1242,7 @@ export default function EmployeesPage() {
   const [isEditEmployeeDialogOpen, setEditEmployeeDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table');
 
-  useEffect(() => {
+  const loadData = () => {
     const storedEmployees = localStorage.getItem('employees');
     if (storedEmployees) {
         try {
@@ -1261,6 +1261,22 @@ export default function EmployeesPage() {
             setMasterData(initialMasterData);
         }
     }
+  };
+
+  useEffect(() => {
+    loadData();
+
+    const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === 'employees' || event.key === 'masterData') {
+            loadData();
+        }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   useEffect(() => {

@@ -102,8 +102,7 @@ export default function ConfigurationPage() {
     const router = useRouter();
     const [isClient, setIsClient] = useState(false);
 
-    useEffect(() => {
-        setIsClient(true);
+    const loadMasterData = () => {
         const storedData = localStorage.getItem('masterData');
         if (storedData) {
             try {
@@ -115,6 +114,23 @@ export default function ConfigurationPage() {
                 console.error("Failed to parse master data from localStorage", e);
             }
         }
+    };
+
+    useEffect(() => {
+        setIsClient(true);
+        loadMasterData();
+
+        const handleStorageChange = (event: StorageEvent) => {
+            if (event.key === 'masterData') {
+                loadMasterData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, []);
 
     const getCount = (key: string) => {

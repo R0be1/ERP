@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -15,38 +16,14 @@ type Department = {
     label: string;
     parent: string;
     children?: Department[];
-    isMatch?: boolean;
     [key: string]: any;
 };
-
-// Function to recursively filter the tree
-const filterTree = (nodes: Department[], searchTerm: string): Department[] => {
-    if (!searchTerm) return nodes;
-
-    const lowercasedTerm = searchTerm.toLowerCase();
-
-    return nodes.map(node => {
-        const children = node.children ? filterTree(node.children, searchTerm) : [];
-        const isMatch = node.label.toLowerCase().includes(lowercasedTerm) || children.some(child => child.isMatch);
-
-        if (isMatch || children.length > 0) {
-            return {
-                ...node,
-                children: children.length > 0 ? children : undefined, // Keep children if they exist
-                isMatch,
-            };
-        }
-        return null;
-    }).filter((node): node is Department => node !== null && (node.isMatch || (node.children && node.children.length > 0)));
-};
-
 
 export default function OrganizationPage() {
     const [masterData, setMasterData] = useState(getMasterData());
     const [employees, setEmployees] = useState(initialEmployees);
     const [tree, setTree] = useState<Department[]>([]);
     const [isClient, setIsClient] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
 
     const loadData = () => {
         const storedMasterData = localStorage.getItem('masterData');
@@ -71,8 +48,10 @@ export default function OrganizationPage() {
         setIsClient(true);
         loadData();
 
-        const handleStorageChange = () => {
-            loadData();
+        const handleStorageChange = (event: StorageEvent) => {
+            if (event.key === 'masterData' || event.key === 'employees') {
+                loadData();
+            }
         };
 
         window.addEventListener('storage', handleStorageChange);
@@ -103,8 +82,6 @@ export default function OrganizationPage() {
             setTree(rootNodes);
         }
     }, [masterData.departments]);
-    
-    const filteredTree = filterTree(tree, searchTerm);
 
     if (!isClient) {
         return <div>Loading...</div>;
@@ -129,34 +106,20 @@ export default function OrganizationPage() {
                 <CardHeader>
                     <CardTitle>Company Hierarchy</CardTitle>
                     <CardDescription>
-                        An interactive visualization of the company's reporting structure. Search for departments below.
+                        An interactive visualization of the company's reporting structure.
                     </CardDescription>
-                    <div className="relative pt-2">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search departments..."
-                            className="pl-10"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
                 </CardHeader>
                 <CardContent className="w-full overflow-x-auto p-6">
-                    {filteredTree.length > 0 ? (
-                         <div className="org-chart">
-                            {filteredTree.map(node => (
-                                <OrgChartNode 
-                                    key={node.value} 
-                                    node={node} 
-                                    getDepartmentHead={getDepartmentHead} 
-                                    allDepartments={masterData.departments}
-                                    searchTerm={searchTerm}
-                                />
-                            ))}
-                        </div>
-                    ) : (
-                        <p className="text-muted-foreground">No matching departments found.</p>
-                    )}
+                    <div className="org-chart">
+                        {tree.map(node => (
+                            <OrgChartNode 
+                                key={node.value} 
+                                node={node} 
+                                getDepartmentHead={getDepartmentHead} 
+                                allDepartments={masterData.departments}
+                            />
+                        ))}
+                    </div>
                 </CardContent>
             </Card>
         </div>

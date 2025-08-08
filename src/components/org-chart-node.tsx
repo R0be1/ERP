@@ -1,20 +1,18 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Building, Mail, Phone, Users, PlusCircle, MinusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import { cn } from '@/lib/utils';
 
 type Department = {
     value: string;
     label: string;
     parent: string;
     children?: Department[];
-    isMatch?: boolean; // Flag for search match
     [key: string]: any;
 };
 
@@ -29,17 +27,10 @@ interface OrgChartNodeProps {
     node: Department;
     getDepartmentHead: (departmentId: string) => Employee | null | undefined;
     allDepartments: Department[];
-    searchTerm: string;
 }
 
-export function OrgChartNode({ node, getDepartmentHead, allDepartments, searchTerm }: OrgChartNodeProps) {
-    // Expand all nodes when a search is active to show the results
+export function OrgChartNode({ node, getDepartmentHead, allDepartments }: OrgChartNodeProps) {
     const [isExpanded, setIsExpanded] = useState(true);
-    
-    useEffect(() => {
-        setIsExpanded(!!searchTerm);
-    }, [searchTerm]);
-
     const departmentHead = getDepartmentHead(node.value);
 
     const handleToggle = (e: React.MouseEvent) => {
@@ -65,10 +56,7 @@ export function OrgChartNode({ node, getDepartmentHead, allDepartments, searchTe
                 <Tooltip>
                     <TooltipTrigger asChild>
                          <div className="node-content relative">
-                            <Card className={cn(
-                                "text-left shadow-md hover:shadow-xl transition-shadow min-w-64",
-                                node.isMatch && "ring-2 ring-primary"
-                                )}>
+                            <Card className="text-left shadow-md hover:shadow-xl transition-shadow min-w-64">
                                 <CardHeader>
                                     <div className="flex items-center gap-3">
                                         <Building className="h-6 w-6 text-primary" />
@@ -120,7 +108,6 @@ export function OrgChartNode({ node, getDepartmentHead, allDepartments, searchTe
                             node={childNode} 
                             getDepartmentHead={getDepartmentHead}
                             allDepartments={allDepartments}
-                            searchTerm={searchTerm} 
                         />
                     ))}
                 </ul>

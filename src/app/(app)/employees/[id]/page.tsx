@@ -94,9 +94,7 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
     const [isLoading, setIsLoading] = useState(true);
     const [employee, setEmployee] = useState<(typeof initialEmployees)[number] | undefined>(undefined);
 
-    // In a real app, you'd likely fetch this from a global state or an API
-    // For now, we'll check local storage for simplicity.
-    useEffect(() => {
+    const loadEmployeeData = () => {
         setIsLoading(true);
         const storedEmployees = localStorage.getItem('employees');
         let allEmployees = initialEmployees;
@@ -112,6 +110,22 @@ export default function EmployeeProfilePage({ params: serverParams }: { params: 
         const foundEmployee = allEmployees.find(e => e.id === employeeId);
         setEmployee(foundEmployee);
         setIsLoading(false);
+    };
+
+    useEffect(() => {
+        loadEmployeeData();
+
+        const handleStorageChange = (event: StorageEvent) => {
+            if (event.key === 'employees') {
+                loadEmployeeData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+
+        return () => {
+            window.removeEventListener('storage', handleStorageChange);
+        };
     }, [employeeId]);
 
 
