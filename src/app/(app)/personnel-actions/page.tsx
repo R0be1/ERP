@@ -48,6 +48,7 @@ import { format, subDays } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { convert } from 'html-to-text';
 
 const actionTypes = [
     {
@@ -510,10 +511,11 @@ export default function PersonnelActionsPage() {
         const sortedCcList = [...sortedDepts, ...freeTextRecipients];
         
         if (sortedCcList.length > 0) {
-            content += "\n\nCC:\n";
+            content += "<br/><br/><p><strong>CC:</strong></p><ul>";
             sortedCcList.forEach(recipient => {
-                content += `- ${recipient}\n`;
+                content += `<li>${recipient}</li>`;
             });
+            content += "</ul>";
         }
         
         setMemoContent(content);
@@ -537,7 +539,7 @@ export default function PersonnelActionsPage() {
             updatedActionData.signature = signatureRule;
              toast({ title: "Memo Generated", description: "Signature rule found and applied." });
         } else {
-             toast({ variant: "destructive", title: "No Signature Rule Found", description: "A valid signature rule could not be found for this action." });
+             toast({ variant: "destructive", title: "No Signature Rule Found", description: "A valid signature rule for this action could not be found." });
         }
         
         const updatedActions = personnelActions.map(action => 
@@ -575,13 +577,22 @@ export default function PersonnelActionsPage() {
             const pdfWidth = doc.internal.pageSize.getWidth();
             const pdfHeight = doc.internal.pageSize.getHeight();
             doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            yPos = 50; // Set a top margin if letterhead is used
+            yPos = 60; // Set a top margin if letterhead is used
         }
 
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
+
+        const plainTextContent = convert(memoContent, {
+            wordwrap: 130,
+            selectors: [
+                { selector: 'h1', options: { uppercase: false, prefix: '\n\n', suffix: '\n' } },
+                { selector: 'h2', options: { uppercase: false, prefix: '\n\n', suffix: '\n' } },
+                { selector: 'li', options: { prefix: '- ' } },
+            ]
+        });
     
-        const memoParts = memoContent.split('\n\nCC:\n');
+        const memoParts = plainTextContent.split('\n\nCC:\n');
         const mainBody = memoParts[0];
         const ccListString = memoParts.length > 1 ? `CC:\n${memoParts[1]}` : '';
     
@@ -622,6 +633,9 @@ export default function PersonnelActionsPage() {
             if (lastY + ccHeight > pageHeight - 20) {
                  doc.addPage();
                  lastY = 20;
+                 if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
+                     doc.addImage(masterData.letterhead.image, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                 }
             }
             doc.text(ccLines, 20, lastY + 10);
         }
@@ -875,6 +889,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 

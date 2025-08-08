@@ -23,6 +23,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
+import { RichTextEditor } from '@/components/rich-text-editor';
 
 const personnelActionTypes = [
     { value: "Promotion", label: "Promotion" },
@@ -116,7 +117,7 @@ const MemoTemplateForm = ({ onSave, onCancel, initialData }: { onSave: (template
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="content">Template Content</Label>
-                    <Textarea id="content" value={template.content} onChange={e => handleFieldChange('content', e.target.value)} rows={12} />
+                    <RichTextEditor value={template.content} onChange={v => handleFieldChange('content', v)} />
                     <p className="text-xs text-muted-foreground">
                         Use placeholders like {'{{employeeName}}'}, {'{{newPosition}}'}, {'{{effectiveDate}}'}, etc.
                     </p>
@@ -156,9 +157,9 @@ const LetterTemplateForm = ({ onSave, onCancel, initialData }: { onSave: (templa
                 </div>
                 <div className="grid gap-2">
                     <Label htmlFor="content">Template Content</Label>
-                    <Textarea id="content" value={template.content} onChange={e => handleFieldChange('content', e.target.value)} rows={12} />
+                    <RichTextEditor value={template.content} onChange={v => handleFieldChange('content', v)} />
                      <p className="text-xs text-muted-foreground">
-                        Placeholders: {'{{employeeName}}'}, {'{{joinDate}}'}, {'{{currentPosition}}'}, {'{{currentDepartment}}'}, {'{{salaryInFigures}}'}, {'{{salaryInWords}}'}, {'{{pronoun}}'} (He/She)
+                        Placeholders: {'{{employeeName}}'}, {'{{joinDate}}'}, {'{{currentPosition}}'}, {'{{currentDepartment}}'}, {'{{salaryInFigures}}'}, {'{{salaryInWords}}'}, {'{{pronoun}}'}, {'{{internalExperienceTable}}'}
                     </p>
                 </div>
                 <div className="flex items-center space-x-2">
