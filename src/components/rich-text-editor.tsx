@@ -24,7 +24,6 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
         
         const initializeQuill = async () => {
             if (editorRef.current && !quillRef.current) {
-                const { default: ReactQuill } = await import('react-quill');
                 const { default: Quill } = await import('quill');
                 
                 const editor = new Quill(editorRef.current, {
@@ -55,9 +54,9 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
                     });
 
                     // Set initial value
-                    if (value) {
-                         const delta = quill.clipboard.convert(value as any);
-                         quill.setContents(delta, 'silent');
+                    if (value && quillRef.current) {
+                         const delta = quillRef.current.clipboard.convert(value as any);
+                         quillRef.current.setContents(delta, 'silent');
                     }
                 }
             }
