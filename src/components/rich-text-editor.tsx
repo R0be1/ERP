@@ -6,14 +6,7 @@ import React from 'react';
 import 'react-quill/dist/quill.snow.css';
 import type { ReactQuillProps } from 'react-quill';
 
-const ReactQuill = dynamic(
-  async () => {
-    const { default: RQ } = await import('react-quill');
-    // eslint-disable-next-line react/display-name
-    return ({ forwardedRef, ...props }: any) => <RQ ref={forwardedRef} {...props} />;
-  },
-  { ssr: false }
-);
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 
 const formats = [
@@ -47,12 +40,14 @@ interface RichTextEditorProps extends ReactQuillProps {
 
 export const RichTextEditor = (props: RichTextEditorProps) => {
     const { value, onChange, placeholder, className, ...rest } = props;
-    const quillRef = React.useRef<any>(null);
+
+    if (typeof window === 'undefined') {
+        return null;
+    }
 
     return (
         <div className={className}>
             <ReactQuill
-                forwardedRef={quillRef}
                 theme="snow"
                 value={value}
                 onChange={onChange}
