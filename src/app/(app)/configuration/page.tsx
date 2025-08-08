@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     Settings, GitBranch, ScrollText, Building, Briefcase, Tag, Layers, School, 
-    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star, Search, DollarSign, AlertTriangle, PencilRuler
+    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star, Search, DollarSign, AlertTriangle, PencilRuler, FileSignature
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,6 +49,13 @@ const configAreas = [
         title: "Signature & Stamp",
         description: "Manage rules for document signatories and stamps.",
         path: "/configuration/signature-stamp"
+    },
+    {
+        id: "hr-templates",
+        icon: FileSignature,
+        title: "HR Templates",
+        description: "Manage templates for memos and official documents.",
+        path: "/configuration/hr-templates"
     }
 ];
 

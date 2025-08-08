@@ -166,6 +166,7 @@ const initialMasterData = {
         { value: 'suspension', label: 'Suspension' },
     ],
     signatureRules: [],
+    hrTemplates: [],
 };
 
 

@@ -364,109 +364,49 @@ export default function PersonnelActionsPage() {
             return;
         }
 
-        const { details, type } = selectedAction;
-        const effectiveDate = format(new Date(selectedAction.effectiveDate), "MMMM dd, yyyy");
-        const today = format(new Date(), "MMMM dd, yyyy");
-        let body = '';
+        const template = (masterData.hrTemplates || []).find(
+            (t: any) => t.actionType === selectedAction.type && t.status === 'active'
+        );
+
+        if (!template) {
+            toast({
+                variant: 'destructive',
+                title: 'No Template Found',
+                description: `An active memo template for "${selectedAction.type}" could not be found. Please configure it in HR Templates.`,
+            });
+            return;
+        }
         
-        switch (type) {
-            case 'Promotion':
-                const newPosition = masterData.jobTitles.find((jt: any) => jt.value === details.newJobTitle)?.label || 'N/A';
-                const newDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
-                const newSalary = details.newSalary ? `Your new basic salary will be ${Number(details.newSalary).toLocaleString()} ETB.` : '';
+        let content = template.content;
+        const { details } = selectedAction;
+        const newPosition = masterData.jobTitles.find((jt: any) => jt.value === (details.newJobTitle || details.actingJobTitle))?.label || 'N/A';
+        const newDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
+        const newManager = employees.find(e => e.id === details.newManager)?.name || 'N/A';
 
-                body = `To: ${currentEmployeeRecord.name}
-From: Human Resources Department
-Date: ${today}
-Subject: Notification of Promotion
+        const placeholders: { [key: string]: string } = {
+            '{{employeeName}}': currentEmployeeRecord.name,
+            '{{employeeId}}': currentEmployeeRecord.employeeId,
+            '{{effectiveDate}}': format(new Date(selectedAction.effectiveDate), "MMMM dd, yyyy"),
+            '{{today}}': format(new Date(), "MMMM dd, yyyy"),
+            '{{newPosition}}': newPosition,
+            '{{newDepartment}}': newDepartment,
+            '{{oldPosition}}': currentEmployeeRecord.position,
+            '{{oldDepartment}}': currentEmployeeRecord.department,
+            '{{newManager}}': newManager,
+            '{{oldManager}}': currentEmployeeRecord.manager || 'N/A',
+            '{{newSalary}}': details.newSalary ? `${Number(details.newSalary).toLocaleString()} ETB` : '',
+            '{{actingPosition}}': newPosition,
+            '{{actingStartDate}}': details.startDate ? format(new Date(details.startDate), "MMMM dd, yyyy") : 'N/A',
+            '{{actingEndDate}}': details.endDate ? format(new Date(details.endDate), "MMMM dd, yyyy") : 'N/A',
+            '{{specialDutyAllowance}}': details.specialDutyAllowance ? `${details.specialDutyAllowance} ETB` : '',
+            '{{justification}}': details.justification || '',
+        };
 
-This memo is to formally congratulate you on your promotion to the position of ${newPosition} within the ${newDepartment} department, effective ${effectiveDate}.
-
-This promotion is in recognition of your hard work, dedication, and significant contributions to the company. ${newSalary}
-
-We are confident that you will continue to excel and wish you the best in your new role.
-
-Sincerely,
-The Management`;
-                break;
-            case 'Transfer':
-            case 'Lateral Transfer':
-                const transferNewDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || 'N/A';
-                const oldDepartment = currentEmployeeRecord.department;
-                const newManager = employees.find(e => e.id === details.newManager)?.name || 'N/A';
-                const oldManager = currentEmployeeRecord.manager || 'N/A';
-                let transferNewPosition = currentEmployeeRecord.position;
-                if (type === 'Lateral Transfer' && details.newJobTitle) {
-                    transferNewPosition = masterData.jobTitles.find((jt: any) => jt.value === details.newJobTitle)?.label || currentEmployeeRecord.position;
-                }
-                body = `To: ${currentEmployeeRecord.name}
-From: Human Resources Department
-Date: ${today}
-Subject: Official Transfer Notification
-
-This memo is to formally confirm your transfer, effective ${effectiveDate}. Please review the details of your new assignment below:
-
-Employee ID: ${currentEmployeeRecord.employeeId}
-
-Previous Department: ${oldDepartment}
-New Department: ${transferNewDepartment}
-
-Position: ${transferNewPosition}
-
-Previous Supervisor: ${oldManager}
-New Supervisor: ${newManager}
-
-We are confident that your skills and experience will be a valuable asset to your new team. Please coordinate with both your current and new supervisors to ensure a smooth transition of your duties and responsibilities.
-
-We wish you the best of luck in your new role.
-
-Sincerely,
-The Management`;
-                break;
-            
-            case 'Demotion':
-                const demotionPosition = masterData.jobTitles.find((jt: any) => jt.value === details.newJobTitle)?.label || 'N/A';
-                const demotionDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
-                body = `To: ${currentEmployeeRecord.name}
-From: Human Resources Department
-Date: ${today}
-Subject: Notification of Position Change
-
-This memo is to inform you of a change in your position, effective ${effectiveDate}.
-
-Your new position will be ${demotionPosition} in the ${demotionDepartment} department. This decision was made based on [Refer to official reason/performance review - e.g., the recent performance evaluation cycle, organizational restructuring].
-
-Further details regarding this transition will be discussed with you by your supervisor.
-
-Sincerely,
-The Management`;
-                break;
-
-            case 'Acting Assignment':
-                const actingPosition = masterData.jobTitles.find((jt: any) => jt.value === details.actingJobTitle)?.label || 'N/A';
-                const actingDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
-                const startDate = details.startDate ? format(new Date(details.startDate), "MMMM dd, yyyy") : 'N/A';
-                const endDate = details.endDate ? format(new Date(details.endDate), "MMMM dd, yyyy") : 'N/A';
-                const allowance = details.specialDutyAllowance ? `You will be entitled to a special duty allowance of ${details.specialDutyAllowance} ETB for the duration of this assignment.` : '';
-
-                body = `To: ${currentEmployeeRecord.name}
-From: Human Resources Department
-Date: ${today}
-Subject: Acting Assignment Notification
-
-This memo is to confirm your assignment to an acting position, effective from ${startDate} to ${endDate}.
-
-You will be assuming the responsibilities of ${actingPosition} in the ${actingDepartment} department. 
-${allowance}
-
-Upon completion of this period, you will return to your substantive post. We are confident in your ability to handle these additional responsibilities.
-
-Sincerely,
-The Management`;
-                break;
+        for (const [key, value] of Object.entries(placeholders)) {
+            content = content.replace(new RegExp(key, 'g'), value);
         }
 
-        setMemoContent(body);
+        setMemoContent(content);
         setMemoDialogOpen(true);
     };
 
@@ -776,6 +716,7 @@ The Management`;
 
     
     
+
 
 
 
