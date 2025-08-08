@@ -191,6 +191,7 @@ I would like to take this opportunity to congratulate you on your promotion and 
 With regards,`
       }
     ],
+    carbonCopyRules: [],
 };
 
 

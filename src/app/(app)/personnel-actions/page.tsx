@@ -419,7 +419,16 @@ export default function PersonnelActionsPage() {
         const newJobTitleDetails = masterData.jobTitles.find((jt: any) => jt.value === (details.newJobTitle || details.actingJobTitle));
         const newPosition = newJobTitleDetails?.label || 'N/A';
         const newJobGrade = masterData.jobGrades.find((jg: any) => jg.value === newJobTitleDetails?.jobGrade)?.label || '';
-        const newDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
+        const newDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment);
+        const newDepartmentLabel = newDepartment?.label || currentEmployeeRecord.department;
+        const oldDepartment = masterData.departments.find((d: any) => d.label === currentEmployeeRecord.department);
+        const oldDepartmentLabel = oldDepartment?.label || currentEmployeeRecord.department;
+        
+        const getParentDeptLabel = (dept: any) => dept && dept.parent ? masterData.departments.find((p: any) => p.value === dept.parent)?.label || '' : '';
+        
+        const newParentDeptLabel = getParentDeptLabel(newDepartment);
+        const oldParentDeptLabel = getParentDeptLabel(oldDepartment);
+
         const newManager = employees.find(e => e.id === details.newManager)?.name || 'N/A';
         const newSalaryInFigures = details.newSalary ? `${Number(details.newSalary).toLocaleString()} ETB` : '';
         const newSalaryInWords = details.newSalary ? numberToWords(Number(details.newSalary)) + ' ETB' : '';
@@ -432,9 +441,11 @@ export default function PersonnelActionsPage() {
             '{{today}}': format(new Date(), "MMMM dd, yyyy"),
             '{{newPosition}}': newPosition,
             '{{newJobGrade}}': newJobGrade,
-            '{{newDepartment}}': newDepartment,
+            '{{newDepartment}}': newDepartmentLabel,
+            '{{newParentDepartment}}': newParentDeptLabel,
             '{{oldPosition}}': currentEmployeeRecord.position,
-            '{{oldDepartment}}': currentEmployeeRecord.department,
+            '{{oldDepartment}}': oldDepartmentLabel,
+            '{{oldParentDepartment}}': oldParentDeptLabel,
             '{{newManager}}': newManager,
             '{{oldManager}}': currentEmployeeRecord.manager || 'N/A',
             '{{newSalaryInFigures}}': newSalaryInFigures,
@@ -450,6 +461,34 @@ export default function PersonnelActionsPage() {
             content = content.replace(new RegExp(key, 'g'), value);
         }
 
+        // Handle CC
+        const ccRule = (masterData.carbonCopyRules || []).find((r: any) => 
+            r.status === 'active' &&
+            r.actionTypes.includes(selectedAction.type) &&
+            (!r.jobCategories.length || r.jobCategories.includes(currentEmployeeRecord.jobCategoryValue)) &&
+            (!r.jobTitles.length || r.jobTitles.includes(currentEmployeeRecord.positionValue))
+        );
+
+        let ccList: string[] = [];
+        if (ccRule) {
+            const deptLabels = (ccRule.ccDepartments || []).map((deptValue: string) => masterData.departments.find((d: any) => d.value === deptValue)?.label).filter(Boolean);
+            ccList.push(...deptLabels);
+            if (ccRule.ccFreeText) {
+                ccList.push(...ccRule.ccFreeText.split(',').map((s: string) => s.trim()));
+            }
+        }
+        
+        // Add departments to CC list
+        const ccDepartments = new Set<string>();
+        if(oldDepartmentLabel) ccDepartments.add(oldDepartmentLabel);
+        if(oldParentDeptLabel) ccDepartments.add(oldParentDeptLabel);
+        if(newDepartmentLabel) ccDepartments.add(newDepartmentLabel);
+        if(newParentDeptLabel) ccDepartments.add(newParentDeptLabel);
+
+        const allCcRecipients = [...new Set([...Array.from(ccDepartments), ...ccList])];
+        const ccSection = allCcRecipients.length > 0 ? `\n\nCC:\n${allCcRecipients.map(r => `- ${r}`).join('\n')}` : '';
+        content += ccSection;
+
         setMemoContent(content);
 
         // Find and attach the signature rule automatically
@@ -457,7 +496,7 @@ export default function PersonnelActionsPage() {
         const today = new Date();
         const employeeJobCategory = currentEmployeeRecord.jobCategory?.toLowerCase().replace(/\s+/g, '-') || '';
         
-        const rule = signatureRules.find((r: any) =>
+        const signatureRule = signatureRules.find((r: any) =>
             r.documentType === 'memo' &&
             r.status === 'active' &&
             r.actionTypes.includes(selectedAction.type) &&
@@ -466,16 +505,20 @@ export default function PersonnelActionsPage() {
             (!r.endDate || new Date(r.endDate) >= today)
         );
 
-        if (rule) {
-            const updatedActions = personnelActions.map(action => 
-                action.id === selectedAction.id ? { ...action, memoContent: content, signature: rule } : action
-            );
-            setPersonnelActions(updatedActions);
-            setSelectedAction(prev => ({...prev, memoContent: content, signature: rule }));
+        let updatedActionData = { memoContent: content, carbonCopyList: allCcRecipients } as any;
+
+        if (signatureRule) {
+            updatedActionData.signature = signatureRule;
              toast({ title: "Memo Generated", description: "Signature rule found and applied." });
         } else {
              toast({ variant: "destructive", title: "No Signature Rule Found", description: "A valid signature rule could not be found for this action." });
         }
+        
+        const updatedActions = personnelActions.map(action => 
+            action.id === selectedAction.id ? { ...action, ...updatedActionData } : action
+        );
+        setPersonnelActions(updatedActions);
+        setSelectedAction(prev => ({...prev, ...updatedActionData }));
 
         setMemoDialogOpen(true);
     };
@@ -770,6 +813,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
