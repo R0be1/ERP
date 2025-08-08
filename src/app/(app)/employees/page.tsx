@@ -1297,7 +1297,7 @@ export default function EmployeesPage() {
         address: { ...initialNewEmployeeState.address, ...employeeDataForEdit.address },
         emergencyContacts: employeeDataForEdit.emergencyContacts?.length ? employeeDataForEdit.emergencyContacts : initialNewEmployeeState.emergencyContacts,
         dependents: employeeDataForEdit.dependents?.length ? employeeDataForEdit.dependents : initialNewEmployeeState.dependents,
-        internalExperience: employeeDataForEdit.internalExperience?.length ? employeeDataForEdit.internalExperience : initialNewEmployeeState.internalExperience,
+        internalExperience: employeeDataForEdit.internalExperience?.length ? employeeDataForEdit.internalExperience : [{ title: '', department: '', startDate: '', endDate: '', managerialRole: false }],
         externalExperience: employeeDataForEdit.externalExperience?.length ? employeeDataForEdit.externalExperience : initialNewEmployeeState.externalExperience,
         education: employeeDataForEdit.education?.length ? employeeDataForEdit.education : initialNewEmployeeState.education,
         training: employeeDataForEdit.training?.length ? employeeDataForEdit.training : initialNewEmployeeState.training,
@@ -1324,10 +1324,16 @@ export default function EmployeesPage() {
 
   const handleAddEmployee = (employeeData: FormEmployeeState, photo: string | null) => {
     
-    let internalExperience = employeeData.internalExperience;
-    if (employeeData.jobCategory === 'managerial' && internalExperience.length > 0) {
-        internalExperience[0].managerialRole = true;
-    }
+    const jobTitleLabel = masterData.jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position;
+    const departmentLabel = masterData.departments.find(d => d.value === employeeData.department)?.label || employeeData.department;
+
+    const initialExperience = {
+        title: jobTitleLabel,
+        department: departmentLabel,
+        startDate: employeeData.joinDate,
+        endDate: '',
+        managerialRole: employeeData.jobCategory === 'managerial'
+    };
       
     const newEmp: Employee = {
       ...({} as Employee),
@@ -1335,12 +1341,12 @@ export default function EmployeesPage() {
       id: employeeData.employeeId || `EMP${String(Date.now()).slice(-4)}`,
       name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
       email: employeeData.workEmail,
-      position: masterData.jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
-      department: masterData.departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
+      position: jobTitleLabel,
+      department: departmentLabel,
       jobCategory: masterData.jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
       status: 'Active',
       avatar: photo || `https://placehold.co/40x40.png?text=${employeeData.firstName[0]}${employeeData.lastName[0]}`,
-      internalExperience,
+      internalExperience: [initialExperience],
     };
     setEmployees(prev => [...prev, newEmp]);
     setAddEmployeeDialogOpen(false);
