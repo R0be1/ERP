@@ -131,6 +131,19 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
         if (!action.memoContent) return;
         const doc = new jsPDF() as jsPDFWithAutoTable;
         const employeeName = allEmployees.find(e => e.id === action.employeeId)?.name || 'employee';
+        
+        let yPos = 20;
+
+        // Add letterhead if applicable
+        if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
+            const letterheadImg = new Image();
+            letterheadImg.src = masterData.letterhead.image;
+            const imgProps = doc.getImageProperties(letterheadImg.src);
+            const pdfWidth = doc.internal.pageSize.getWidth();
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, imgHeight);
+            yPos = imgHeight + 10;
+        }
 
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
@@ -140,9 +153,9 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
         const ccListString = memoParts.length > 1 ? `CC:\n${memoParts[1]}` : '';
 
         const textLines = doc.splitTextToSize(mainBody, 170);
-        doc.text(textLines, 20, 20);
+        doc.text(textLines, 20, yPos);
         
-        let lastY = doc.getTextDimensions(textLines).h + 20;
+        let lastY = doc.getTextDimensions(textLines).h + yPos;
         
         // Add signature and stamp if they exist on the action
         if (action.signature) {
@@ -343,24 +356,38 @@ export default function ProfilePage() {
             );
 
             const addContent = (signature: any) => {
-                const today = new Date();
-                const date = format(today, "MMMM dd, yyyy");
+                let yPos = 20;
+
+                // Add letterhead if applicable
+                if (masterData.letterhead?.applyToLetters && masterData.letterhead.image) {
+                    const letterheadImg = new Image();
+                    letterheadImg.src = masterData.letterhead.image;
+                    const imgProps = doc.getImageProperties(letterheadImg.src);
+                    const pdfWidth = doc.internal.pageSize.getWidth();
+                    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                    doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, imgHeight);
+                    yPos = imgHeight + 10;
+                }
+                
+                const todayDate = new Date();
+                const date = format(todayDate, "MMMM dd, yyyy");
 
                 doc.setFontSize(12);
-                doc.text(date, doc.internal.pageSize.getWidth() - 20, 20, { align: 'right' });
+                doc.text(date, doc.internal.pageSize.getWidth() - 20, yPos, { align: 'right' });
                 
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text("To Whom It May Concern", doc.internal.pageSize.getWidth() / 2, 50, { align: 'center' });
+                doc.text("To Whom It May Concern", doc.internal.pageSize.getWidth() / 2, yPos + 30, { align: 'center' });
                 doc.setFont('helvetica', 'normal');
+                yPos += 30;
 
                 doc.setFontSize(12);
                 const joinDate = formatDate(employee.joinDate);
                 const introText = `This is to certify that ${employee.name} has been in the service of Nib International Bank since ${joinDate}. During this period, the captioned employee has been serving on the following job position(s):`;
                 const introTextLines = doc.splitTextToSize(introText, doc.internal.pageSize.getWidth() - 40);
-                doc.text(introTextLines, 20, 70, { align: 'justify' });
+                doc.text(introTextLines, 20, yPos + 20, { align: 'justify' });
                 
-                let lastY = 70 + (introTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
+                let lastY = yPos + 20 + (introTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
 
 
                 const tableData = employee.internalExperience.map(exp => [
@@ -682,6 +709,7 @@ export default function ProfilePage() {
 
 
     
+
 
 
 

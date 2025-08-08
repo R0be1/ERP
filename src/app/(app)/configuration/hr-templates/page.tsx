@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { MoreHorizontal, PlusCircle, Trash2, Edit, X, Check, ChevronsUpDown } from 'lucide-react';
+import { MoreHorizontal, PlusCircle, Trash2, Edit, X, Check, ChevronsUpDown, Image as ImageIcon } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { Label } from '@/components/ui/label';
@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import Image from 'next/image';
 
 const personnelActionTypes = [
     { value: "Promotion", label: "Promotion" },
@@ -117,7 +118,7 @@ const TemplateForm = ({ onSave, onCancel, initialData }: { onSave: (template: an
                     <Label htmlFor="content">Template Content</Label>
                     <Textarea id="content" value={template.content} onChange={e => handleFieldChange('content', e.target.value)} rows={12} />
                     <p className="text-xs text-muted-foreground">
-                        Use placeholders like {'\'{{employeeName}}\''}, {'\'{{newPosition}}\''}, {'\'{{effectiveDate}}\''}, etc.
+                        Use placeholders like {'{{employeeName}}'}, {'{{newPosition}}'}, {'{{effectiveDate}}'}, etc.
                     </p>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -216,6 +217,7 @@ const CarbonCopyRuleForm = ({ masterData, onSave, onCancel, initialData }: { mas
 export default function HRTemplatesPage() {
     const [isClient, setIsClient] = useState(false);
     const [masterData, setMasterDataState] = useState(getMasterData());
+    const { toast } = useToast();
     
     // For Templates
     const [isTemplateDialogOpen, setTemplateDialogOpen] = useState(false);
@@ -225,10 +227,14 @@ export default function HRTemplatesPage() {
     const [isCcRuleDialogOpen, setCcRuleDialogOpen] = useState(false);
     const [editingCcRule, setEditingCcRule] = useState<any | null>(null);
 
+    // For Letterhead
+    const [letterheadState, setLetterheadState] = useState(masterData.letterhead);
+
     useEffect(() => {
         setIsClient(true);
         const data = getMasterData();
         setMasterDataState(data);
+        setLetterheadState(data.letterhead || { image: null, applyToMemos: false, applyToLetters: false });
     }, []);
 
     const hrTemplates = useMemo(() => masterData.hrTemplates || [], [masterData]);
@@ -295,6 +301,32 @@ export default function HRTemplatesPage() {
         setMasterData(newMasterData);
         setMasterDataState(newMasterData);
     };
+    
+    const handleLetterheadImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (file.size > 2 * 1024 * 1024) { // 2MB limit
+                toast({ variant: "destructive", title: "File too large", description: "Image size should not exceed 2MB." });
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setLetterheadState(prev => ({...prev, image: reader.result as string}));
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    const handleLetterheadToggle = (field: 'applyToMemos' | 'applyToLetters', checked: boolean) => {
+        setLetterheadState(prev => ({ ...prev, [field]: checked }));
+    }
+    
+    const handleSaveLetterhead = () => {
+        const newMasterData = { ...masterData, letterhead: letterheadState };
+        setMasterData(newMasterData);
+        setMasterDataState(newMasterData);
+        toast({ title: 'Success', description: 'Letterhead settings have been saved.' });
+    }
 
     if (!isClient) return <div>Loading...</div>;
 
@@ -305,6 +337,7 @@ export default function HRTemplatesPage() {
                 <TabsList>
                     <TabsTrigger value="templates">Memo Templates</TabsTrigger>
                     <TabsTrigger value="cc-rules">Carbon Copy Rules</TabsTrigger>
+                    <TabsTrigger value="letterhead">Letterhead</TabsTrigger>
                 </TabsList>
                 <TabsContent value="templates">
                     <Card>
@@ -411,6 +444,43 @@ export default function HRTemplatesPage() {
                                     ))}
                                 </TableBody>
                             </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="letterhead">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Company Letterhead Configuration</CardTitle>
+                            <CardDescription>Manage the official letterhead for generated documents.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-6">
+                            <div className="grid gap-2">
+                                <Label htmlFor="letterhead-upload">Upload Letterhead Image</Label>
+                                <Input id="letterhead-upload" type="file" accept="image/png, image/jpeg" onChange={handleLetterheadImageUpload} className="max-w-md" />
+                                <p className="text-xs text-muted-foreground">Upload a high-resolution image. This should include your company name, logo, address, and other branding.</p>
+                            </div>
+                            {letterheadState.image && (
+                                <div>
+                                    <Label>Preview</Label>
+                                    <div className="mt-2 border rounded-md p-4 w-full max-w-3xl">
+                                        <Image src={letterheadState.image} alt="Letterhead Preview" width={800} height={200} style={{width: '100%', height: 'auto'}} />
+                                    </div>
+                                </div>
+                            )}
+                             <div className="grid gap-4">
+                                <Label>Application Settings</Label>
+                                <div className="flex items-center space-x-2">
+                                    <Switch id="apply-to-memos" checked={letterheadState.applyToMemos} onCheckedChange={(checked) => handleLetterheadToggle('applyToMemos', checked)} />
+                                    <Label htmlFor="apply-to-memos">Apply to Personnel Action Memos</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Switch id="apply-to-letters" checked={letterheadState.applyToLetters} onCheckedChange={(checked) => handleLetterheadToggle('applyToLetters', checked)} />
+                                    <Label htmlFor="apply-to-letters">Apply to Work Experience Letters</Label>
+                                </div>
+                            </div>
+                             <div className="flex justify-end mt-4">
+                                <Button onClick={handleSaveLetterhead}>Save Letterhead Settings</Button>
+                            </div>
                         </CardContent>
                     </Card>
                 </TabsContent>

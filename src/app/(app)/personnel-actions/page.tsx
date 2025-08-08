@@ -565,7 +565,20 @@ export default function PersonnelActionsPage() {
     const downloadMemoPdf = () => {
         const doc = new jsPDF() as any;
         const employeeName = currentEmployeeRecord?.name || 'employee';
-    
+        
+        let yPos = 20;
+
+        // Add letterhead if applicable
+        if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
+            const letterheadImg = new Image();
+            letterheadImg.src = masterData.letterhead.image;
+            const imgProps = doc.getImageProperties(letterheadImg.src);
+            const pdfWidth = doc.internal.pageSize.getWidth();
+            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, imgHeight);
+            yPos = imgHeight + 10;
+        }
+
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
     
@@ -574,7 +587,6 @@ export default function PersonnelActionsPage() {
         const ccListString = memoParts.length > 1 ? `CC:\n${memoParts[1]}` : '';
     
         const mainBodyLines = doc.splitTextToSize(mainBody, 170);
-        let yPos = 20;
         doc.text(mainBodyLines, 20, yPos);
         let lastY = doc.getTextDimensions(mainBodyLines).h + yPos;
     
@@ -606,6 +618,12 @@ export default function PersonnelActionsPage() {
     
         if (ccListString) {
             const ccLines = doc.splitTextToSize(ccListString, 170);
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const ccHeight = doc.getTextDimensions(ccLines).h;
+            if (lastY + ccHeight > pageHeight - 20) {
+                 doc.addPage();
+                 lastY = 20;
+            }
             doc.text(ccLines, 20, lastY + 10);
         }
     
@@ -858,6 +876,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 

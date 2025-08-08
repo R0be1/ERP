@@ -192,6 +192,11 @@ With regards,`
       }
     ],
     carbonCopyRules: [],
+    letterhead: {
+        image: null,
+        applyToMemos: false,
+        applyToLetters: false,
+    },
 };
 
 
