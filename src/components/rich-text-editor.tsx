@@ -3,26 +3,15 @@
 
 import dynamic from 'next/dynamic';
 import 'react-quill/dist/quill.snow.css';
-import { forwardRef } from 'react';
 
 // Using dynamic import for react-quill to avoid SSR issues.
-const ReactQuill = dynamic(
-  async () => {
-    const { default: RQ } = await import('react-quill');
-    // The ref is forwarded to the underlying Quill instance.
-    return function ReactQuillHOC({ forwardedRef, ...props }: any) {
-      return <RQ ref={forwardedRef} {...props} />;
-    };
-  },
-  { ssr: false }
-);
-
+const ReactQuill = dynamic(() => import('react-quill'), { ssr: false });
 
 const formats = [
   'header', 'font', 'size',
   'bold', 'italic', 'underline', 'strike', 'blockquote',
   'list', 'bullet', 'indent',
-  'link', 'image', 'video',
+  'link',
   'clean'
 ];
 
@@ -47,20 +36,17 @@ interface RichTextEditorProps {
   className?: string;
 }
 
-export const RichTextEditor = forwardRef((props: RichTextEditorProps, ref) => {
+export const RichTextEditor = ({ value, onChange, placeholder, className }: RichTextEditorProps) => {
     return (
-        <div className={props.className}>
+        <div className={className}>
             <ReactQuill
-                forwardedRef={ref}
                 theme="snow"
-                value={props.value}
-                onChange={props.onChange}
+                value={value}
+                onChange={onChange}
                 modules={modules}
                 formats={formats}
-                placeholder={props.placeholder}
+                placeholder={placeholder}
             />
         </div>
     );
-});
-
-RichTextEditor.displayName = 'RichTextEditor';
+};

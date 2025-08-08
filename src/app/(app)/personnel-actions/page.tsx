@@ -45,10 +45,10 @@ import { Input } from '@/components/ui/input';
 import jsPDF from "jspdf";
 import 'jspdf-autotable';
 import { format, subDays } from 'date-fns';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { convert } from 'html-to-text';
+import { RichTextEditor } from '@/components/rich-text-editor';
 
 const actionTypes = [
     {
@@ -863,11 +863,9 @@ export default function PersonnelActionsPage() {
                     <div className="grid gap-4 py-4">
                         <div className="grid w-full gap-1.5">
                             <Label htmlFor="memo-content">Memo Content</Label>
-                            <Textarea
-                                id="memo-content"
+                             <RichTextEditor
                                 value={memoContent}
-                                onChange={(e) => setMemoContent(e.target.value)}
-                                rows={15}
+                                onChange={setMemoContent}
                             />
                         </div>
                     </div>
@@ -889,6 +887,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
