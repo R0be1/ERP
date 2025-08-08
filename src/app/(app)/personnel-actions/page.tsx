@@ -395,7 +395,7 @@ export default function PersonnelActionsPage() {
     const handleGenerateMemoContent = () => {
         if (!selectedAction || !currentEmployeeRecord) return;
 
-        if (selectedAction.memoContent) {
+        if (selectedAction.memoContent && selectedAction.carbonCopyList) {
             setMemoContent(selectedAction.memoContent);
             setMemoDialogOpen(true);
             return;
@@ -489,9 +489,26 @@ export default function PersonnelActionsPage() {
         if(newParentDeptLabel) relatedDepartments.add(newParentDeptLabel);
 
         const allCcRecipients = [...new Set([...Array.from(relatedDepartments), ...ruleRecipients])];
-        const ccSection = allCcRecipients.length > 0 ? `\n\nCC:\n${allCcRecipients.map(r => `- ${r}`).join('\n')}` : '';
-        content += ccSection;
+        
+        const getDeptLevel = (deptLabel: string): number => {
+            const allDepts = masterData.departments;
+            let level = 0;
+            let current = allDepts.find(d => d.label === deptLabel);
+            while(current && current.parent) {
+                level++;
+                current = allDepts.find(d => d.value === current.parent);
+            }
+            return level;
+        };
 
+        const sortedDepts = allCcRecipients
+            .filter(r => masterData.departments.some(d => d.label === r))
+            .sort((a,b) => getDeptLevel(a) - getDeptLevel(b));
+        
+        const freeTextRecipients = allCcRecipients.filter(r => !masterData.departments.some(d => d.label === r));
+
+        const sortedCcList = [...sortedDepts, ...freeTextRecipients];
+        
         setMemoContent(content);
 
         // Find and attach the signature rule automatically
@@ -507,7 +524,7 @@ export default function PersonnelActionsPage() {
             (!r.endDate || new Date(r.endDate) >= today)
         );
 
-        let updatedActionData = { memoContent: content, carbonCopyList: allCcRecipients } as any;
+        let updatedActionData = { memoContent: content, carbonCopyList: sortedCcList } as any;
 
         if (signatureRule) {
             updatedActionData.signature = signatureRule;
@@ -546,11 +563,11 @@ export default function PersonnelActionsPage() {
         doc.setFont("helvetica", "normal");
         
         const textLines = doc.splitTextToSize(memoContent, 170);
-        doc.text(textLines, 20, 20);
+        let yPos = 20;
+        doc.text(textLines, 20, yPos);
 
-        let lastY = doc.getTextDimensions(textLines).h + 20;
+        let lastY = doc.getTextDimensions(textLines).h + yPos;
         
-        // Add signature and stamp if they exist on the action
         if (selectedAction.signature) {
             const signatureImg = new Image();
             signatureImg.src = selectedAction.signature.signatureImage;
@@ -558,13 +575,32 @@ export default function PersonnelActionsPage() {
             const stampImg = new Image();
             stampImg.src = selectedAction.signature.stampImage;
 
-            const finalY = lastY + 20;
+            const signatureBlockY = lastY + 20;
 
-            doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
-            doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
-            doc.text(selectedAction.signature.signatoryName, 20, finalY + 25);
-            doc.text(selectedAction.signature.signatoryTitle, 20, finalY + 30);
+            doc.addImage(signatureImg, 'PNG', 20, signatureBlockY, 50, 20); // x, y, width, height
+            doc.addImage(stampImg, 'PNG', 70, signatureBlockY - 5, 25, 25);
+            doc.text(selectedAction.signature.signatoryName, 20, signatureBlockY + 25);
+            doc.text(selectedAction.signature.signatoryTitle, 20, signatureBlockY + 30);
+            
+            lastY = signatureBlockY + 35;
+        } else {
+            lastY += 20;
+            doc.text("Nib International Bank", 20, lastY);
+            lastY += 5;
         }
+
+        if (selectedAction.carbonCopyList && selectedAction.carbonCopyList.length > 0) {
+            const ccSectionY = lastY + 10;
+            const ccTitle = "CC:";
+            doc.text(ccTitle, 20, ccSectionY);
+            
+            let ccY = ccSectionY + 5;
+            selectedAction.carbonCopyList.forEach((recipient: string) => {
+                doc.text(`- ${recipient}`, 20, ccY);
+                ccY += 5;
+            });
+        }
+
 
         doc.save(`Memo_${selectedAction?.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
         setMemoDialogOpen(false);
@@ -815,6 +851,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
