@@ -364,9 +364,10 @@ export default function ProfilePage() {
                 const salaryInWords = numberToWords(Number(employee.basicSalary));
                 const salaryText = `${pronoun} is entitled a monthly basic salary of Birr ${salaryInBirr} (Birr ${salaryInWords}). All necessary income tax has been regularly deducted from the employee’s taxable income(s) and duly paid to the concerned government organ(s).`;
                 
+                const salaryTextDimensions = (doc as any).getTextDimensions(salaryText, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
                 doc.text(salaryText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40, align: 'justify' });
 
-                lastTableY = (doc as any).getTextDimensions(salaryText, { maxWidth: doc.internal.pageSize.getWidth() - 40 }).y + lastTableY + 15;
+                lastTableY = lastTableY + 15 + salaryTextDimensions.h;
 
                 const closingText = "Please note that this work experience letter does not serve as a release paper.";
                 doc.text(closingText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
@@ -657,4 +658,5 @@ export default function ProfilePage() {
 
 
     
+
 
