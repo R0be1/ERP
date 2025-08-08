@@ -139,22 +139,23 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         
-        doc.text(action.memoContent, 20, 40, { maxWidth: 170 });
+        const textLines = doc.splitTextToSize(action.memoContent, 170);
+        doc.text(textLines, 20, 40);
         
-        const lastY = doc.getTextDimensions(action.memoContent, { maxWidth: 170 }).y;
+        let lastY = doc.getTextDimensions(textLines).h + 40;
         
         // Add signature and stamp if they exist on the action
-        if (action.signature && action.stamp) {
+        if (action.signature) {
             const signatureImg = new Image();
             signatureImg.src = action.signature.signatureImage;
             
             const stampImg = new Image();
             stampImg.src = action.signature.stampImage;
 
-            const finalY = lastY + 50;
+            const finalY = lastY + 20;
 
-            doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
-            doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
+            if (action.signature.signatureImage) doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
+            if (action.signature.stampImage) doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
             doc.text(action.signature.signatoryName, 20, finalY + 25);
             doc.text(action.signature.signatoryTitle, 20, finalY + 30);
         }
@@ -367,7 +368,7 @@ export default function ProfilePage() {
                 const salaryTextDimensions = (doc as any).getTextDimensions(salaryText, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
                 doc.text(salaryText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40, align: 'justify' });
 
-                lastTableY = lastTableY + 15 + salaryTextDimensions.h;
+                lastTableY += 15 + salaryTextDimensions.h;
 
                 const closingText = "Please note that this work experience letter does not serve as a release paper.";
                 doc.text(closingText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
@@ -380,8 +381,8 @@ export default function ProfilePage() {
 
                     const finalY = lastTableY + 40;
                     
-                    doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
-                    doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
+                    if (signature.signatureImage) doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
+                    if (signature.stampImage) doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
                     doc.text(signature.signatoryName, 20, finalY + 25);
                     doc.text(signature.signatoryTitle, 20, finalY + 30);
                 } else {
@@ -658,5 +659,6 @@ export default function ProfilePage() {
 
 
     
+
 
 
