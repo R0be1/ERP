@@ -1288,8 +1288,23 @@ export default function EmployeesPage() {
 
 
   const handleOpenEditDialog = useCallback((employee: Employee) => {
-      const employeeData = JSON.parse(JSON.stringify(employee));
-      const fullEmployeeData = { ...initialNewEmployeeState, ...employeeData };
+      const employeeDataForEdit = JSON.parse(JSON.stringify(employee));
+      
+      // Ensure all fields from the initial state are present, especially nested ones.
+      const fullEmployeeData = {
+        ...initialNewEmployeeState,
+        ...employeeDataForEdit,
+        address: { ...initialNewEmployeeState.address, ...employeeDataForEdit.address },
+        emergencyContacts: employeeDataForEdit.emergencyContacts?.length ? employeeDataForEdit.emergencyContacts : initialNewEmployeeState.emergencyContacts,
+        dependents: employeeDataForEdit.dependents?.length ? employeeDataForEdit.dependents : initialNewEmployeeState.dependents,
+        internalExperience: employeeDataForEdit.internalExperience?.length ? employeeDataForEdit.internalExperience : initialNewEmployeeState.internalExperience,
+        externalExperience: employeeDataForEdit.externalExperience?.length ? employeeDataForEdit.externalExperience : initialNewEmployeeState.externalExperience,
+        education: employeeDataForEdit.education?.length ? employeeDataForEdit.education : initialNewEmployeeState.education,
+        training: employeeDataForEdit.training?.length ? employeeDataForEdit.training : initialNewEmployeeState.training,
+        incomingGuarantees: employeeDataForEdit.incomingGuarantees?.length ? employeeDataForEdit.incomingGuarantees : initialNewEmployeeState.incomingGuarantees,
+        outgoingGuarantees: employeeDataForEdit.outgoingGuarantees?.length ? employeeDataForEdit.outgoingGuarantees : initialNewEmployeeState.outgoingGuarantees,
+      };
+
       setSelectedEmployee(fullEmployeeData);
       setEditEmployeeDialogOpen(true);
   }, []);
@@ -1334,23 +1349,23 @@ export default function EmployeesPage() {
   const handleUpdateEmployee = (employeeData: FormEmployeeState, photo: string | null) => {
     if (!selectedEmployee) return;
 
-    const updatedEmployees = employees.map(emp => {
-      if (emp.id === (selectedEmployee as any).id) {
-        return {
-          ...(emp as any),
-          ...employeeData,
-           name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
-           email: employeeData.workEmail,
-           position: masterData.jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
-           department: masterData.departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
-           jobCategory: masterData.jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
-           avatar: photo || (emp as any).avatar,
-        };
-      }
-      return emp;
-    });
-
-    setEmployees(updatedEmployees as any);
+    setEmployees(prev => 
+        prev.map(emp => {
+            if (emp.id === (selectedEmployee as any).id) {
+                return {
+                    ...(emp as any),
+                    ...employeeData,
+                    name: `${employeeData.title} ${employeeData.firstName} ${employeeData.lastName}`,
+                    email: employeeData.workEmail,
+                    position: masterData.jobTitles.find(j => j.value === employeeData.position)?.label || employeeData.position,
+                    department: masterData.departments.find(d => d.value === employeeData.department)?.label || employeeData.department,
+                    jobCategory: masterData.jobCategories.find(c => c.value === employeeData.jobCategory)?.label || employeeData.jobCategory,
+                    avatar: photo || (emp as any).avatar,
+                };
+            }
+            return emp;
+        })
+    );
     handleCloseEditDialog();
   };
   
