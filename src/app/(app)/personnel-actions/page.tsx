@@ -565,27 +565,34 @@ export default function PersonnelActionsPage() {
     const downloadMemoPdf = () => {
         const doc = new jsPDF() as any;
         const employeeName = currentEmployeeRecord?.name || 'employee';
-        
+    
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
-        
-        const textLines = doc.splitTextToSize(memoContent, 170);
+    
+        const memoParts = memoContent.split('\n\nCC:\n');
+        const mainBody = memoParts[0];
+        const ccListString = memoParts.length > 1 ? `CC:\n${memoParts[1]}` : '';
+    
+        const mainBodyLines = doc.splitTextToSize(mainBody, 170);
         let yPos = 20;
-        doc.text(textLines, 20, yPos);
-
-        let lastY = doc.getTextDimensions(textLines).h + yPos;
-        
+        doc.text(mainBodyLines, 20, yPos);
+        let lastY = doc.getTextDimensions(mainBodyLines).h + yPos;
+    
         if (selectedAction.signature) {
             const signatureImg = new Image();
             signatureImg.src = selectedAction.signature.signatureImage;
             
             const stampImg = new Image();
             stampImg.src = selectedAction.signature.stampImage;
-
-            const signatureBlockY = lastY + 20;
-
-            doc.addImage(signatureImg, 'PNG', 20, signatureBlockY, 50, 20); // x, y, width, height
-            doc.addImage(stampImg, 'PNG', 70, signatureBlockY - 5, 25, 25);
+    
+            const signatureBlockY = lastY + 10;
+    
+            if(selectedAction.signature.signatureImage) {
+                doc.addImage(signatureImg, 'PNG', 20, signatureBlockY, 50, 20); // x, y, width, height
+            }
+            if(selectedAction.signature.stampImage) {
+                doc.addImage(stampImg, 'PNG', 70, signatureBlockY - 5, 25, 25);
+            }
             doc.text(selectedAction.signature.signatoryName, 20, signatureBlockY + 25);
             doc.text(selectedAction.signature.signatoryTitle, 20, signatureBlockY + 30);
             
@@ -595,8 +602,12 @@ export default function PersonnelActionsPage() {
             doc.text("Nib International Bank", 20, lastY);
             lastY += 5;
         }
-
-
+    
+        if (ccListString) {
+            const ccLines = doc.splitTextToSize(ccListString, 170);
+            doc.text(ccLines, 20, lastY + 10);
+        }
+    
         doc.save(`Memo_${selectedAction?.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
         setMemoDialogOpen(false);
     };
@@ -846,6 +857,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
