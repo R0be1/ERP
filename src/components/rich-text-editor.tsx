@@ -4,55 +4,59 @@
 import React, { useEffect, useRef } from 'react';
 import 'react-quill/dist/quill.snow.css';
 import type Quill from 'quill';
-import type { ReactQuillProps } from 'react-quill';
 import { cn } from '@/lib/utils';
 
-interface RichTextEditorProps extends Omit<ReactQuillProps, 'value' | 'onChange'> {
+interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  [key: string]: any; // Allow other props
 }
 
 export const RichTextEditor = (props: RichTextEditorProps) => {
     const { value, onChange, className, ...rest } = props;
     const quillRef = useRef<Quill | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
-    const isProgrammaticUpdate = useRef(false);
 
     useEffect(() => {
-        let quill: Quill | null = null;
+        let quillInstance: Quill | null = null;
         
         const initializeQuill = async () => {
             if (editorRef.current && !quillRef.current) {
                 const { default: Quill } = await import('quill');
                 
-                quill = new Quill(editorRef.current, {
+                quillInstance = new Quill(editorRef.current, {
                     theme: 'snow',
                     modules: {
                         toolbar: [
-                            [{ 'header': '1'}, {'header': '2'}, { 'font': [] }],
-                            [{size: []}],
-                            ['bold', 'italic', 'underline', 'strike', 'blockquote'],
-                            [{'list': 'ordered'}, {'list': 'bullet'}, {'indent': '-1'}, {'indent': '+1'}],
-                            ['link'],
-                            ['clean']
+                          [{ 'font': [] }],
+                          [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                          [{ 'size': ['small', false, 'large', 'huge'] }],
+                          ['bold', 'italic', 'underline', 'strike'],
+                          [{ 'color': [] }, { 'background': [] }],
+                          [{ 'script': 'sub'}, { 'script': 'super' }],
+                          ['blockquote', 'code-block'],
+                          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                          [{ 'indent': '-1'}, { 'indent': '+1' }],
+                          [{ 'direction': 'rtl' }, { 'align': [] }],
+                          ['link', 'image', 'video'],
+                          ['clean']
                         ],
                     },
                     ...rest
                 });
 
-                quillRef.current = quill;
+                quillRef.current = quillInstance;
                 
-                if (quill) {
-                    // Set initial value
+                if (quillInstance) {
                     if (value) {
-                         const delta = quill.clipboard.convert(value as any);
-                         quill.setContents(delta, 'silent');
+                         const delta = quillInstance.clipboard.convert(value as any);
+                         quillInstance.setContents(delta, 'silent');
                     }
 
-                    quill.on('text-change', (delta, oldDelta, source) => {
+                    quillInstance.on('text-change', (delta, oldDelta, source) => {
                         if (source === 'user') {
-                            const html = quill?.root.innerHTML || '';
+                            const html = quillInstance?.root.innerHTML || '';
                             if (html !== value) {
                                 onChange(html === '<p><br></p>' ? '' : html);
                             }
@@ -73,7 +77,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
             }
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [rest]);
+    }, []);
 
 
     useEffect(() => {
@@ -84,7 +88,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
     }, [value]);
 
     if (typeof window === 'undefined') {
-        return null;
+        return <div className={cn("quill-editor-container", className)} style={{minHeight: '250px', backgroundColor: '#f0f0f0', border: '1px solid #ccc', borderRadius: 'var(--radius)'}}></div>;
     }
     
     return (
