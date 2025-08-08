@@ -375,19 +375,21 @@ export default function ProfilePage() {
                 doc.setFontSize(12);
                 doc.text(date, doc.internal.pageSize.getWidth() - 20, yPos, { align: 'right' });
                 
+                yPos += 20;
                 doc.setFontSize(16);
                 doc.setFont('helvetica', 'bold');
-                doc.text("To Whom It May Concern", doc.internal.pageSize.getWidth() / 2, yPos + 30, { align: 'center' });
+                doc.text("To Whom It May Concern", doc.internal.pageSize.getWidth() / 2, yPos, { align: 'center' });
+                yPos += 10;
+                
                 doc.setFont('helvetica', 'normal');
-                yPos += 30;
-
                 doc.setFontSize(12);
+
                 const joinDate = formatDate(employee.joinDate);
                 const introText = `This is to certify that ${employee.name} has been in the service of Nib International Bank since ${joinDate}. During this period, the captioned employee has been serving on the following job position(s):`;
                 const introTextLines = doc.splitTextToSize(introText, doc.internal.pageSize.getWidth() - 40);
-                doc.text(introTextLines, 20, yPos + 20, { align: 'justify' });
+                doc.text(introTextLines, 20, yPos + 10, { align: 'justify' });
                 
-                let lastY = yPos + 20 + (introTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
+                let lastY = yPos + 10 + (introTextLines.length * (doc.getLineHeight() / doc.internal.scaleFactor));
 
 
                 const tableData = employee.internalExperience.map(exp => [
@@ -709,6 +711,7 @@ export default function ProfilePage() {
 
 
     
+
 
 
 
