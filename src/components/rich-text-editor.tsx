@@ -17,7 +17,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
     const { value, onChange, className, ...rest } = props;
     const quillRef = useRef<Quill | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
-    const isUpdating = useRef(false);
+    const isProgrammaticUpdate = useRef(false);
 
     useEffect(() => {
         let quill: Quill | null = null;
@@ -26,7 +26,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
             if (editorRef.current && !quillRef.current) {
                 const { default: Quill } = await import('quill');
                 
-                const editor = new Quill(editorRef.current, {
+                quill = new Quill(editorRef.current, {
                     theme: 'snow',
                     modules: {
                         toolbar: [
@@ -41,23 +41,23 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
                     ...rest
                 });
 
-                quillRef.current = editor;
-                quill = editor;
+                quillRef.current = quill;
                 
                 if (quill) {
+                    // Set initial value
+                    if (value) {
+                         const delta = quill.clipboard.convert(value as any);
+                         quill.setContents(delta, 'silent');
+                    }
+
                     quill.on('text-change', (delta, oldDelta, source) => {
                         if (source === 'user') {
-                            isUpdating.current = true;
                             const html = quill?.root.innerHTML || '';
-                            onChange(html === '<p><br></p>' ? '' : html);
+                            if (html !== value) {
+                                onChange(html === '<p><br></p>' ? '' : html);
+                            }
                         }
                     });
-
-                    // Set initial value
-                    if (value && quillRef.current) {
-                         const delta = quillRef.current.clipboard.convert(value as any);
-                         quillRef.current.setContents(delta, 'silent');
-                    }
                 }
             }
         };
@@ -68,6 +68,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
 
         return () => {
             if (quillRef.current) {
+                quillRef.current.off('text-change');
                 quillRef.current = null;
             }
         };
@@ -76,12 +77,9 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
 
 
     useEffect(() => {
-        if (quillRef.current && quillRef.current.root.innerHTML !== value && !isUpdating.current) {
+        if (quillRef.current && quillRef.current.root.innerHTML !== value) {
              const delta = quillRef.current.clipboard.convert(value as any);
              quillRef.current.setContents(delta, 'silent');
-        }
-        if (isUpdating.current) {
-            isUpdating.current = false;
         }
     }, [value]);
 
