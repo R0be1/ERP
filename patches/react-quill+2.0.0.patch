@@ -1,0 +1,141 @@
+diff --git a/node_modules/react-quill/lib/index.js b/node_modules/react-quill/lib/index.js
+index 4016694..985047b 100644
+--- a/node_modules/react-quill/lib/index.js
++++ b/node_modules/react-quill/lib/index.js
+@@ -10,7 +10,6 @@
+ var _react = _interopRequireDefault(require("react"));
+ var _reactDom = _interopRequireDefault(require("react-dom"));
+ var _quill = _interopRequireDefault(require("quill"));
+-var _propTypes = _interopRequireDefault(require("prop-types"));
+ var _ isEqual = _interopRequireDefault(require("lodash/isEqual"));
+ var _isFunction = _interopRequireDefault(require("lodash/isFunction"));
+ var _isObject = _interopRequireDefault(require("lodash/isObject"));
+@@ -18,6 +17,9 @@
+ var _unprivilegedEditor = require("./unprivileged-editor");
+ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+ function _extends() { _extends = Object.assign ? Object.assign.bind() : function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
++/*
++Copied from https://github.com/zenoamaro/react-quill/pull/932
++*/
+ 
+ /*
+ A majority of the credit for this module goes to https://github.com/zenoamaro/react-quill,
+@@ -32,23 +34,6 @@
+  A react component that wraps Quill.
+ */
+ class ReactQuill extends _react.default.Component {
+-  // It's not required, but it's recommended to declare propTypes
+-  // for any component that you write. This will help you catch
+-  // bugs and provide better developer experience.
+-  //
+-  // See https://reactjs.org/docs/typechecking-with-proptypes.html
+-  static propTypes = {
+-    id: _propTypes.default.string,
+-    className: _propTypes.default.string,
+-    style: _propTypes.default.object,
+-    value: _propTypes.default.oneOfType([_propTypes.default.string, _propTypes.default.object]),
+-    defaultValue: _propTypes.default.oneOfType([_propTypes.default.string, _propTypes.default.object]),
+-    placeholder: _propTypes.default.string,
+-    readOnly: _propTypes.default.bool,
+-    scrollingContainer: _propTypes.default.oneOfType([_propTypes.default.string, _propTypes.default.instanceOf(Element)])
+-  };
+-
+   /*
+   https://github.com/facebook/react/issues/342
+   https://github.com/facebook/react/issues/13811
+@@ -151,13 +136,8 @@
+     // and are not participating in the React lifecycle.
+     //
+     // See https://reactjs.org/docs/integrating-with-other-libraries.html
+-    this.instantiateEditor();
+-  }
+-  componentDidMount() {
+-    // The component has been rendered to the DOM, so we can now focus
+-    // the editor, if required.
+     this.focus();
+   }
+   componentWillUnmount() {
+     this.destroyEditor();
+   }
+@@ -207,17 +187,9 @@
+     this.setEditorSelection(this.quill, this.state.selection);
+   }
+ 
+-  /*
+-  We can't update this.quill, as it is a reference to a Quill instance.
+-  We can, however, update its configuration, by destroying and
+-  re-instantiating it, which is not ideal and will cause problems if any
+-  of the modules saves independent state.
+-  */
+   componentDidUpdate(prevProps, prevState) {
+-    // If we could do this without destroying the editor, we would.
+-    // See: https://github.com/quilljs/quill/issues/1236
+     if (this.shouldComponentUpdate(prevProps, prevState)) {
+-      this.destroyEditor();
+-      this.instantiateEditor();
++      // The component has been updated, so we can now focus the editor,
++      // if required.
+       this.focus();
+     }
+   }
+@@ -226,11 +198,14 @@
+ 
+   instantiateEditor() {
+     if (this.quill) return;
+-    this.quill = new _quill.default(this.getEditorElement(), this.getEditingArea(), this.getEditorConfig());
++    this.quill = new _quill.default(this.editorRef.current, this.getEditorConfig());
+   }
+   destroyEditor() {
+     if (!this.quill) return;
+-    this.quill.off('selection-change', this.onEditorSelectionChange);
+     this.quill.off('text-change', this.onEditorChange);
++    this.quill.off('selection-change', this.onEditorSelectionChange);
++    // if (this.quill.container) this.quill.container.remove();
++    // this.quill.container = null;
+     this.quill = null;
+   }
+   getEditorElement() {
+@@ -341,12 +316,23 @@
+     return new _unprivilegedEditor.default(this.quill);
+   }
+ 
+-  /*
+-  Renders the editor in a restrictive `<div>`
+-  */
++  constructor(props) {
++    super(props);
++    this.state = this.getInitialState();
++    this.editorRef = /*#__PURE__*/_react.default.createRef();
++  }
+   render() {
+-    return /*#__PURE__*/_react.default.createElement("div", {
+-      id: this.props.id,
+-      style: this.props.style,
+-      key: this.state.generation,
+-      className: `quill ${this.props.className || ''}`,
+-      onKeyPress: this.props.onKeyPress,
+-      onKeyDown: this.props.onKeyDown,
+-      onKeyUp: this.props.onKeyUp,
+-      onBlur: this.onBlur
+-    });
++    const props = {
++      ref: this.editorRef,
++      id: this.props.id,
++      style: this.props.style,
++      className: `quill ${this.props.className || ''}`
++    };
++    const children = this.props.children;
++    const onKeyPress = this.props.onKeyPress;
++    const onKeyDown = this.props.onKeyDown;
++    const onKeyUp = this.props.onKeyUp;
++    const onBlur = this.onBlur;
++    return /*#__PURE__*/_react.default.createElement("div", _extends({}, props, {
++      onKeyPress: onKeyPress,
++      onKeyDown: onKeyDown,
++      onKeyUp: onKeyUp,
++      onBlur: onBlur
++    }), children);
+   }
+ }
+ exports.default = ReactQuill;
+\ No newline at end of file
