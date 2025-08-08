@@ -166,7 +166,31 @@ const initialMasterData = {
         { value: 'suspension', label: 'Suspension' },
     ],
     signatureRules: [],
-    hrTemplates: [],
+    hrTemplates: [
+      {
+        id: "HRT-PROMOTION-SAMPLE",
+        name: "Sample Promotion Letter",
+        actionType: "Promotion",
+        status: "active",
+        content: `{{today}}
+
+{{employeeName}}
+{{oldDepartment}}
+Nib International Bank (S.C.)
+
+
+Dear {{firstName}},
+
+I am pleased to inform you that you are promoted to the position of {{newPosition}} under Job Grade {{newJobGrade}} at {{newDepartment}} effective {{effectiveDate}}.
+ 
+As a result of your promotion you are entitled to a monthly basic salary of {{newSalaryInFigures}} ({{newSalaryInWords}}) effective your promotion date.
+
+I would like to take this opportunity to congratulate you on your promotion and wish you a continued success in your career.
+
+
+With regards,`
+      }
+    ],
 };
 
 

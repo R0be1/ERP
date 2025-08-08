@@ -105,6 +105,43 @@ const InfoItem = ({ label, value }: { label: string, value: React.ReactNode }) =
     );
 };
 
+// Function to convert number to words
+const numberToWords = (num: number): string => {
+    const a = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+    const b = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+    
+    if (isNaN(num) || num === null) return '';
+    if (num === 0) return 'Zero';
+
+    const toWords = (n: number): string => {
+        if (n < 20) return a[n];
+        let rem = n % 10;
+        return b[Math.floor(n / 10)] + (rem ? '-' + a[rem] : '');
+    };
+    
+    const numToWords = (n: number) => {
+        if (n < 100) return toWords(n);
+        let rem = n % 100;
+        return a[Math.floor(n/100)] + ' hundred' + (rem > 0 ? ' ' + toWords(rem) : '');
+    }
+
+    let words = '';
+    const crores = Math.floor(num / 10000000);
+    num %= 10000000;
+    const lakhs = Math.floor(num / 100000);
+    num %= 100000;
+    const thousands = Math.floor(num / 1000);
+    num %= 1000;
+    const hundreds = num;
+
+    if (crores > 0) words += numToWords(crores) + ' crore ';
+    if (lakhs > 0) words += numToWords(lakhs) + ' lakh ';
+    if (thousands > 0) words += numToWords(thousands) + ' thousand ';
+    if (hundreds > 0) words += numToWords(hundreds);
+
+    return words.trim().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+};
+
 
 export default function PersonnelActionsPage() {
     const router = useRouter();
@@ -379,22 +416,29 @@ export default function PersonnelActionsPage() {
         
         let content = template.content;
         const { details } = selectedAction;
-        const newPosition = masterData.jobTitles.find((jt: any) => jt.value === (details.newJobTitle || details.actingJobTitle))?.label || 'N/A';
+        const newJobTitleDetails = masterData.jobTitles.find((jt: any) => jt.value === (details.newJobTitle || details.actingJobTitle));
+        const newPosition = newJobTitleDetails?.label || 'N/A';
+        const newJobGrade = masterData.jobGrades.find((jg: any) => jg.value === newJobTitleDetails?.jobGrade)?.label || '';
         const newDepartment = masterData.departments.find((d: any) => d.value === details.newDepartment)?.label || currentEmployeeRecord.department;
         const newManager = employees.find(e => e.id === details.newManager)?.name || 'N/A';
+        const newSalaryInFigures = details.newSalary ? `${Number(details.newSalary).toLocaleString()} ETB` : '';
+        const newSalaryInWords = details.newSalary ? numberToWords(Number(details.newSalary)) + ' ETB' : '';
 
         const placeholders: { [key: string]: string } = {
             '{{employeeName}}': currentEmployeeRecord.name,
+            '{{firstName}}': currentEmployeeRecord.firstName,
             '{{employeeId}}': currentEmployeeRecord.employeeId,
             '{{effectiveDate}}': format(new Date(selectedAction.effectiveDate), "MMMM dd, yyyy"),
             '{{today}}': format(new Date(), "MMMM dd, yyyy"),
             '{{newPosition}}': newPosition,
+            '{{newJobGrade}}': newJobGrade,
             '{{newDepartment}}': newDepartment,
             '{{oldPosition}}': currentEmployeeRecord.position,
             '{{oldDepartment}}': currentEmployeeRecord.department,
             '{{newManager}}': newManager,
             '{{oldManager}}': currentEmployeeRecord.manager || 'N/A',
-            '{{newSalary}}': details.newSalary ? `${Number(details.newSalary).toLocaleString()} ETB` : '',
+            '{{newSalaryInFigures}}': newSalaryInFigures,
+            '{{newSalaryInWords}}': newSalaryInWords,
             '{{actingPosition}}': newPosition,
             '{{actingStartDate}}': details.startDate ? format(new Date(details.startDate), "MMMM dd, yyyy") : 'N/A',
             '{{actingEndDate}}': details.endDate ? format(new Date(details.endDate), "MMMM dd, yyyy") : 'N/A',
@@ -716,6 +760,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
