@@ -200,6 +200,8 @@ With regards,`
 
 This is to certify that {{employeeName}} has been in the service of Nib International Bank since {{joinDate}}. During this period, the captioned employee has been serving on the following job position(s):
 
+{{internalExperienceTable}}
+
 {{pronoun}} is entitled a monthly basic salary of Birr {{salaryInFigures}} (Birr {{salaryInWords}}). All necessary income tax has been regularly deducted from the employee’s taxable income(s) and duly paid to the concerned government organ(s).
 
 This work experience letter is issued upon the request of the employee.

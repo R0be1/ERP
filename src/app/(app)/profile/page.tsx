@@ -356,7 +356,7 @@ export default function ProfilePage() {
             toast({
                 variant: 'destructive',
                 title: 'No Active Template',
-                description: `An active Work Experience Letter template could not be found. Please configure one in HR Document Management.`,
+                description: `An active Work Experience Letter template could not be found.`,
             });
             setIsGenerating(false);
             return;
@@ -397,30 +397,32 @@ export default function ProfilePage() {
             }
 
             // Render PDF
-            let yPos = 50;
-            const pdfWidth = doc.internal.pageSize.getWidth();
-            const pdfHeight = doc.internal.pageSize.getHeight();
+            let yPos = 60;
             const margin = 20;
-            const contentWidth = pdfWidth - (margin * 2);
+            const contentWidth = doc.internal.pageSize.getWidth() - (margin * 2);
 
             if (masterData.letterhead?.applyToLetters && masterData.letterhead.image) {
-                const letterheadImg = new Image();
-                letterheadImg.src = masterData.letterhead.image;
-                doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                doc.addImage(masterData.letterhead.image, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
             }
 
             if (employee.avatar) {
-                const photoImg = new Image();
-                photoImg.src = employee.avatar;
-                doc.addImage(photoImg, 'PNG', margin, yPos - 10, 30, 40);
+                doc.addImage(employee.avatar, 'PNG', margin, yPos - 10, 30, 40);
             }
+            
+            const tablePlaceholder = '{{internalExperienceTable}}';
+            const [beforeTable, afterTable] = content.split(tablePlaceholder);
 
-            const textLines = doc.splitTextToSize(content, contentWidth);
-            doc.text(textLines, margin, yPos, { align: 'justify' });
-            let lastY = yPos + (textLines.length * 7);
+            const renderText = (text: string, startY: number): number => {
+                if (!text.trim()) return startY;
+                const lines = doc.splitTextToSize(text, contentWidth);
+                doc.text(lines, margin, startY, { align: 'justify' });
+                return startY + (lines.length * 7);
+            };
+
+            let lastY = renderText(beforeTable, yPos);
 
             // Add internal experience table
-            const tableData = employee.internalExperience.map(exp => [
+            const tableData = (employee.internalExperience || []).map(exp => [
                 formatDate(exp.startDate),
                 exp.endDate ? formatDate(exp.endDate) : 'Present',
                 exp.title,
@@ -434,6 +436,10 @@ export default function ProfilePage() {
                 headStyles: { fillColor: [70, 130, 180] },
             });
             lastY = (doc as any).autoTable.previous.finalY;
+
+            if (afterTable) {
+                lastY = renderText(afterTable, lastY + 10);
+            }
 
             if (rule) {
                 const signatureImg = new Image();
