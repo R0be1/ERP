@@ -460,32 +460,35 @@ export default function PersonnelActionsPage() {
         for (const [key, value] of Object.entries(placeholders)) {
             content = content.replace(new RegExp(key, 'g'), value);
         }
+        
+        const employeeJobCategoryValue = masterData.jobCategories.find(jc => jc.label === currentEmployeeRecord.jobCategory)?.value || '';
+        const employeeJobTitleValue = masterData.jobTitles.find(jt => jt.label === currentEmployeeRecord.position)?.value || '';
 
         // Handle CC
         const ccRule = (masterData.carbonCopyRules || []).find((r: any) => 
             r.status === 'active' &&
             r.actionTypes.includes(selectedAction.type) &&
-            (!r.jobCategories.length || r.jobCategories.includes(currentEmployeeRecord.jobCategoryValue)) &&
-            (!r.jobTitles.length || r.jobTitles.includes(currentEmployeeRecord.positionValue))
+            (!r.jobCategories.length || r.jobCategories.includes(employeeJobCategoryValue)) &&
+            (!r.jobTitles.length || r.jobTitles.includes(employeeJobTitleValue))
         );
 
-        let ccList: string[] = [];
+        let ruleRecipients: string[] = [];
         if (ccRule) {
             const deptLabels = (ccRule.ccDepartments || []).map((deptValue: string) => masterData.departments.find((d: any) => d.value === deptValue)?.label).filter(Boolean);
-            ccList.push(...deptLabels);
+            ruleRecipients.push(...deptLabels);
             if (ccRule.ccFreeText) {
-                ccList.push(...ccRule.ccFreeText.split(',').map((s: string) => s.trim()));
+                ruleRecipients.push(...ccRule.ccFreeText.split(',').map((s: string) => s.trim()));
             }
         }
         
-        // Add departments to CC list
-        const ccDepartments = new Set<string>();
-        if(oldDepartmentLabel) ccDepartments.add(oldDepartmentLabel);
-        if(oldParentDeptLabel) ccDepartments.add(oldParentDeptLabel);
-        if(newDepartmentLabel) ccDepartments.add(newDepartmentLabel);
-        if(newParentDeptLabel) ccDepartments.add(newParentDeptLabel);
+        // Add related departments to CC list
+        const relatedDepartments = new Set<string>();
+        if(oldDepartmentLabel) relatedDepartments.add(oldDepartmentLabel);
+        if(oldParentDeptLabel) relatedDepartments.add(oldParentDeptLabel);
+        if(newDepartmentLabel) relatedDepartments.add(newDepartmentLabel);
+        if(newParentDeptLabel) relatedDepartments.add(newParentDeptLabel);
 
-        const allCcRecipients = [...new Set([...Array.from(ccDepartments), ...ccList])];
+        const allCcRecipients = [...new Set([...Array.from(relatedDepartments), ...ruleRecipients])];
         const ccSection = allCcRecipients.length > 0 ? `\n\nCC:\n${allCcRecipients.map(r => `- ${r}`).join('\n')}` : '';
         content += ccSection;
 
@@ -494,13 +497,12 @@ export default function PersonnelActionsPage() {
         // Find and attach the signature rule automatically
         const signatureRules = masterData.signatureRules || [];
         const today = new Date();
-        const employeeJobCategory = currentEmployeeRecord.jobCategory?.toLowerCase().replace(/\s+/g, '-') || '';
         
         const signatureRule = signatureRules.find((r: any) =>
             r.documentType === 'memo' &&
             r.status === 'active' &&
             r.actionTypes.includes(selectedAction.type) &&
-            r.jobCategories.includes(employeeJobCategory) &&
+            r.jobCategories.includes(employeeJobCategoryValue) &&
             new Date(r.startDate) <= today &&
             (!r.endDate || new Date(r.endDate) >= today)
         );
@@ -813,6 +815,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
