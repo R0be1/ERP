@@ -82,7 +82,7 @@ const MultiSelectCombobox = ({ items, selected, onChange, placeholder, disabled 
     );
 };
 
-const TemplateForm = ({ onSave, onCancel, initialData }: { onSave: (template: any) => void, onCancel: () => void, initialData: any | null }) => {
+const MemoTemplateForm = ({ onSave, onCancel, initialData }: { onSave: (template: any) => void, onCancel: () => void, initialData: any | null }) => {
     const initialFormState = {
         id: '',
         name: '',
@@ -133,6 +133,47 @@ const TemplateForm = ({ onSave, onCancel, initialData }: { onSave: (template: an
         </>
     );
 };
+
+const LetterTemplateForm = ({ onSave, onCancel, initialData }: { onSave: (template: any) => void, onCancel: () => void, initialData: any | null }) => {
+    const initialFormState = {
+        id: '',
+        name: '',
+        content: '',
+        status: 'active',
+    };
+    const [template, setTemplate] = useState(initialData ? { ...initialFormState, ...initialData } : initialFormState);
+
+    const handleFieldChange = (field: string, value: any) => {
+        setTemplate(prev => ({ ...prev, [field]: value }));
+    };
+
+    return (
+        <>
+            <div className="grid gap-6 py-4 max-h-[70vh] overflow-y-auto pr-4">
+                <div className="grid gap-2">
+                    <Label htmlFor="name">Template Name</Label>
+                    <Input id="name" value={template.name} onChange={e => handleFieldChange('name', e.target.value)} />
+                </div>
+                <div className="grid gap-2">
+                    <Label htmlFor="content">Template Content</Label>
+                    <Textarea id="content" value={template.content} onChange={e => handleFieldChange('content', e.target.value)} rows={12} />
+                     <p className="text-xs text-muted-foreground">
+                        Placeholders: {'{{employeeName}}'}, {'{{joinDate}}'}, {'{{currentPosition}}'}, {'{{currentDepartment}}'}, {'{{salaryInFigures}}'}, {'{{salaryInWords}}'}, {'{{pronoun}}'} (He/She)
+                    </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Switch id="status" checked={template.status === 'active'} onCheckedChange={c => handleFieldChange('status', c ? 'active' : 'inactive')} />
+                    <Label htmlFor="status">{template.status === 'active' ? 'Active' : 'Inactive'}</Label>
+                </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button type="button" variant="ghost" onClick={onCancel}>Cancel</Button></DialogClose>
+                <Button onClick={() => onSave(template)}>Save Template</Button>
+            </DialogFooter>
+        </>
+    );
+};
+
 
 const CarbonCopyRuleForm = ({ masterData, onSave, onCancel, initialData }: { masterData: any, onSave: (rule: any) => void, onCancel: () => void, initialData: any | null }) => {
     const initialFormState = {
@@ -219,15 +260,15 @@ export default function HRTemplatesPage() {
     const [masterData, setMasterDataState] = useState(getMasterData());
     const { toast } = useToast();
     
-    // For Templates
-    const [isTemplateDialogOpen, setTemplateDialogOpen] = useState(false);
-    const [editingTemplate, setEditingTemplate] = useState<any | null>(null);
+    const [isMemoTemplateDialogOpen, setMemoTemplateDialogOpen] = useState(false);
+    const [editingMemoTemplate, setEditingMemoTemplate] = useState<any | null>(null);
 
-    // For CC Rules
+    const [isLetterTemplateDialogOpen, setLetterTemplateDialogOpen] = useState(false);
+    const [editingLetterTemplate, setEditingLetterTemplate] = useState<any | null>(null);
+
     const [isCcRuleDialogOpen, setCcRuleDialogOpen] = useState(false);
     const [editingCcRule, setEditingCcRule] = useState<any | null>(null);
 
-    // For Letterhead
     const [letterheadState, setLetterheadState] = useState(masterData.letterhead);
 
     useEffect(() => {
@@ -238,22 +279,23 @@ export default function HRTemplatesPage() {
     }, []);
 
     const hrTemplates = useMemo(() => masterData.hrTemplates || [], [masterData]);
+    const experienceLetterTemplates = useMemo(() => masterData.experienceLetterTemplates || [], [masterData]);
     const carbonCopyRules = useMemo(() => masterData.carbonCopyRules || [], [masterData]);
 
-    const handleOpenTemplateDialog = (template: any | null = null) => {
-        setEditingTemplate(template);
-        setTemplateDialogOpen(true);
+    const handleOpenMemoDialog = (template: any | null = null) => {
+        setEditingMemoTemplate(template);
+        setMemoTemplateDialogOpen(true);
     };
 
-    const handleCloseTemplateDialog = () => {
-        setTemplateDialogOpen(false);
-        setEditingTemplate(null);
+    const handleCloseMemoDialog = () => {
+        setMemoTemplateDialogOpen(false);
+        setEditingMemoTemplate(null);
     };
 
-    const handleSaveTemplate = (templateData: any) => {
+    const handleSaveMemoTemplate = (templateData: any) => {
         let updatedTemplates = [...hrTemplates];
-        if (editingTemplate) {
-            const index = updatedTemplates.findIndex(t => t.id === (editingTemplate as any).id);
+        if (editingMemoTemplate) {
+            const index = updatedTemplates.findIndex(t => t.id === (editingMemoTemplate as any).id);
             if (index > -1) updatedTemplates[index] = templateData;
         } else {
             updatedTemplates.push({ ...templateData, id: `HRT${Date.now()}` });
@@ -261,15 +303,47 @@ export default function HRTemplatesPage() {
         const newMasterData = { ...masterData, hrTemplates: updatedTemplates };
         setMasterData(newMasterData);
         setMasterDataState(newMasterData);
-        handleCloseTemplateDialog();
+        handleCloseMemoDialog();
     };
 
-    const handleDeleteTemplate = (id: string) => {
+    const handleDeleteMemoTemplate = (id: string) => {
         const updatedTemplates = hrTemplates.filter((t: any) => t.id !== id);
         const newMasterData = { ...masterData, hrTemplates: updatedTemplates };
         setMasterData(newMasterData);
         setMasterDataState(newMasterData);
     };
+
+    const handleOpenLetterDialog = (template: any | null = null) => {
+        setEditingLetterTemplate(template);
+        setLetterTemplateDialogOpen(true);
+    };
+
+    const handleCloseLetterDialog = () => {
+        setLetterTemplateDialogOpen(false);
+        setEditingLetterTemplate(null);
+    };
+
+    const handleSaveLetterTemplate = (templateData: any) => {
+        let updatedTemplates = [...experienceLetterTemplates];
+        if (editingLetterTemplate) {
+            const index = updatedTemplates.findIndex(t => t.id === (editingLetterTemplate as any).id);
+            if (index > -1) updatedTemplates[index] = templateData;
+        } else {
+            updatedTemplates.push({ ...templateData, id: `ELT${Date.now()}` });
+        }
+        const newMasterData = { ...masterData, experienceLetterTemplates: updatedTemplates };
+        setMasterData(newMasterData);
+        setMasterDataState(newMasterData);
+        handleCloseLetterDialog();
+    };
+
+    const handleDeleteLetterTemplate = (id: string) => {
+        const updatedTemplates = experienceLetterTemplates.filter((t: any) => t.id !== id);
+        const newMasterData = { ...masterData, experienceLetterTemplates: updatedTemplates };
+        setMasterData(newMasterData);
+        setMasterDataState(newMasterData);
+    };
+
 
     const handleOpenCcRuleDialog = (rule: any | null = null) => {
         setEditingCcRule(rule);
@@ -333,13 +407,14 @@ export default function HRTemplatesPage() {
     return (
         <div className="flex flex-col gap-4">
             <h1 className="text-lg font-semibold md:text-2xl">HR Document Management</h1>
-            <Tabs defaultValue="templates">
-                <TabsList>
-                    <TabsTrigger value="templates">Memo Templates</TabsTrigger>
+            <Tabs defaultValue="memo-templates">
+                <TabsList className="flex-wrap h-auto">
+                    <TabsTrigger value="memo-templates">Memo Templates</TabsTrigger>
+                    <TabsTrigger value="letter-templates">Experience Letter Templates</TabsTrigger>
                     <TabsTrigger value="cc-rules">Carbon Copy Rules</TabsTrigger>
                     <TabsTrigger value="letterhead">Letterhead</TabsTrigger>
                 </TabsList>
-                <TabsContent value="templates">
+                <TabsContent value="memo-templates">
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-start">
@@ -347,7 +422,7 @@ export default function HRTemplatesPage() {
                                     <CardTitle>Personnel Action Memo Templates</CardTitle>
                                     <CardDescription>Manage reusable templates for official HR communications.</CardDescription>
                                 </div>
-                                <Button onClick={() => handleOpenTemplateDialog()}><PlusCircle className="mr-2 h-4 w-4" /> Add Template</Button>
+                                <Button onClick={() => handleOpenMemoDialog()}><PlusCircle className="mr-2 h-4 w-4" /> Add Template</Button>
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -371,7 +446,7 @@ export default function HRTemplatesPage() {
                                                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                                                     <DropdownMenuContent>
                                                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                        <DropdownMenuItem onSelect={() => handleOpenTemplateDialog(template)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => handleOpenMemoDialog(template)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
                                                         <AlertDialog>
                                                             <AlertDialogTrigger asChild><DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem></AlertDialogTrigger>
                                                             <AlertDialogContent>
@@ -379,7 +454,59 @@ export default function HRTemplatesPage() {
                                                                 <AlertDialogDescription>This will permanently delete this template.</AlertDialogDescription>
                                                                 <AlertDialogFooter>
                                                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                                    <AlertDialogAction onClick={() => handleDeleteTemplate(template.id)}>Delete</AlertDialogAction>
+                                                                    <AlertDialogAction onClick={() => handleDeleteMemoTemplate(template.id)}>Delete</AlertDialogAction>
+                                                                </AlertDialogFooter>
+                                                            </AlertDialogContent>
+                                                        </AlertDialog>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                 <TabsContent value="letter-templates">
+                    <Card>
+                        <CardHeader>
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <CardTitle>Work Experience Letter Templates</CardTitle>
+                                    <CardDescription>Manage reusable templates for work experience letters.</CardDescription>
+                                </div>
+                                <Button onClick={() => handleOpenLetterDialog()}><PlusCircle className="mr-2 h-4 w-4" /> Add Template</Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Template Name</TableHead>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {experienceLetterTemplates.map((template: any) => (
+                                        <TableRow key={template.id}>
+                                            <TableCell className="font-medium">{template.name}</TableCell>
+                                            <TableCell><Badge variant={template.status === 'active' ? 'secondary' : 'outline'}>{template.status}</Badge></TableCell>
+                                            <TableCell className="text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                                                    <DropdownMenuContent>
+                                                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                                        <DropdownMenuItem onSelect={() => handleOpenLetterDialog(template)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+                                                        <AlertDialog>
+                                                            <AlertDialogTrigger asChild><DropdownMenuItem className="text-red-600" onSelect={(e) => e.preventDefault()}><Trash2 className="mr-2 h-4 w-4" />Delete</DropdownMenuItem></AlertDialogTrigger>
+                                                            <AlertDialogContent>
+                                                                <AlertDialogHeader><AlertDialogTitle>Are you sure?</AlertDialogTitle></AlertDialogHeader>
+                                                                <AlertDialogDescription>This will permanently delete this template.</AlertDialogDescription>
+                                                                <AlertDialogFooter>
+                                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                                    <AlertDialogAction onClick={() => handleDeleteLetterTemplate(template.id)}>Delete</AlertDialogAction>
                                                                 </AlertDialogFooter>
                                                             </AlertDialogContent>
                                                         </AlertDialog>
@@ -486,17 +613,30 @@ export default function HRTemplatesPage() {
                 </TabsContent>
             </Tabs>
             
-
-            <Dialog open={isTemplateDialogOpen} onOpenChange={setTemplateDialogOpen}>
+            <Dialog open={isMemoTemplateDialogOpen} onOpenChange={setMemoTemplateDialogOpen}>
                 <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                        <DialogTitle>{editingTemplate ? 'Edit' : 'Create'} Memo Template</DialogTitle>
+                        <DialogTitle>{editingMemoTemplate ? 'Edit' : 'Create'} Memo Template</DialogTitle>
                         <DialogDescription>Design the content for this HR memo. Use placeholders for dynamic data.</DialogDescription>
                     </DialogHeader>
-                    <TemplateForm
-                        onSave={handleSaveTemplate}
-                        onCancel={handleCloseTemplateDialog}
-                        initialData={editingTemplate}
+                    <MemoTemplateForm
+                        onSave={handleSaveMemoTemplate}
+                        onCancel={handleCloseMemoDialog}
+                        initialData={editingMemoTemplate}
+                    />
+                </DialogContent>
+            </Dialog>
+
+             <Dialog open={isLetterTemplateDialogOpen} onOpenChange={setLetterTemplateDialogOpen}>
+                <DialogContent className="max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>{editingLetterTemplate ? 'Edit' : 'Create'} Experience Letter Template</DialogTitle>
+                        <DialogDescription>Design the content for this letter. Use placeholders for dynamic data.</DialogDescription>
+                    </DialogHeader>
+                    <LetterTemplateForm
+                        onSave={handleSaveLetterTemplate}
+                        onCancel={handleCloseLetterDialog}
+                        initialData={editingLetterTemplate}
                     />
                 </DialogContent>
             </Dialog>

@@ -12,7 +12,6 @@ import { ArrowLeft, Briefcase, Building, Calendar, DollarSign, Edit, Globe, Grad
 import { Badge } from "@/components/ui/badge"
 import { useState, useEffect, useMemo } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { generateExperienceLetter } from "@/ai/flows/generate-experience-letter"
 import { useToast } from "@/hooks/use-toast"
 import { jsPDF } from "jspdf"
 import 'jspdf-autotable';
@@ -333,7 +332,7 @@ export default function ProfilePage() {
         loadData();
 
         const handleStorageChange = (event: StorageEvent) => {
-            if (event.key === 'employees' || event.key === 'personnelActions') {
+            if (event.key === 'employees' || event.key === 'personnelActions' || event.key === 'masterData') {
                 loadData();
             }
         };
@@ -348,10 +347,24 @@ export default function ProfilePage() {
     const handleGenerateLetter = async () => {
         if (!employee) return;
         setIsGenerating(true);
+
+        const template = (masterData.experienceLetterTemplates || []).find(
+            (t: any) => t.status === 'active'
+        );
+
+        if (!template) {
+            toast({
+                variant: 'destructive',
+                title: 'No Active Template',
+                description: `An active Work Experience Letter template could not be found. Please configure one in HR Document Management.`,
+            });
+            setIsGenerating(false);
+            return;
+        }
+
         try {
             const doc = new jsPDF() as jsPDFWithAutoTable;
             
-            // Find the correct signature rule
             const signatureRules = masterData.signatureRules || [];
             const today = new Date();
             const employeeJobCategoryValue = masterData.jobCategories.find(jc => jc.label === employee.jobCategory)?.value || '';
@@ -363,105 +376,85 @@ export default function ProfilePage() {
                 (!r.endDate || new Date(r.endDate) >= today)
             );
 
-            const addContent = (signature: any) => {
-                let yPos = 50; 
-                const pdfWidth = doc.internal.pageSize.getWidth();
-                const pdfHeight = doc.internal.pageSize.getHeight();
-                const margin = 20;
-                const contentWidth = pdfWidth - (margin * 2);
+            // Populate content
+            const salaryInFigures = Number(employee.basicSalary).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const salaryInWords = numberToWords(Number(employee.basicSalary));
 
-                if (masterData.letterhead?.applyToLetters && masterData.letterhead.image) {
-                    const letterheadImg = new Image();
-                    letterheadImg.src = masterData.letterhead.image;
-                    doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
-                }
-
-                if (employee.avatar) {
-                    const photoImg = new Image();
-                    photoImg.src = employee.avatar;
-                    // Place photo on top left
-                    doc.addImage(photoImg, 'PNG', margin, yPos - 10, 30, 40);
-                }
-                
-                const todayDate = new Date();
-                const date = format(todayDate, "MMMM dd, yyyy");
-
-                doc.setFontSize(12);
-                doc.text(date, pdfWidth - margin, yPos, { align: 'right' });
-                
-                yPos += 35; // Adjust Y position to be below the photo
-                doc.setFontSize(16);
-                doc.setFont('helvetica', 'bold');
-                doc.text("To Whom It May Concern", pdfWidth / 2, yPos, { align: 'center' });
-                yPos += 15;
-                
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(12);
-
-                const joinDate = formatDate(employee.joinDate);
-                const introText = `This is to certify that ${employee.name} has been in the service of Nib International Bank since ${joinDate}. During this period, the captioned employee has been serving on the following job position(s):`;
-                const introTextLines = doc.splitTextToSize(introText, contentWidth);
-                doc.text(introTextLines, margin, yPos, { align: 'justify' });
-                
-                yPos += (introTextLines.length * 7);
-
-                const tableData = employee.internalExperience.map(exp => [
-                    formatDate(exp.startDate),
-                    exp.endDate ? formatDate(exp.endDate) : 'Present',
-                    exp.title,
-                ]);
-
-                doc.autoTable({
-                    head: [['Start Date', 'End Date', 'Job Titles']],
-                    body: tableData,
-                    startY: yPos + 5,
-                    margin: { left: margin, right: margin },
-                    headStyles: { fillColor: [70, 130, 180] }, // Soft blue
-                });
-                
-                let lastY = (doc as any).autoTable.previous.finalY;
-                
-                const pronoun = employee.gender === 'female' ? 'She' : 'He';
-                const salaryInBirr = Number(employee.basicSalary).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                const salaryInWords = numberToWords(Number(employee.basicSalary));
-                const salaryText = `${pronoun} is entitled a monthly basic salary of Birr ${salaryInBirr} (Birr ${salaryInWords}). All necessary income tax has been regularly deducted from the employee’s taxable income(s) and duly paid to the concerned government organ(s).`;
-                
-                const salaryTextLines = doc.splitTextToSize(salaryText, contentWidth);
-                doc.text(salaryTextLines, margin, lastY + 10, { align: 'justify' });
-                lastY += 10 + (salaryTextLines.length * 7);
-
-                const closingText = "Please note that this work experience letter does not serve as a release paper.";
-                const closingTextLines = doc.splitTextToSize(closingText, contentWidth);
-                doc.text(closingTextLines, margin, lastY + 10, {});
-                lastY += 10 + (closingTextLines.length * 7);
-
-                
-                if (signature) {
-                    const signatureImg = new Image();
-                    signatureImg.src = signature.signatureImage;
-                    const stampImg = new Image();
-                    stampImg.src = signature.stampImage;
-
-                    const finalY = lastY + 15;
-                    
-                    if (signature.signatureImage) doc.addImage(signatureImg, 'PNG', margin, finalY, 50, 20); // x, y, width, height
-                    if (signature.stampImage) {
-                         const stampSize = 40.64; // 1.6 inches in mm
-                         doc.addImage(stampImg, 'PNG', margin + 50, finalY - 5, stampSize, stampSize);
-                    }
-                    doc.text(signature.signatoryName, margin, finalY + 25);
-                    doc.text(signature.signatoryTitle, margin, finalY + 30);
-                } else {
-                    doc.text("Nib International Bank", margin, lastY + 30);
-                }
-
-
-                doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
-                setIsGenerating(false);
+            const placeholders: { [key: string]: string } = {
+                '{{employeeName}}': employee.name,
+                '{{joinDate}}': formatDate(employee.joinDate),
+                '{{currentPosition}}': employee.position,
+                '{{currentDepartment}}': employee.department,
+                '{{salaryInFigures}}': salaryInFigures,
+                '{{salaryInWords}}': salaryInWords,
+                '{{pronoun}}': employee.gender === 'female' ? 'She' : 'He',
+                '{{today}}': format(today, "MMMM dd, yyyy"),
             };
 
-            addContent(rule);
+            let content = template.content;
+            for (const [key, value] of Object.entries(placeholders)) {
+                content = content.replace(new RegExp(key.replace(/{{|}}/g, ''), 'g'), value);
+            }
 
+            // Render PDF
+            let yPos = 50;
+            const pdfWidth = doc.internal.pageSize.getWidth();
+            const pdfHeight = doc.internal.pageSize.getHeight();
+            const margin = 20;
+            const contentWidth = pdfWidth - (margin * 2);
+
+            if (masterData.letterhead?.applyToLetters && masterData.letterhead.image) {
+                const letterheadImg = new Image();
+                letterheadImg.src = masterData.letterhead.image;
+                doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            }
+
+            if (employee.avatar) {
+                const photoImg = new Image();
+                photoImg.src = employee.avatar;
+                doc.addImage(photoImg, 'PNG', margin, yPos - 10, 30, 40);
+            }
+
+            const textLines = doc.splitTextToSize(content, contentWidth);
+            doc.text(textLines, margin, yPos, { align: 'justify' });
+            let lastY = yPos + (textLines.length * 7);
+
+            // Add internal experience table
+            const tableData = employee.internalExperience.map(exp => [
+                formatDate(exp.startDate),
+                exp.endDate ? formatDate(exp.endDate) : 'Present',
+                exp.title,
+            ]);
+
+            doc.autoTable({
+                head: [['Start Date', 'End Date', 'Job Titles']],
+                body: tableData,
+                startY: lastY + 5,
+                margin: { left: margin, right: margin },
+                headStyles: { fillColor: [70, 130, 180] },
+            });
+            lastY = (doc as any).autoTable.previous.finalY;
+
+            if (rule) {
+                const signatureImg = new Image();
+                signatureImg.src = rule.signatureImage;
+                const stampImg = new Image();
+                stampImg.src = rule.stampImage;
+
+                const finalY = lastY + 15;
+                
+                if (rule.signatureImage) doc.addImage(signatureImg, 'PNG', margin, finalY, 50, 20);
+                if (rule.stampImage) {
+                    const stampSize = 40.64;
+                    doc.addImage(stampImg, 'PNG', margin + 50, finalY - 5, stampSize, stampSize);
+                }
+                doc.text(rule.signatoryName, margin, finalY + 25);
+                doc.text(rule.signatoryTitle, margin, finalY + 30);
+            } else {
+                doc.text("Nib International Bank", margin, lastY + 30);
+            }
+
+            doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
         } catch (error) {
             console.error("Failed to generate experience letter", error);
             toast({
@@ -469,6 +462,7 @@ export default function ProfilePage() {
                 title: "Error",
                 description: "Failed to generate experience letter. Please try again.",
             });
+        } finally {
             setIsGenerating(false);
         }
     };
@@ -715,23 +709,3 @@ export default function ProfilePage() {
         </div>
     )
 }
-
-
-    
-
-    
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-

@@ -191,6 +191,22 @@ I would like to take this opportunity to congratulate you on your promotion and 
 With regards,`
       }
     ],
+    experienceLetterTemplates: [
+        {
+            id: "ELT-STANDARD-01",
+            name: "Standard Experience Letter",
+            status: "active",
+            content: `To Whom It May Concern,
+
+This is to certify that {{employeeName}} has been in the service of Nib International Bank since {{joinDate}}. During this period, the captioned employee has been serving on the following job position(s):
+
+{{pronoun}} is entitled a monthly basic salary of Birr {{salaryInFigures}} (Birr {{salaryInWords}}). All necessary income tax has been regularly deducted from the employee’s taxable income(s) and duly paid to the concerned government organ(s).
+
+This work experience letter is issued upon the request of the employee.
+
+Please note that this work experience letter does not serve as a release paper.`
+        }
+    ],
     carbonCopyRules: [],
     letterhead: {
         image: null,
