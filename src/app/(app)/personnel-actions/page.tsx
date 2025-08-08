@@ -572,11 +572,9 @@ export default function PersonnelActionsPage() {
         if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
             const letterheadImg = new Image();
             letterheadImg.src = masterData.letterhead.image;
-            const imgProps = doc.getImageProperties(letterheadImg.src);
             const pdfWidth = doc.internal.pageSize.getWidth();
-            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, imgHeight);
-            yPos = imgHeight + 10;
+            const pdfHeight = doc.internal.pageSize.getHeight();
+            doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
         }
 
         doc.setFontSize(12);
@@ -876,6 +874,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 

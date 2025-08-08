@@ -138,11 +138,9 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
         if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
             const letterheadImg = new Image();
             letterheadImg.src = masterData.letterhead.image;
-            const imgProps = doc.getImageProperties(letterheadImg.src);
             const pdfWidth = doc.internal.pageSize.getWidth();
-            const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-            doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, imgHeight);
-            yPos = imgHeight + 10;
+            const pdfHeight = doc.internal.pageSize.getHeight();
+            doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
         }
 
         doc.setFontSize(12);
@@ -183,6 +181,15 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
 
         if (ccListString) {
             const ccLines = doc.splitTextToSize(ccListString, 170);
+            const pageHeight = doc.internal.pageSize.getHeight();
+            const ccHeight = doc.getTextDimensions(ccLines).h;
+             if (lastY + ccHeight > pageHeight - 20) {
+                 doc.addPage();
+                 lastY = 20;
+                 if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
+                    doc.addImage(masterData.letterhead.image, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
+                 }
+             }
             doc.text(ccLines, 20, lastY + 10);
         }
 
@@ -357,16 +364,14 @@ export default function ProfilePage() {
 
             const addContent = (signature: any) => {
                 let yPos = 20;
+                const pdfWidth = doc.internal.pageSize.getWidth();
+                const pdfHeight = doc.internal.pageSize.getHeight();
 
                 // Add letterhead if applicable
                 if (masterData.letterhead?.applyToLetters && masterData.letterhead.image) {
                     const letterheadImg = new Image();
                     letterheadImg.src = masterData.letterhead.image;
-                    const imgProps = doc.getImageProperties(letterheadImg.src);
-                    const pdfWidth = doc.internal.pageSize.getWidth();
-                    const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-                    doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, imgHeight);
-                    yPos = imgHeight + 10;
+                    doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
                 }
                 
                 const todayDate = new Date();
@@ -711,6 +716,7 @@ export default function ProfilePage() {
 
 
     
+
 
 
 
