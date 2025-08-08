@@ -129,7 +129,7 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
 
     const handleDownloadMemo = () => {
         if (!action.memoContent) return;
-        const doc = new jsPDF();
+        const doc = new jsPDF() as jsPDFWithAutoTable;
         const employeeName = allEmployees.find(e => e.id === action.employeeId)?.name || 'employee';
 
         doc.setFontSize(18);
@@ -140,6 +140,24 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
         doc.setFont("helvetica", "normal");
         
         doc.text(action.memoContent, 20, 40, { maxWidth: 170 });
+        
+        const lastY = doc.getTextDimensions(action.memoContent, { maxWidth: 170 }).y;
+        
+        // Add signature and stamp if they exist on the action
+        if (action.signature && action.stamp) {
+            const signatureImg = new Image();
+            signatureImg.src = action.signature.signatureImage;
+            
+            const stampImg = new Image();
+            stampImg.src = action.signature.stampImage;
+
+            const finalY = lastY + 50;
+
+            doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
+            doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
+            doc.text(action.signature.signatoryName, 20, finalY + 25);
+            doc.text(action.signature.signatoryTitle, 20, finalY + 30);
+        }
 
         doc.save(`Memo_${action.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
     };
@@ -298,7 +316,18 @@ export default function ProfilePage() {
         try {
             const doc = new jsPDF() as jsPDFWithAutoTable;
             
-            const addContent = () => {
+            // Find the correct signature rule
+            const signatureRules = masterData.signatureRules || [];
+            const today = new Date();
+            const rule = signatureRules.find((r: any) => 
+                r.documentType === 'letter' &&
+                r.status === 'active' &&
+                r.jobCategories.includes(employee.jobCategory.toLowerCase().replace(/\s+/g, '-')) && // Assuming jobCategory value is stored this way
+                new Date(r.startDate) <= today &&
+                (!r.endDate || new Date(r.endDate) >= today)
+            );
+
+            const addContent = (signature: any) => {
                 const today = new Date();
                 const date = format(today, "MMMM dd, yyyy");
 
@@ -328,7 +357,7 @@ export default function ProfilePage() {
                     headStyles: { fillColor: [70, 130, 180] }, // Soft blue
                 });
                 
-                const lastTableY = doc.autoTable.previous.finalY;
+                let lastTableY = (doc as any).autoTable.previous.finalY;
                 
                 const pronoun = employee.gender === 'female' ? 'She' : 'He';
                 const salaryInBirr = Number(employee.basicSalary).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -337,32 +366,33 @@ export default function ProfilePage() {
                 
                 doc.text(salaryText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40, align: 'justify' });
 
+                lastTableY = (doc as any).getTextDimensions(salaryText, { maxWidth: doc.internal.pageSize.getWidth() - 40 }).y + lastTableY + 15;
+
                 const closingText = "Please note that this work experience letter does not serve as a release paper.";
-                doc.text(closingText, 20, lastTableY + 35, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
+                doc.text(closingText, 20, lastTableY + 15, { maxWidth: doc.internal.pageSize.getWidth() - 40 });
                 
-                doc.text("Nib International Bank", 20, lastTableY + 60);
+                if (signature) {
+                    const signatureImg = new Image();
+                    signatureImg.src = signature.signatureImage;
+                    const stampImg = new Image();
+                    stampImg.src = signature.stampImage;
+
+                    const finalY = lastTableY + 40;
+                    
+                    doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
+                    doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
+                    doc.text(signature.signatoryName, 20, finalY + 25);
+                    doc.text(signature.signatoryTitle, 20, finalY + 30);
+                } else {
+                    doc.text("Nib International Bank", 20, lastTableY + 60);
+                }
+
 
                 doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
                 setIsGenerating(false);
             };
 
-            const img = new Image();
-            img.crossOrigin = "anonymous";
-            img.src = employee.avatar;
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0);
-                const dataURL = canvas.toDataURL('image/png');
-                doc.addImage(dataURL, 'PNG', 20, 10, 30, 30);
-                addContent();
-            };
-            img.onerror = () => {
-                console.error("Failed to load image for PDF");
-                addContent();
-            }
+            addContent(rule);
 
         } catch (error) {
             console.error("Failed to generate experience letter", error);
@@ -627,3 +657,4 @@ export default function ProfilePage() {
 
 
     
+

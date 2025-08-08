@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { 
     Settings, GitBranch, ScrollText, Building, Briefcase, Tag, Layers, School, 
-    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star, Search, DollarSign, AlertTriangle
+    Landmark, Map, GraduationCap, BookUser, RadioTower, Library, User, MapPin, Building2, Star, Search, DollarSign, AlertTriangle, PencilRuler
 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -42,6 +42,13 @@ const configAreas = [
         title: "Salary Structure",
         description: "Define structured salary scales and related allowances.",
         path: "/salary-structure"
+    },
+    {
+        id: "signature-stamp",
+        icon: PencilRuler,
+        title: "Signature & Stamp",
+        description: "Manage rules for document signatories and stamps.",
+        path: "/configuration/signature-stamp"
     }
 ];
 

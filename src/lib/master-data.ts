@@ -165,6 +165,7 @@ const initialMasterData = {
         { value: 'final-warning', label: 'Final Warning' },
         { value: 'suspension', label: 'Suspension' },
     ],
+    signatureRules: [],
 };
 
 

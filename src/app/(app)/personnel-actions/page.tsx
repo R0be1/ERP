@@ -43,6 +43,7 @@ import { employees as initialEmployeesList } from "@/lib/data";
 import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import jsPDF from "jspdf";
+import 'jspdf-autotable';
 import { format, subDays } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -472,18 +473,30 @@ The Management`;
     const handleSaveMemo = () => {
         if (!selectedAction) return;
 
+        // Find the signature rule
+        const signatureRules = masterData.signatureRules || [];
+        const today = new Date();
+        const rule = signatureRules.find((r: any) =>
+            r.documentType === 'memo' &&
+            r.status === 'active' &&
+            r.actionTypes.includes(selectedAction.type) &&
+            r.jobCategories.includes(currentEmployeeRecord?.jobCategory.toLowerCase().replace(/\s+/g, '-')) &&
+            new Date(r.startDate) <= today &&
+            (!r.endDate || new Date(r.endDate) >= today)
+        );
+
         const updatedActions = personnelActions.map(action => 
-            action.id === selectedAction.id ? { ...action, memoContent: memoContent } : action
+            action.id === selectedAction.id ? { ...action, memoContent: memoContent, signature: rule } : action
         );
         setPersonnelActions(updatedActions);
         
-        setSelectedAction(prev => ({...prev, memoContent: memoContent }));
+        setSelectedAction(prev => ({...prev, memoContent: memoContent, signature: rule }));
 
         toast({ title: "Memo Saved", description: "The memo content has been saved with this action." });
     };
 
     const downloadMemoPdf = () => {
-        const doc = new jsPDF();
+        const doc = new jsPDF() as any;
         const employeeName = currentEmployeeRecord?.name || 'employee';
         
         doc.setFontSize(18);
@@ -493,7 +506,26 @@ The Management`;
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         
-        doc.text(memoContent, 20, 40, { maxWidth: 170 });
+        const textLines = doc.splitTextToSize(memoContent, 170);
+        doc.text(textLines, 20, 40);
+
+        let lastY = doc.getTextDimensions(textLines).h + 40;
+        
+        // Add signature and stamp if they exist on the action
+        if (selectedAction.signature) {
+            const signatureImg = new Image();
+            signatureImg.src = selectedAction.signature.signatureImage;
+            
+            const stampImg = new Image();
+            stampImg.src = selectedAction.signature.stampImage;
+
+            const finalY = lastY + 20;
+
+            doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
+            doc.addImage(stampImg, 'PNG', 70, finalY - 5, 25, 25);
+            doc.text(selectedAction.signature.signatoryName, 20, finalY + 25);
+            doc.text(selectedAction.signature.signatoryTitle, 20, finalY + 30);
+        }
 
         doc.save(`Memo_${selectedAction?.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
         setMemoDialogOpen(false);
@@ -744,6 +776,7 @@ The Management`;
 
     
     
+
 
 
 
