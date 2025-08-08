@@ -196,17 +196,23 @@ With regards,`
             id: "ELT-STANDARD-01",
             name: "Standard Experience Letter",
             status: "active",
-            content: `To Whom It May Concern,
-
-This is to certify that {{employeeName}} has been in the service of Nib International Bank since {{joinDate}}. During this period, the captioned employee has been serving on the following job position(s):
-
-{{internalExperienceTable}}
-
-{{pronoun}} is entitled a monthly basic salary of Birr {{salaryInFigures}} (Birr {{salaryInWords}}). All necessary income tax has been regularly deducted from the employee’s taxable income(s) and duly paid to the concerned government organ(s).
-
-This work experience letter is issued upon the request of the employee.
-
-Please note that this work experience letter does not serve as a release paper.`
+            content: `
+<p>{{today}}</p>
+<br>
+<p><strong>Subject: <u>Work Experience Letter for {{employeeName}}</u></strong></p>
+<br>
+<p>To Whom It May Concern,</p>
+<br>
+<p>This is to certify that <strong>{{employeeName}}</strong> has been in the service of Nib International Bank since <strong>{{joinDate}}</strong>. During this period, the employee has served in the following job position(s):</p>
+<br>
+<p>{{internalExperienceTable}}</p>
+<br>
+<p>{{pronoun}} is entitled to a monthly basic salary of Birr <strong>{{salaryInFigures}}</strong> (Birr {{salaryInWords}}). All necessary income tax has been regularly deducted from the employee’s taxable income(s) and duly paid to the concerned government organ(s).</p>
+<br>
+<p>This work experience letter is issued upon the request of the employee.</p>
+<br>
+<p><em>Please note that this work experience letter does not serve as a release paper.</em></p>
+`
         }
     ],
     carbonCopyRules: [],
