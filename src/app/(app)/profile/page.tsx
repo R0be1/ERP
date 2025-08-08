@@ -141,6 +141,7 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
             const pdfWidth = doc.internal.pageSize.getWidth();
             const pdfHeight = doc.internal.pageSize.getHeight();
             doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            yPos = 50;
         }
 
         doc.setFontSize(12);
@@ -372,6 +373,7 @@ export default function ProfilePage() {
                     const letterheadImg = new Image();
                     letterheadImg.src = masterData.letterhead.image;
                     doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    yPos = 50; // Set a top margin if letterhead is used
                 }
                 
                 const todayDate = new Date();
@@ -716,6 +718,7 @@ export default function ProfilePage() {
 
 
     
+
 
 
 

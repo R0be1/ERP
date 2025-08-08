@@ -575,6 +575,7 @@ export default function PersonnelActionsPage() {
             const pdfWidth = doc.internal.pageSize.getWidth();
             const pdfHeight = doc.internal.pageSize.getHeight();
             doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            yPos = 50; // Set a top margin if letterhead is used
         }
 
         doc.setFontSize(12);
@@ -874,6 +875,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
