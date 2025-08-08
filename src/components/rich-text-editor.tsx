@@ -5,6 +5,7 @@ import React, { useEffect, useRef } from 'react';
 import 'react-quill/dist/quill.snow.css';
 import type Quill from 'quill';
 import type { ReactQuillProps } from 'react-quill';
+import { cn } from '@/lib/utils';
 
 interface RichTextEditorProps extends Omit<ReactQuillProps, 'value' | 'onChange'> {
   value: string;
