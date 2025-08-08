@@ -451,32 +451,46 @@ export default function PersonnelActionsPage() {
         }
 
         setMemoContent(content);
+
+        // Find and attach the signature rule automatically
+        const signatureRules = masterData.signatureRules || [];
+        const today = new Date();
+        const employeeJobCategory = currentEmployeeRecord.jobCategory?.toLowerCase().replace(/\s+/g, '-') || '';
+        
+        const rule = signatureRules.find((r: any) =>
+            r.documentType === 'memo' &&
+            r.status === 'active' &&
+            r.actionTypes.includes(selectedAction.type) &&
+            r.jobCategories.includes(employeeJobCategory) &&
+            new Date(r.startDate) <= today &&
+            (!r.endDate || new Date(r.endDate) >= today)
+        );
+
+        if (rule) {
+            const updatedActions = personnelActions.map(action => 
+                action.id === selectedAction.id ? { ...action, memoContent: content, signature: rule } : action
+            );
+            setPersonnelActions(updatedActions);
+            setSelectedAction(prev => ({...prev, memoContent: content, signature: rule }));
+             toast({ title: "Memo Generated", description: "Signature rule found and applied." });
+        } else {
+             toast({ variant: "destructive", title: "No Signature Rule Found", description: "A valid signature rule could not be found for this action." });
+        }
+
         setMemoDialogOpen(true);
     };
 
     const handleSaveMemo = () => {
         if (!selectedAction) return;
 
-        // Find the signature rule
-        const signatureRules = masterData.signatureRules || [];
-        const today = new Date();
-        const rule = signatureRules.find((r: any) =>
-            r.documentType === 'memo' &&
-            r.status === 'active' &&
-            r.actionTypes.includes(selectedAction.type) &&
-            r.jobCategories.includes(currentEmployeeRecord?.jobCategory.toLowerCase().replace(/\s+/g, '-')) &&
-            new Date(r.startDate) <= today &&
-            (!r.endDate || new Date(r.endDate) >= today)
-        );
-
         const updatedActions = personnelActions.map(action => 
-            action.id === selectedAction.id ? { ...action, memoContent: memoContent, signature: rule } : action
+            action.id === selectedAction.id ? { ...action, memoContent: memoContent } : action
         );
         setPersonnelActions(updatedActions);
         
-        setSelectedAction(prev => ({...prev, memoContent: memoContent, signature: rule }));
+        setSelectedAction(prev => ({...prev, memoContent: memoContent }));
 
-        toast({ title: "Memo Saved", description: "The memo content has been saved with this action." });
+        toast({ title: "Memo Saved", description: "The memo content has been updated." });
     };
 
     const downloadMemoPdf = () => {
@@ -760,6 +774,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
