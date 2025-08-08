@@ -184,8 +184,8 @@ export default function PersonnelActionsPage() {
         if (!Array.isArray(updatedEmployee.internalExperience)) {
             updatedEmployee.internalExperience = [];
         }
-
-        const actionsThatChangeRole = ['Promotion', 'Demotion', 'Lateral Transfer', 'Acting Assignment'];
+        
+        const actionsThatChangeRole = ['Promotion', 'Demotion', 'Lateral Transfer', 'Acting Assignment', 'Transfer'];
         if (actionsThatChangeRole.includes(type)) {
             const currentExperienceIndex = updatedEmployee.internalExperience.findIndex((exp: any) => !exp.endDate || exp.endDate === 'Present' || exp.endDate === '');
             if (currentExperienceIndex > -1) {
@@ -193,11 +193,10 @@ export default function PersonnelActionsPage() {
             }
 
             const jobTitleValue = details.newJobTitle || details.actingJobTitle;
-            const jobTitle = masterData.jobTitles.find((jt:any) => jt.value === jobTitleValue);
+            const jobTitle = jobTitleValue ? masterData.jobTitles.find((jt:any) => jt.value === jobTitleValue) : null;
             
-            // For transfers, the department might change without the job title changing, so use existing department if not provided
-            const departmentValue = details.newDepartment || updatedEmployee.departmentValue;
-            const department = masterData.departments.find((d:any) => d.value === departmentValue);
+            const departmentValue = details.newDepartment;
+            const department = departmentValue ? masterData.departments.find((d:any) => d.value === departmentValue) : null;
 
             const baseTitle = jobTitle?.label || updatedEmployee.position;
             const finalTitle = type === 'Acting Assignment' ? `Acting ${baseTitle}` : baseTitle;
@@ -209,8 +208,7 @@ export default function PersonnelActionsPage() {
                 endDate: '',
                 managerialRole: jobTitle?.jobCategory === 'managerial' || jobTitle?.isHeadOfDepartment || false
             };
-
-            // If it's a temporary acting assignment with a known end, set it
+            
             if (type === 'Acting Assignment' && details.endDate) {
                 newExperience.endDate = details.endDate;
             }
@@ -746,4 +744,5 @@ The Management`;
 
     
     
+
 
