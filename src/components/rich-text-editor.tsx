@@ -24,7 +24,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
     }, []);
 
     useEffect(() => {
-        if (!isClient) return;
+        if (!isClient || !editorRef.current) return;
 
         let quillInstance: Quill | null = null;
         
@@ -32,11 +32,19 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
             if (editorRef.current && !quillRef.current) {
                 const { default: Quill } = await import('quill');
                 
-                // Add line height to formats
-                const Size = Quill.import('attributors/style/size');
-                Quill.register(Size, true);
-
                 const Parchment = Quill.import('parchment');
+
+                // Add Font Size
+                const sizeStyle = Quill.import('attributors/style/size');
+                sizeStyle.whitelist = ['8px', '10px', '12px', '14px', '16px', '18px', '24px', '36px', 'small', 'large', 'huge'];
+                Quill.register(sizeStyle, true);
+                
+                // Add Font Family
+                const fontStyle = Quill.import('attributors/style/font');
+                fontStyle.whitelist = ['arial', 'times-new-roman', 'verdana', 'courier-new', 'georgia', 'comic-sans-ms'];
+                Quill.register(fontStyle, true);
+
+                // Add line height
                 const lineHeightConfig = {
                     scope: Parchment.Scope.BLOCK,
                     whitelist: ['1', '1.5', '2', '2.5', '3']
@@ -48,9 +56,9 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
                     theme: 'snow',
                     modules: {
                          toolbar: [
-                          [{ 'font': [] }],
+                          [{ 'font': ['arial', 'times-new-roman', 'verdana', 'courier-new', 'georgia', 'comic-sans-ms'] }],
                           [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                          [{ 'size': ['small', false, 'large', 'huge'] }],
+                          [{ 'size': ['8px', '10px', '12px', '14px', '16px', '18px', '24px', '36px', 'small', false, 'large', 'huge'] }],
                           ['bold', 'italic', 'underline', 'strike'],
                           [{ 'color': [] }, { 'background': [] }],
                           [{ 'script': 'sub'}, { 'script': 'super' }],
@@ -113,6 +121,70 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
     
     return (
         <div className={cn("quill-editor-container", className)}>
+            <style jsx global>{`
+                .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="arial"]::before,
+                .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="arial"]::before {
+                    content: 'Arial';
+                    font-family: 'Arial', sans-serif;
+                }
+                .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="times-new-roman"]::before,
+                .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="times-new-roman"]::before {
+                    content: 'Times New Roman';
+                    font-family: 'Times New Roman', serif;
+                }
+                .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="verdana"]::before,
+                .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="verdana"]::before {
+                    content: 'Verdana';
+                    font-family: 'Verdana', sans-serif;
+                }
+                 .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="courier-new"]::before,
+                .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="courier-new"]::before {
+                    content: 'Courier New';
+                    font-family: 'Courier New', monospace;
+                }
+                 .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="georgia"]::before,
+                .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="georgia"]::before {
+                    content: 'Georgia';
+                    font-family: 'Georgia', serif;
+                }
+                 .ql-snow .ql-picker.ql-font .ql-picker-label[data-value="comic-sans-ms"]::before,
+                .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="comic-sans-ms"]::before {
+                    content: 'Comic Sans MS';
+                    font-family: 'Comic Sans MS', cursive;
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="8px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="8px"]::before {
+                  content: "8";
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="10px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="10px"]::before {
+                  content: "10";
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="12px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="12px"]::before {
+                  content: "12";
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="14px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="14px"]::before {
+                  content: "14";
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="16px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="16px"]::before {
+                  content: "16";
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="18px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="18px"]::before {
+                  content: "18";
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="24px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="24px"]::before {
+                  content: "24";
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="36px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="36px"]::before {
+                  content: "36";
+                }
+            `}</style>
             <div ref={editorRef} style={{minHeight: '250px'}}></div>
         </div>
     );
