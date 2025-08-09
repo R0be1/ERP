@@ -855,9 +855,7 @@ export default function PersonnelActionsPage() {
                         </div>
                     </div>
                     <DialogFooter>
-                        <DialogClose asChild>
-                            <Button variant="ghost">Cancel</Button>
-                        </DialogClose>
+                        <Button variant="ghost" onClick={() => setMemoDialogOpen(false)}>Cancel</Button>
                         <Button variant="outline" onClick={handleSaveMemo}>Save Memo</Button>
                         <Button onClick={downloadMemoPdf}>
                             <Download className="mr-2 h-4 w-4" />
@@ -872,5 +870,6 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
