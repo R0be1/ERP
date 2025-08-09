@@ -128,72 +128,43 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
 
     const handleDownloadMemo = () => {
         if (!action.memoContent) return;
-        const doc = new jsPDF() as jsPDFWithAutoTable;
+        const doc = new jsPDF();
         const employeeName = allEmployees.find(e => e.id === action.employeeId)?.name || 'employee';
         
-        let yPos = 20;
+        const finalHtml = `
+            <html>
+                <head>
+                    <style>
+                        body { font-family: Helvetica, sans-serif; font-size: 12px; }
+                        p, li { margin: 0; line-height: 1.5; }
+                        ul { margin: 0; padding-left: 20px; }
+                    </style>
+                </head>
+                <body>
+                    ${masterData.letterhead?.applyToMemos && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
+                    <div style="padding: 60pt 50pt;">
+                        ${action.memoContent}
+                        ${action.signature ? `
+                            <div style="margin-top: 20px;">
+                                ${action.signature.signatureImage ? `<img src="${action.signature.signatureImage}" style="width: 150px; height: auto;" />` : ''}
+                                ${action.signature.stampImage ? `<img src="${action.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
+                                <p style="margin: 0; font-weight: bold;">${action.signature.signatoryName || ''}</p>
+                                <p style="margin: 0;">${action.signature.signatoryTitle || ''}</p>
+                            </div>` : '<p style="margin-top: 20px;">Nib International Bank</p>'}
+                    </div>
+                </body>
+            </html>
+        `;
 
-        // Add letterhead if applicable
-        if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
-            const letterheadImg = new Image();
-            letterheadImg.src = masterData.letterhead.image;
-            const pdfWidth = doc.internal.pageSize.getWidth();
-            const pdfHeight = doc.internal.pageSize.getHeight();
-            doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            yPos = 50;
-        }
-
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
-        
-        const memoParts = action.memoContent.split('\n\nCC:\n');
-        const mainBody = memoParts[0];
-        const ccListString = memoParts.length > 1 ? `CC:\n${memoParts[1]}` : '';
-
-        const textLines = doc.splitTextToSize(mainBody, 170);
-        doc.text(textLines, 20, yPos);
-        
-        let lastY = doc.getTextDimensions(textLines).h + yPos;
-        
-        // Add signature and stamp if they exist on the action
-        if (action.signature) {
-            const signatureImg = new Image();
-            signatureImg.src = action.signature.signatureImage;
-            
-            const stampImg = new Image();
-            stampImg.src = action.signature.stampImage;
-
-            const finalY = lastY + 20;
-
-            if (action.signature.signatureImage) doc.addImage(signatureImg, 'PNG', 20, finalY, 50, 20); // x, y, width, height
-            if (action.signature.stampImage) {
-                const stampSize = 40.64; // 1.6 inches in mm
-                doc.addImage(stampImg, 'PNG', 70, finalY - 5, stampSize, stampSize);
-            }
-            doc.text(action.signature.signatoryName, 20, finalY + 25);
-            doc.text(action.signature.signatoryTitle, 20, finalY + 30);
-            lastY = finalY + 35;
-        } else {
-             lastY += 20;
-             doc.text("Nib International Bank", 20, lastY);
-             lastY += 5;
-        }
-
-        if (ccListString) {
-            const ccLines = doc.splitTextToSize(ccListString, 170);
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const ccHeight = doc.getTextDimensions(ccLines).h;
-             if (lastY + ccHeight > pageHeight - 20) {
-                 doc.addPage();
-                 lastY = 20;
-                 if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
-                    doc.addImage(masterData.letterhead.image, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                 }
-             }
-            doc.text(ccLines, 20, lastY + 10);
-        }
-
-        doc.save(`Memo_${action.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
+        doc.html(finalHtml, {
+            callback: function (doc) {
+                doc.save(`Memo_${action.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
+            },
+            x: 0,
+            y: 0,
+            width: 210, // A4 width
+            windowWidth: 800
+        });
     };
 
     const actionDetails = getChangeDetails();
@@ -379,88 +350,80 @@ export default function ProfilePage() {
             // Populate content
             const salaryInFigures = Number(employee.basicSalary).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
             const salaryInWords = numberToWords(Number(employee.basicSalary));
-
-            const placeholders: { [key: string]: string } = {
-                '{{employeeName}}': employee.name,
-                '{{joinDate}}': formatDate(employee.joinDate),
-                '{{currentPosition}}': employee.position,
-                '{{currentDepartment}}': employee.department,
-                '{{salaryInFigures}}': salaryInFigures,
-                '{{salaryInWords}}': salaryInWords,
-                '{{pronoun}}': employee.gender === 'female' ? 'She' : 'He',
-                '{{today}}': format(today, "MMMM dd, yyyy"),
-            };
-
-            let content = template.content;
-            for (const [key, value] of Object.entries(placeholders)) {
-                content = content.replace(new RegExp(key.replace(/{{|}}/g, ''), 'g'), value);
-            }
-
-            // Render PDF
-            let yPos = 60;
-            const margin = 20;
-            const contentWidth = doc.internal.pageSize.getWidth() - (margin * 2);
-
-            if (masterData.letterhead?.applyToLetters && masterData.letterhead.image) {
-                doc.addImage(masterData.letterhead.image, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-            }
-
-            if (employee.avatar) {
-                doc.addImage(employee.avatar, 'PNG', margin, yPos - 10, 30, 40);
-            }
+            const pronoun = employee.gender === 'female' ? 'She' : 'He';
             
-            const tablePlaceholder = '{{internalExperienceTable}}';
-            const [beforeTable, afterTable] = content.split(tablePlaceholder);
+            const tableData = (employee.internalExperience || []).map(exp => `
+                <tr>
+                    <td style="padding: 5px; border: 1px solid #ddd;">${formatDate(exp.startDate)}</td>
+                    <td style="padding: 5px; border: 1px solid #ddd;">${exp.endDate ? formatDate(exp.endDate) : 'Present'}</td>
+                    <td style="padding: 5px; border: 1px solid #ddd;">${exp.title}</td>
+                </tr>`).join('');
 
-            const renderText = (text: string, startY: number): number => {
-                if (!text.trim()) return startY;
-                const lines = doc.splitTextToSize(text, contentWidth);
-                doc.text(lines, margin, startY, { align: 'justify' });
-                return startY + (lines.length * 7);
-            };
+            const tableHtml = `
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #f2f2f2;">Start Date</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #f2f2f2;">End Date</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #f2f2f2;">Job Title</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${tableData}
+                    </tbody>
+                </table>
+            `;
 
-            let lastY = renderText(beforeTable, yPos);
+            let content = template.content
+                .replace(/{{employeeName}}/g, employee.name)
+                .replace(/{{joinDate}}/g, formatDate(employee.joinDate))
+                .replace(/{{currentPosition}}/g, employee.position)
+                .replace(/{{currentDepartment}}/g, employee.department)
+                .replace(/{{salaryInFigures}}/g, salaryInFigures)
+                .replace(/{{salaryInWords}}/g, salaryInWords)
+                .replace(/{{pronoun}}/g, pronoun)
+                .replace(/{{today}}/g, format(today, "MMMM dd, yyyy"))
+                .replace('{{internalExperienceTable}}', tableHtml);
 
-            // Add internal experience table
-            const tableData = (employee.internalExperience || []).map(exp => [
-                formatDate(exp.startDate),
-                exp.endDate ? formatDate(exp.endDate) : 'Present',
-                exp.title,
-            ]);
+            const signatureBlockHtml = rule 
+                ? `
+                    <div style="margin-top: 20px;">
+                        ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
+                        ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
+                        <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
+                        <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
+                    </div>`
+                : '<p style="margin-top: 20px;">Nib International Bank</p>';
 
-            doc.autoTable({
-                head: [['Start Date', 'End Date', 'Job Titles']],
-                body: tableData,
-                startY: lastY + 5,
-                margin: { left: margin, right: margin },
-                headStyles: { fillColor: [70, 130, 180] },
+            const finalHtml = `
+                <html>
+                    <head>
+                        <style>
+                            body { font-family: Helvetica, sans-serif; font-size: 12px; }
+                            p { line-height: 1.6; }
+                            table { font-size: 11px; }
+                        </style>
+                    </head>
+                    <body>
+                         ${masterData.letterhead?.applyToLetters && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
+                        <div style="padding: 70pt 50pt 50pt 50pt;">
+                            ${content}
+                            ${signatureBlockHtml}
+                        </div>
+                    </body>
+                </html>
+            `;
+
+            doc.html(finalHtml, {
+                callback: function (doc) {
+                    doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
+                },
+                x: 0,
+                y: 0,
+                width: 210, // A4 width
+                windowWidth: 800
             });
-            lastY = (doc as any).autoTable.previous.finalY;
 
-            if (afterTable) {
-                lastY = renderText(afterTable, lastY + 10);
-            }
-
-            if (rule) {
-                const signatureImg = new Image();
-                signatureImg.src = rule.signatureImage;
-                const stampImg = new Image();
-                stampImg.src = rule.stampImage;
-
-                const finalY = lastY + 15;
-                
-                if (rule.signatureImage) doc.addImage(signatureImg, 'PNG', margin, finalY, 50, 20);
-                if (rule.stampImage) {
-                    const stampSize = 40.64;
-                    doc.addImage(stampImg, 'PNG', margin + 50, finalY - 5, stampSize, stampSize);
-                }
-                doc.text(rule.signatoryName, margin, finalY + 25);
-                doc.text(rule.signatoryTitle, margin, finalY + 30);
-            } else {
-                doc.text("Nib International Bank", margin, lastY + 30);
-            }
-
-            doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
         } catch (error) {
             console.error("Failed to generate experience letter", error);
             toast({

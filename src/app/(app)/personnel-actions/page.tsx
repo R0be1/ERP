@@ -47,7 +47,6 @@ import 'jspdf-autotable';
 import { format, subDays } from 'date-fns';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { convert } from 'html-to-text';
 import { RichTextEditor } from '@/components/rich-text-editor';
 
 const actionTypes = [
@@ -565,83 +564,50 @@ export default function PersonnelActionsPage() {
     };
 
     const downloadMemoPdf = () => {
-        const doc = new jsPDF() as any;
+        if (!selectedAction || !memoContent) return;
+
+        const doc = new jsPDF();
         const employeeName = currentEmployeeRecord?.name || 'employee';
-        
-        let yPos = 20;
 
-        // Add letterhead if applicable
-        if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
-            const letterheadImg = new Image();
-            letterheadImg.src = masterData.letterhead.image;
-            const pdfWidth = doc.internal.pageSize.getWidth();
-            const pdfHeight = doc.internal.pageSize.getHeight();
-            doc.addImage(letterheadImg, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            yPos = 60; // Set a top margin if letterhead is used
-        }
+        const signatureBlockHtml = selectedAction.signature 
+            ? `
+                <div style="margin-top: 20px;">
+                    ${selectedAction.signature.signatureImage ? `<img src="${selectedAction.signature.signatureImage}" style="width: 150px; height: auto;" />` : ''}
+                    ${selectedAction.signature.stampImage ? `<img src="${selectedAction.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
+                    <p style="margin: 0; font-weight: bold;">${selectedAction.signature.signatoryName || ''}</p>
+                    <p style="margin: 0;">${selectedAction.signature.signatoryTitle || ''}</p>
+                </div>`
+            : '<p style="margin-top: 20px;">Nib International Bank</p>';
 
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "normal");
+        const finalHtml = `
+            <html>
+                <head>
+                    <style>
+                        body { font-family: Helvetica, sans-serif; font-size: 12px; }
+                        p, li { margin: 0; line-height: 1.5; }
+                        ul { margin: 0; padding-left: 20px; }
+                    </style>
+                </head>
+                <body>
+                    ${masterData.letterhead?.applyToMemos && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
+                    <div style="padding: 60pt 50pt;">
+                        ${memoContent}
+                        ${signatureBlockHtml}
+                    </div>
+                </body>
+            </html>
+        `;
 
-        const plainTextContent = convert(memoContent, {
-            wordwrap: 130,
-            selectors: [
-                { selector: 'h1', options: { uppercase: false, prefix: '\n\n', suffix: '\n' } },
-                { selector: 'h2', options: { uppercase: false, prefix: '\n\n', suffix: '\n' } },
-                { selector: 'li', options: { prefix: '- ' } },
-            ]
+        doc.html(finalHtml, {
+            callback: function (doc) {
+                doc.save(`Memo_${selectedAction?.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
+                setMemoDialogOpen(false);
+            },
+            x: 0,
+            y: 0,
+            width: 210, // A4 width in mm
+            windowWidth: 800 // an arbitrary width for the browser rendering context
         });
-    
-        const memoParts = plainTextContent.split('\n\nCC:\n');
-        const mainBody = memoParts[0];
-        const ccListString = memoParts.length > 1 ? `CC:\n${memoParts[1]}` : '';
-    
-        const mainBodyLines = doc.splitTextToSize(mainBody, 170);
-        doc.text(mainBodyLines, 20, yPos);
-        let lastY = doc.getTextDimensions(mainBodyLines).h + yPos;
-    
-        if (selectedAction.signature) {
-            const signatureImg = new Image();
-            signatureImg.src = selectedAction.signature.signatureImage;
-            
-            const stampImg = new Image();
-            stampImg.src = selectedAction.signature.stampImage;
-    
-            const signatureBlockY = lastY + 10;
-    
-            if(selectedAction.signature.signatureImage) {
-                doc.addImage(signatureImg, 'PNG', 20, signatureBlockY, 50, 20); // x, y, width, height
-            }
-            if(selectedAction.signature.stampImage) {
-                const stampSize = 40.64; // 1.6 inches in mm
-                doc.addImage(stampImg, 'PNG', 70, signatureBlockY - 5, stampSize, stampSize);
-            }
-            doc.text(selectedAction.signature.signatoryName, 20, signatureBlockY + 25);
-            doc.text(selectedAction.signature.signatoryTitle, 20, signatureBlockY + 30);
-            
-            lastY = signatureBlockY + 35;
-        } else {
-            lastY += 20;
-            doc.text("Nib International Bank", 20, lastY);
-            lastY += 5;
-        }
-    
-        if (ccListString) {
-            const ccLines = doc.splitTextToSize(ccListString, 170);
-            const pageHeight = doc.internal.pageSize.getHeight();
-            const ccHeight = doc.getTextDimensions(ccLines).h;
-            if (lastY + ccHeight > pageHeight - 20) {
-                 doc.addPage();
-                 lastY = 20;
-                 if (masterData.letterhead?.applyToMemos && masterData.letterhead.image) {
-                     doc.addImage(masterData.letterhead.image, 'PNG', 0, 0, doc.internal.pageSize.getWidth(), doc.internal.pageSize.getHeight());
-                 }
-            }
-            doc.text(ccLines, 20, lastY + 10);
-        }
-    
-        doc.save(`Memo_${selectedAction?.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
-        setMemoDialogOpen(false);
     };
 
     const filteredPersonnelActions = useMemo(() => {
@@ -887,6 +853,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
