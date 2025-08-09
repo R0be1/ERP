@@ -32,6 +32,14 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
             if (editorRef.current && !quillRef.current) {
                 const { default: Quill } = await import('quill');
                 
+                // Add line height to formats
+                const Size = Quill.import('attributors/style/size');
+                Quill.register(Size, true);
+
+                const LineHeight = Quill.import('attributors/style/line-height');
+                LineHeight.whitelist = ['1', '1.5', '2', '2.5', '3'];
+                Quill.register(LineHeight, true);
+                
                 quillInstance = new Quill(editorRef.current, {
                     theme: 'snow',
                     modules: {
@@ -46,6 +54,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
                           [{ 'list': 'ordered'}, { 'list': 'bullet' }],
                           [{ 'indent': '-1'}, { 'indent': '+1' }],
                           [{ 'direction': 'rtl' }, { 'align': [] }],
+                          [{ 'line-height': ['1', '1.5', '2', '2.5', '3'] }],
                           ['link', 'image', 'video'],
                           ['clean']
                         ],
@@ -73,7 +82,9 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
             }
         };
         
-        initializeQuill();
+        if (isClient) {
+            initializeQuill();
+        }
 
         return () => {
             if (quillRef.current) {
