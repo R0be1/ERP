@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import 'react-quill/dist/quill.snow.css';
 import type Quill from 'quill';
 import { cn } from '@/lib/utils';
@@ -17,8 +17,15 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
     const { value, onChange, className, ...rest } = props;
     const quillRef = useRef<Quill | null>(null);
     const editorRef = useRef<HTMLDivElement>(null);
+    const [isClient, setIsClient] = useState(false);
+    
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     useEffect(() => {
+        if (!isClient) return;
+
         let quillInstance: Quill | null = null;
         
         const initializeQuill = async () => {
@@ -28,7 +35,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
                 quillInstance = new Quill(editorRef.current, {
                     theme: 'snow',
                     modules: {
-                        toolbar: [
+                         toolbar: [
                           [{ 'font': [] }],
                           [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
                           [{ 'size': ['small', false, 'large', 'huge'] }],
@@ -65,10 +72,8 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
                 }
             }
         };
-
-        if (typeof window !== 'undefined') {
-            initializeQuill();
-        }
+        
+        initializeQuill();
 
         return () => {
             if (quillRef.current) {
@@ -77,7 +82,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
             }
         };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    }, [isClient]);
 
 
     useEffect(() => {
@@ -87,7 +92,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
         }
     }, [value]);
 
-    if (typeof window === 'undefined') {
+    if (!isClient) {
         return <div className={cn("quill-editor-container", className)} style={{minHeight: '250px', backgroundColor: '#f0f0f0', border: '1px solid #ccc', borderRadius: 'var(--radius)'}}></div>;
     }
     
