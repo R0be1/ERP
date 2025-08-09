@@ -36,9 +36,13 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
                 const Size = Quill.import('attributors/style/size');
                 Quill.register(Size, true);
 
-                const LineHeight = Quill.import('attributors/style/line-height');
-                LineHeight.whitelist = ['1', '1.5', '2', '2.5', '3'];
-                Quill.register(LineHeight, true);
+                const Parchment = Quill.import('parchment');
+                const lineHeightConfig = {
+                    scope: Parchment.Scope.BLOCK,
+                    whitelist: ['1', '1.5', '2', '2.5', '3']
+                };
+                const LineHeightStyle = new Parchment.Attributor.Style('line-height', 'line-height', lineHeightConfig);
+                Quill.register(LineHeightStyle, true);
                 
                 quillInstance = new Quill(editorRef.current, {
                     theme: 'snow',
