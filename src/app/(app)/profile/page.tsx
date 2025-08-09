@@ -399,8 +399,14 @@ export default function ProfilePage() {
                 .replace(/{{salaryInFigures}}/g, salaryInFigures)
                 .replace(/{{salaryInWords}}/g, salaryInWords)
                 .replace(/{{pronoun}}/g, pronoun)
-                .replace(/{{today}}/g, format(today, "MMMM dd, yyyy"))
-                .replace('{{internalExperienceTable}}', tableHtml);
+                .replace(/{{today}}/g, format(today, "MMMM dd, yyyy"));
+
+            // Smartly replace the table placeholder
+            if (content.includes(`<p>{{internalExperienceTable}}</p>`)) {
+                content = content.replace(`<p>{{internalExperienceTable}}</p>`, tableHtml);
+            } else {
+                content = content.replace(`{{internalExperienceTable}}`, tableHtml);
+            }
 
             const signatureBlockHtml = rule 
                 ? `
@@ -715,3 +721,4 @@ export default function ProfilePage() {
         </div>
     )
 }
+
