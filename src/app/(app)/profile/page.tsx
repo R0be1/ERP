@@ -145,7 +145,7 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
                     <div style="padding: 60pt 50pt;">
                         ${action.memoContent}
                         ${action.signature ? `
-                            <div style="margin-top: 20px;">
+                            <div style="margin-top: 20px; position: relative;">
                                 ${action.signature.signatureImage ? `<img src="${action.signature.signatureImage}" style="width: 150px; height: auto;" />` : ''}
                                 ${action.signature.stampImage ? `<img src="${action.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
                                 <p style="margin: 0; font-weight: bold;">${action.signature.signatoryName || ''}</p>
@@ -387,7 +387,7 @@ export default function ProfilePage() {
 
             const signatureBlockHtml = rule 
                 ? `
-                    <div style="margin-top: 20px;">
+                    <div style="margin-top: 20px; position: relative;">
                         ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
                         ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
                         <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
@@ -395,19 +395,28 @@ export default function ProfilePage() {
                     </div>`
                 : '<p style="margin-top: 20px;">Nib International Bank</p>';
 
+             const quillCss = `
+                .ql-align-center { text-align: center; }
+                .ql-align-right { text-align: right; }
+                .ql-align-justify { text-align: justify; }
+                body, .ql-editor { font-family: Helvetica, sans-serif; font-size: 12px; line-height: 1.5; }
+                p { line-height: 1.6; }
+                table { font-size: 11px; }
+            `;
+
             const finalHtml = `
                 <html>
                     <head>
                         <style>
-                            body { font-family: Helvetica, sans-serif; font-size: 12px; }
-                            p { line-height: 1.6; }
-                            table { font-size: 11px; }
+                           ${quillCss}
                         </style>
                     </head>
                     <body>
                          ${masterData.letterhead?.applyToLetters && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
                         <div style="padding: 70pt 50pt 50pt 50pt;">
-                            ${content}
+                            <div class="ql-editor">
+                                ${content}
+                            </div>
                             ${signatureBlockHtml}
                         </div>
                     </body>

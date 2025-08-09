@@ -571,7 +571,7 @@ export default function PersonnelActionsPage() {
 
         const signatureBlockHtml = selectedAction.signature 
             ? `
-                <div style="margin-top: 20px;">
+                <div style="margin-top: 20px; position: relative;">
                     ${selectedAction.signature.signatureImage ? `<img src="${selectedAction.signature.signatureImage}" style="width: 150px; height: auto;" />` : ''}
                     ${selectedAction.signature.stampImage ? `<img src="${selectedAction.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
                     <p style="margin: 0; font-weight: bold;">${selectedAction.signature.signatoryName || ''}</p>
@@ -579,19 +579,30 @@ export default function PersonnelActionsPage() {
                 </div>`
             : '<p style="margin-top: 20px;">Nib International Bank</p>';
 
+        const quillCss = `
+            .ql-align-center { text-align: center; }
+            .ql-align-right { text-align: right; }
+            .ql-align-justify { text-align: justify; }
+            body, .ql-editor { font-family: Helvetica, sans-serif; font-size: 12px; line-height: 1.5; }
+            p, li { margin: 0; }
+            ul { margin: 0; padding-left: 20px; }
+            .ql-font-serif { font-family: serif; }
+            .ql-font-monospace { font-family: monospace; }
+        `;
+
         const finalHtml = `
             <html>
                 <head>
                     <style>
-                        body { font-family: Helvetica, sans-serif; font-size: 12px; }
-                        p, li { margin: 0; line-height: 1.5; }
-                        ul { margin: 0; padding-left: 20px; }
+                       ${quillCss}
                     </style>
                 </head>
                 <body>
                     ${masterData.letterhead?.applyToMemos && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
                     <div style="padding: 60pt 50pt;">
-                        ${memoContent}
+                        <div class="ql-editor">
+                         ${memoContent}
+                        </div>
                         ${signatureBlockHtml}
                     </div>
                 </body>
@@ -853,6 +864,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
