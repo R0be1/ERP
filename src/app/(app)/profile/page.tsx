@@ -140,12 +140,13 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
             .ql-editor ul, .ql-editor ol { padding-left: 1.5em; margin-bottom: 1em; }
             .ql-editor li { padding-left: 0.5em; }
             .ql-editor p, .ql-editor li, .ql-editor h1, .ql-editor h2, .ql-editor h3 { line-height: 1.5; }
-            [class*="ql-line-height-"] { line-height: var(--line-height); }
-            .ql-line-height-1 { --line-height: 1; }
-            .ql-line-height-1-5 { --line-height: 1.5; }
-            .ql-line-height-2 { --line-height: 2; }
-            .ql-line-height-2-5 { --line-height: 2.5; }
-            .ql-line-height-3 { --line-height: 3; }
+            p[data-line-height] { line-height: attr(data-line-height); }
+            .ql-editor [style*="line-height"] { line-height: inherit; }
+            .ql-line-height-1 { line-height: 1; }
+            .ql-line-height-1-5 { line-height: 1.5; }
+            .ql-line-height-2 { line-height: 2; }
+            .ql-line-height-2-5 { line-height: 2.5; }
+            .ql-line-height-3 { line-height: 3; }
         `;
 
         const finalHtml = `
@@ -158,7 +159,9 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
                 <body>
                     ${masterData.letterhead?.applyToMemos && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
                     <div style="padding: 60pt 50pt;">
-                        <div class="ql-editor">${action.memoContent}</div>
+                        <div class="ql-container ql-snow" style="border: none;">
+                          <div class="ql-editor">${action.memoContent}</div>
+                        </div>
                         ${action.signature ? `
                             <div style="margin-top: 20px; position: relative;">
                                 ${action.signature.signatureImage ? `<img src="${action.signature.signatureImage}" style="width: 150px; height: auto;" />` : ''}
@@ -419,12 +422,13 @@ export default function ProfilePage() {
                 .ql-editor ul, .ql-editor ol { padding-left: 1.5em; margin-bottom: 1em; }
                 .ql-editor li { padding-left: 0.5em; }
                 .ql-editor p, .ql-editor li, .ql-editor h1, .ql-editor h2, .ql-editor h3 { line-height: 1.5; }
-                [class*="ql-line-height-"] { line-height: var(--line-height); }
-                .ql-line-height-1 { --line-height: 1; }
-                .ql-line-height-1-5 { --line-height: 1.5; }
-                .ql-line-height-2 { --line-height: 2; }
-                .ql-line-height-2-5 { --line-height: 2.5; }
-                .ql-line-height-3 { --line-height: 3; }
+                p[data-line-height] { line-height: attr(data-line-height); }
+                .ql-editor [style*="line-height"] { line-height: inherit; }
+                .ql-line-height-1 { line-height: 1; }
+                .ql-line-height-1-5 { line-height: 1.5; }
+                .ql-line-height-2 { line-height: 2; }
+                .ql-line-height-2-5 { line-height: 2.5; }
+                .ql-line-height-3 { line-height: 3; }
                 table { font-size: 11px; }
             `;
 
@@ -438,8 +442,10 @@ export default function ProfilePage() {
                     <body>
                          ${masterData.letterhead?.applyToLetters && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
                         <div style="padding: 70pt 50pt 50pt 50pt;">
-                            <div class="ql-editor">
+                            <div class="ql-container ql-snow" style="border: none;">
+                              <div class="ql-editor">
                                 ${content}
+                              </div>
                             </div>
                             ${signatureBlockHtml}
                         </div>

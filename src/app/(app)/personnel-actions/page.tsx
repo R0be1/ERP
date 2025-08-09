@@ -588,12 +588,13 @@ export default function PersonnelActionsPage() {
             .ql-editor ul, .ql-editor ol { padding-left: 1.5em; margin-bottom: 1em; }
             .ql-editor li { padding-left: 0.5em; }
             .ql-editor p, .ql-editor li, .ql-editor h1, .ql-editor h2, .ql-editor h3 { line-height: 1.5; }
-            [class*="ql-line-height-"] { line-height: var(--line-height); }
-            .ql-line-height-1 { --line-height: 1; }
-            .ql-line-height-1-5 { --line-height: 1.5; }
-            .ql-line-height-2 { --line-height: 2; }
-            .ql-line-height-2-5 { --line-height: 2.5; }
-            .ql-line-height-3 { --line-height: 3; }
+            p[data-line-height] { line-height: attr(data-line-height); }
+            .ql-editor [style*="line-height"] { line-height: inherit; }
+            .ql-line-height-1 { line-height: 1; }
+            .ql-line-height-1-5 { line-height: 1.5; }
+            .ql-line-height-2 { line-height: 2; }
+            .ql-line-height-2-5 { line-height: 2.5; }
+            .ql-line-height-3 { line-height: 3; }
         `;
 
         const finalHtml = `
@@ -606,8 +607,10 @@ export default function PersonnelActionsPage() {
                 <body>
                     ${masterData.letterhead?.applyToMemos && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
                     <div style="padding: 60pt 50pt;">
-                        <div class="ql-editor">
-                         ${memoContent}
+                        <div class="ql-container ql-snow" style="border: none;">
+                          <div class="ql-editor">
+                           ${memoContent}
+                          </div>
                         </div>
                         ${signatureBlockHtml}
                     </div>
@@ -870,29 +873,4 @@ export default function PersonnelActionsPage() {
 
     
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

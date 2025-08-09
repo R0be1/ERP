@@ -101,7 +101,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
 
 
     useEffect(() => {
-        if (quillRef.current && quillRef.current.root.innerHTML !== value) {
+        if (quillRef.current && value !== quillRef.current.root.innerHTML) {
              const delta = quillRef.current.clipboard.convert(value as any);
              quillRef.current.setContents(delta, 'silent');
         }
