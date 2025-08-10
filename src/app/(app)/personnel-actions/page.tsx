@@ -578,7 +578,7 @@ export default function PersonnelActionsPage() {
                     <p style="margin: 0;">${selectedAction.signature.signatoryTitle || ''}</p>
                 </div>`
             : '<p style="margin-top: 20px;">Nib International Bank</p>';
-
+        
         const quillCss = `
             .ql-align-center { text-align: center; }
             .ql-align-right { text-align: right; }
@@ -619,6 +619,18 @@ export default function PersonnelActionsPage() {
 
         doc.html(finalHtml, {
             callback: function (doc) {
+                // Check if the last page is empty and delete it
+                const pageCount = doc.getNumberOfPages();
+                if (pageCount > 1) {
+                    doc.setPage(pageCount);
+                    const pageContent = doc.internal.pages[pageCount].join(' ');
+                    // A simple check for an empty page. You may need to refine this.
+                    // This checks for the basic page setup without any drawn content.
+                    if (pageContent.trim().length <= 150) { 
+                        doc.deletePage(pageCount);
+                    }
+                }
+
                 doc.save(`Memo_${selectedAction?.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
                 setMemoDialogOpen(false);
             },
@@ -870,6 +882,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 

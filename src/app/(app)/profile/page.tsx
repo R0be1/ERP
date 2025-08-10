@@ -175,6 +175,17 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
 
         doc.html(finalHtml, {
             callback: function (doc) {
+                // Check if the last page is empty and delete it
+                const pageCount = doc.getNumberOfPages();
+                if (pageCount > 1) {
+                    doc.setPage(pageCount);
+                    const pageContent = doc.internal.pages[pageCount].join(' ');
+                    // A simple check for an empty page. You may need to refine this.
+                    // This checks for the basic page setup without any drawn content.
+                    if (pageContent.trim().length <= 150) { 
+                        doc.deletePage(pageCount);
+                    }
+                }
                 doc.save(`Memo_${action.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
             },
             x: 0,
@@ -459,6 +470,16 @@ export default function ProfilePage() {
 
             doc.html(finalHtml, {
                 callback: function (doc) {
+                    // Check if the last page is empty and delete it
+                    const pageCount = doc.getNumberOfPages();
+                    if (pageCount > 1) {
+                        doc.setPage(pageCount);
+                        const pageContent = doc.internal.pages[pageCount].join(' ');
+                        // This checks for the basic page setup without any drawn content.
+                        if (pageContent.trim().length <= 150) { 
+                            doc.deletePage(pageCount);
+                        }
+                    }
                     doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
                 },
                 x: 0,
@@ -721,4 +742,5 @@ export default function ProfilePage() {
         </div>
     )
 }
+
 
