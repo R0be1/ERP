@@ -366,18 +366,18 @@ export default function ProfilePage() {
             
              const tableData = (employee.internalExperience || []).map(exp => `
                 <tr>
-                    <td style="padding: 5px; border: 1px solid #ddd; font-size: 11px;">${formatDate(exp.startDate)}</td>
-                    <td style="padding: 5px; border: 1px solid #ddd; font-size: 11px;">${exp.endDate ? formatDate(exp.endDate) : 'To date'}</td>
-                    <td style="padding: 5px; border: 1px solid #ddd; font-size: 11px;">${exp.title}</td>
+                    <td style="padding: 5px; border: 1px solid #ddd; font-size: 12px;">${formatDate(exp.startDate)}</td>
+                    <td style="padding: 5px; border: 1px solid #ddd; font-size: 12px;">${exp.endDate ? formatDate(exp.endDate) : 'To date'}</td>
+                    <td style="padding: 5px; border: 1px solid #ddd; font-size: 12px;">${exp.title}</td>
                 </tr>`).join('');
 
             const tableHtml = `
                 <table style="width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px;">
                     <thead>
                         <tr>
-                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 11px; text-align: left;">Start Date</th>
-                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 11px; text-align: left;">End Date</th>
-                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 11px; text-align: left;">Position</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 12px; text-align: left;">Start Date</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 12px; text-align: left;">End Date</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 12px; text-align: left;">Position</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -406,10 +406,11 @@ export default function ProfilePage() {
                 ? `
                     <div style="margin-top: 20px; position: relative;">
                         ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
-                        ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 110px; top: -10px; opacity: 0.8;" />` : ''}
                         <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
                         <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
-                    </div>`
+                    </div>
+                     ${rule.stampImage ? `<div style="position: absolute; left: 110px; top: -10px;"><img src="${rule.stampImage}" style="width: 100px; height: 100px; opacity: 0.8;" /></div>` : ''}
+                   `
                 : '<p style="margin-top: 20px;">Nib International Bank</p>';
 
 
@@ -444,7 +445,9 @@ export default function ProfilePage() {
                                 ${content}
                               </div>
                             </div>
-                            ${signatureBlockHtml}
+                            <div style="position: relative;">
+                                ${signatureBlockHtml}
+                            </div>
                         </div>
                     </body>
                 </html>
