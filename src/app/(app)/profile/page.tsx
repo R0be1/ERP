@@ -159,7 +159,7 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
                         ${action.signature ? `
                             <div style="margin-top: 20px; position: relative;">
                                 ${action.signature.signatureImage ? `<img src="${action.signature.signatureImage}" style="width: 150px; height: auto;" />` : ''}
-                                ${action.signature.stampImage ? `<img src="${action.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
+                                ${action.signature.stampImage ? `<img src="${action.signature.stampImage}" style="width: 120px; height: 120px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
                                 <p style="margin: 0; font-weight: bold;">${action.signature.signatoryName || ''}</p>
                                 <p style="margin: 0;">${action.signature.signatoryTitle || ''}</p>
                             </div>` : '<p style="margin-top: 20px;">Nib International Bank</p>'}
@@ -413,7 +413,7 @@ export default function ProfilePage() {
                                     <p style="margin: 0; font-size: 14px;">${rule.signatoryTitle || ''}</p>
                                 </td>
                                 <td style="padding-left: 40px; vertical-align: bottom;">
-                                    ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px;" />` : ''}
+                                    ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 120px; height: 120px;" />` : ''}
                                 </td>
                             </tr>
                         </tbody>

@@ -577,7 +577,7 @@ export default function PersonnelActionsPage() {
             ? `
                 <div style="margin-top: 20px; position: relative;">
                     ${selectedAction.signature.signatureImage ? `<img src="${selectedAction.signature.signatureImage}" style="width: 150px; height: auto;" />` : ''}
-                    ${selectedAction.signature.stampImage ? `<img src="${selectedAction.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
+                    ${selectedAction.signature.stampImage ? `<img src="${selectedAction.signature.stampImage}" style="width: 120px; height: 120px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
                     <p style="margin: 0; font-weight: bold;">${selectedAction.signature.signatoryName || ''}</p>
                     <p style="margin: 0;">${selectedAction.signature.signatoryTitle || ''}</p>
                 </div>`
@@ -885,6 +885,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
