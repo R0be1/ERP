@@ -436,6 +436,10 @@ export default function ProfilePage() {
                 .ql-editor .ql-line-height-3 { line-height: 3; }
                 table { font-size: 11px; }
             `;
+            
+            const employeePhotoHtml = employee.avatar 
+                ? `<img src="${employee.avatar}" style="position: absolute; top: 50pt; left: 50pt; width: 80px; height: 100px; border: 2px solid #ccc;"/>`
+                : '';
 
             const finalHtml = `
                 <html>
@@ -446,7 +450,8 @@ export default function ProfilePage() {
                     </head>
                     <body>
                          ${masterData.letterhead?.applyToLetters && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
-                        <div style="padding: 70pt 50pt 50pt 50pt;">
+                         ${employeePhotoHtml}
+                        <div style="padding: 70pt 50pt 50pt 150pt;">
                             <div class="ql-container ql-snow" style="border: none;">
                               <div class="ql-editor">
                                 ${content}
@@ -457,10 +462,20 @@ export default function ProfilePage() {
                     </body>
                 </html>
             `;
-
-            doc.html(finalHtml, {
+            
+            const pdf = new jsPDF();
+            await pdf.html(finalHtml, {
                 autoPaging: 'text',
                 callback: function (doc) {
+                    const pageCount = doc.getNumberOfPages();
+                    if (pageCount > 1) {
+                         // Check if last page is empty or nearly empty
+                        doc.setPage(pageCount);
+                        const lastPageText = doc.getText();
+                        if (lastPageText.trim().length < 20) { // Arbitrary small number to detect blank pages
+                             doc.deletePage(pageCount);
+                        }
+                    }
                     doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
                 },
                 x: 0,
@@ -723,6 +738,7 @@ export default function ProfilePage() {
         </div>
     )
 }
+
 
 
 
