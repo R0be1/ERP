@@ -1,5 +1,4 @@
 
-
 "use client"
 
 import { employees } from "@/lib/data"
@@ -405,14 +404,20 @@ export default function ProfilePage() {
 
             const signatureBlockHtml = rule 
                 ? `
-                    <div style="margin-top: 20px; position: relative;">
-                        ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
-                        ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 20px; top: -30px; opacity: 0.8;" />` : ''}
-                        <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
-                        <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
-                        <p style="margin: 0;">Nib International Bank</p>
-                    </div>`
+                    <table style="width: 100%; margin-top: 20px;">
+                        <tr>
+                            <td style="width: 50%; vertical-align: top;">
+                                ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
+                                <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
+                                <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
+                            </td>
+                            <td style="width: 50%; vertical-align: top; text-align: left;">
+                                ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 120px; height: auto;" />` : ''}
+                            </td>
+                        </tr>
+                    </table>`
                 : '<p style="margin-top: 20px;">Nib International Bank</p>';
+
 
              const quillCss = `
                 body { font-family: 'Times New Roman', Times, serif; }
@@ -426,7 +431,7 @@ export default function ProfilePage() {
             `;
             
             const employeePhotoHtml = employee.avatar 
-                ? `<img src="${employee.avatar}" style="position: absolute; top: 100px; left: 50px; width: 90px; height: 110px; border: 1px solid #ccc;"/>`
+                ? `<img src="${employee.avatar}" style="position: absolute; top: 50px; left: 50px; width: 90px; height: 110px; border: 1px solid #ccc;"/>`
                 : '';
 
             const finalHtml = `
@@ -439,7 +444,7 @@ export default function ProfilePage() {
                     <body>
                          ${masterData.letterhead?.applyToLetters && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
                          ${employeePhotoHtml}
-                        <div style="padding: 50pt 50pt 50pt 50pt;">
+                        <div style="padding: 40pt 40pt 40pt 40pt;">
                             <div class="ql-container ql-snow" style="border: none;">
                               <div class="ql-editor">
                                 ${content}
@@ -718,9 +723,4 @@ export default function ProfilePage() {
     )
 }
 
-
-
-
-
-
-
+    
