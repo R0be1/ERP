@@ -410,9 +410,9 @@ export default function ProfilePage() {
                         ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 20px; top: -30px; opacity: 0.8;" />` : ''}
                         <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
                         <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
-                        <p style="margin: 0;">Coopbank</p>
+                        <p style="margin: 0;">Nib International Bank</p>
                     </div>`
-                : '<p style="margin-top: 20px;">Coopbank</p>';
+                : '<p style="margin-top: 20px;">Nib International Bank</p>';
 
              const quillCss = `
                 body { font-family: 'Times New Roman', Times, serif; }
@@ -428,8 +428,6 @@ export default function ProfilePage() {
             const employeePhotoHtml = employee.avatar 
                 ? `<img src="${employee.avatar}" style="position: absolute; top: 100px; left: 50px; width: 90px; height: 110px; border: 1px solid #ccc;"/>`
                 : '';
-            
-            const toWhomItMayConcern = `<h4 style="text-align: center; font-weight: bold; text-decoration: underline; margin-top: 20px; margin-bottom: 20px;">TO WHOM IT MAY CONCERN</h4>`;
 
             const finalHtml = `
                 <html>
@@ -442,8 +440,6 @@ export default function ProfilePage() {
                          ${masterData.letterhead?.applyToLetters && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
                          ${employeePhotoHtml}
                         <div style="padding: 50pt 50pt 50pt 50pt;">
-                            <p style="text-align: right; margin-bottom: 40px;">${format(today, "MMMM dd, yyyy")}</p>
-                            ${toWhomItMayConcern}
                             <div class="ql-container ql-snow" style="border: none;">
                               <div class="ql-editor">
                                 ${content}
@@ -721,6 +717,7 @@ export default function ProfilePage() {
         </div>
     )
 }
+
 
 
 
