@@ -154,6 +154,7 @@ export default function PersonnelActionsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [isMemoDialogOpen, setMemoDialogOpen] = useState(false);
     const [memoContent, setMemoContent] = useState('');
+    const [memoCcList, setMemoCcList] = useState('');
     
     const masterData = useMemo(() => getMasterData(), []);
 
@@ -397,6 +398,7 @@ export default function PersonnelActionsPage() {
 
         if (selectedAction.memoContent) {
             setMemoContent(selectedAction.memoContent);
+            setMemoCcList(selectedAction.memoCcList || '');
             setMemoDialogOpen(true);
             return;
         }
@@ -509,15 +511,17 @@ export default function PersonnelActionsPage() {
 
         const sortedCcList = [...sortedDepts, ...freeTextRecipients];
         
+        let ccListHtml = '';
         if (sortedCcList.length > 0) {
-            content += "<br/><br/><p><strong>CC:</strong></p><ul>";
+            ccListHtml = "<br/><br/><p><strong>CC:</strong></p><ul>";
             sortedCcList.forEach(recipient => {
-                content += `<li>${recipient}</li>`;
+                ccListHtml += `<li>${recipient}</li>`;
             });
-            content += "</ul>";
+            ccListHtml += "</ul>";
         }
         
         setMemoContent(content);
+        setMemoCcList(ccListHtml);
 
         // Find and attach the signature rule automatically
         const signatureRules = masterData.signatureRules || [];
@@ -532,7 +536,7 @@ export default function PersonnelActionsPage() {
             (!r.endDate || new Date(r.endDate) >= today)
         );
 
-        let updatedActionData = { memoContent: content } as any;
+        let updatedActionData: any = { memoContent: content, memoCcList: ccListHtml };
 
         if (signatureRule) {
             updatedActionData.signature = signatureRule;
@@ -612,6 +616,11 @@ export default function PersonnelActionsPage() {
                           </div>
                         </div>
                         ${signatureBlockHtml}
+                        <div class="ql-container ql-snow" style="border: none;">
+                          <div class="ql-editor">
+                           ${selectedAction.memoCcList || ''}
+                          </div>
+                        </div>
                     </div>
                 </body>
             </html>
@@ -845,7 +854,7 @@ export default function PersonnelActionsPage() {
                             Make any necessary edits to the memo content before downloading.
                         </DialogDescription>
                     </DialogHeader>
-                    <div className="grid gap-4 py-4">
+                    <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-2">
                         <div className="grid w-full gap-1.5">
                             <Label htmlFor="memo-content">Memo Content</Label>
                              <RichTextEditor
@@ -853,6 +862,12 @@ export default function PersonnelActionsPage() {
                                 onChange={setMemoContent}
                             />
                         </div>
+                        {memoCcList && (
+                             <div className="mt-4">
+                                <Label>CC List (Read-only)</Label>
+                                <div className="p-4 border rounded-md mt-2 text-sm bg-muted text-muted-foreground" dangerouslySetInnerHTML={{ __html: memoCcList }} />
+                            </div>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="ghost" onClick={() => setMemoDialogOpen(false)}>Cancel</Button>
@@ -870,6 +885,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
