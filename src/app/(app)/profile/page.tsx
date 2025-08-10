@@ -372,7 +372,7 @@ export default function ProfilePage() {
                 </tr>`).join('');
 
             const tableHtml = `
-                <table style="width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px;">
+                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
                     <thead>
                         <tr>
                             <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 12px; text-align: left;">Start Date</th>
@@ -406,11 +406,10 @@ export default function ProfilePage() {
                 ? `
                     <div style="margin-top: 20px; position: relative;">
                         ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
+                        ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 110px; top: -10px; opacity: 0.8;" />` : ''}
                         <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
                         <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
-                    </div>
-                     ${rule.stampImage ? `<div style="position: absolute; left: 110px; top: -10px;"><img src="${rule.stampImage}" style="width: 100px; height: 100px; opacity: 0.8;" /></div>` : ''}
-                   `
+                    </div>`
                 : '<p style="margin-top: 20px;">Nib International Bank</p>';
 
 
