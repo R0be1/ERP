@@ -829,7 +829,7 @@ export default function PersonnelActionsPage() {
                                 </>
                             ) : (
                                <DialogClose asChild>
-                                 <Button variant="outline">Close</Button>
+                                 <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>Close</Button>
                                </DialogClose>
                             )}
                          </div>
@@ -870,6 +870,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 

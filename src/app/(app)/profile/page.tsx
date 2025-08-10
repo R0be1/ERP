@@ -467,15 +467,6 @@ export default function ProfilePage() {
             await pdf.html(finalHtml, {
                 autoPaging: 'text',
                 callback: function (doc) {
-                    const pageCount = doc.getNumberOfPages();
-                    if (pageCount > 1) {
-                         // Check if last page is empty or nearly empty
-                        doc.setPage(pageCount);
-                        const lastPageText = doc.getText();
-                        if (lastPageText.trim().length < 20) { // Arbitrary small number to detect blank pages
-                             doc.deletePage(pageCount);
-                        }
-                    }
                     doc.save(`Experience_Letter_${employee.name.replace(/\s/g, '_')}.pdf`);
                 },
                 x: 0,
@@ -738,6 +729,7 @@ export default function ProfilePage() {
         </div>
     )
 }
+
 
 
 
