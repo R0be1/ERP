@@ -141,11 +141,6 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
             .ql-editor li { padding-left: 0.5em; }
             .ql-editor p, .ql-editor li, .ql-editor h1, .ql-editor h2, .ql-editor h3 { line-height: 1.5; }
             .ql-editor span[data-line-height] { line-height: attr(data-line-height); }
-            .ql-editor .ql-line-height-1 { line-height: 1; }
-            .ql-editor .ql-line-height-1-5 { line-height: 1.5; }
-            .ql-editor .ql-line-height-2 { line-height: 2; }
-            .ql-editor .ql-line-height-2-5 { line-height: 2.5; }
-            .ql-editor .ql-line-height-3 { line-height: 3; }
         `;
 
         const finalHtml = `
@@ -370,20 +365,20 @@ export default function ProfilePage() {
             const salaryInWords = numberToWords(Number(employee.basicSalary));
             const pronoun = employee.gender === 'female' ? 'She' : 'He';
             
-            const tableData = (employee.internalExperience || []).map(exp => `
+             const tableData = (employee.internalExperience || []).map(exp => `
                 <tr>
-                    <td style="padding: 5px; border: 1px solid #ddd;">${formatDate(exp.startDate)}</td>
-                    <td style="padding: 5px; border: 1px solid #ddd;">${exp.endDate ? formatDate(exp.endDate) : 'Present'}</td>
-                    <td style="padding: 5px; border: 1px solid #ddd;">${exp.title}</td>
+                    <td style="padding: 5px; border: 1px solid #ddd; font-size: 11px;">${formatDate(exp.startDate)}</td>
+                    <td style="padding: 5px; border: 1px solid #ddd; font-size: 11px;">${exp.endDate ? formatDate(exp.endDate) : 'To date'}</td>
+                    <td style="padding: 5px; border: 1px solid #ddd; font-size: 11px;">${exp.title}</td>
                 </tr>`).join('');
 
             const tableHtml = `
                 <table style="width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px;">
                     <thead>
                         <tr>
-                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #f2f2f2;">Start Date</th>
-                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #f2f2f2;">End Date</th>
-                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #f2f2f2;">Job Title</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 11px; text-align: left;">Start Date</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 11px; text-align: left;">End Date</th>
+                            <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 11px; text-align: left;">Position</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -393,7 +388,7 @@ export default function ProfilePage() {
             `;
 
             let content = template.content
-                .replace(/{{employeeName}}/g, employee.name)
+                .replace(/{{employeeName}}/g, `<strong>${employee.name}</strong>`)
                 .replace(/{{joinDate}}/g, formatDate(employee.joinDate))
                 .replace(/{{currentPosition}}/g, employee.position)
                 .replace(/{{currentDepartment}}/g, employee.department)
@@ -402,7 +397,6 @@ export default function ProfilePage() {
                 .replace(/{{pronoun}}/g, pronoun)
                 .replace(/{{today}}/g, format(today, "MMMM dd, yyyy"));
 
-            // Smartly replace the table placeholder
             if (content.includes(`<p>{{internalExperienceTable}}</p>`)) {
                 content = content.replace(`<p>{{internalExperienceTable}}</p>`, tableHtml);
             } else {
@@ -413,33 +407,29 @@ export default function ProfilePage() {
                 ? `
                     <div style="margin-top: 20px; position: relative;">
                         ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
-                        ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
+                        ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 20px; top: -30px; opacity: 0.8;" />` : ''}
                         <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
                         <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
+                        <p style="margin: 0;">Coopbank</p>
                     </div>`
-                : '<p style="margin-top: 20px;">Nib International Bank</p>';
+                : '<p style="margin-top: 20px;">Coopbank</p>';
 
              const quillCss = `
+                body { font-family: 'Times New Roman', Times, serif; }
                 .ql-align-center { text-align: center; }
                 .ql-align-right { text-align: right; }
                 .ql-align-justify { text-align: justify; }
-                .ql-editor { font-family: Helvetica, sans-serif; font-size: 12px; }
-                .ql-editor p { margin: 0 0 1em; }
-                .ql-editor ul, .ql-editor ol { padding-left: 1.5em; margin-bottom: 1em; }
-                .ql-editor li { padding-left: 0.5em; }
-                .ql-editor p, .ql-editor li, .ql-editor h1, .ql-editor h2, .ql-editor h3 { line-height: 1.5; }
-                .ql-editor span[data-line-height] { line-height: attr(data-line-height); }
-                .ql-editor .ql-line-height-1 { line-height: 1; }
-                .ql-editor .ql-line-height-1-5 { line-height: 1.5; }
-                .ql-editor .ql-line-height-2 { line-height: 2; }
-                .ql-editor .ql-line-height-2-5 { line-height: 2.5; }
-                .ql-editor .ql-line-height-3 { line-height: 3; }
+                .ql-editor { font-family: 'Times New Roman', Times, serif; font-size: 12px; }
+                .ql-editor p { margin: 0 0 1em; line-height: 1.5; }
+                .ql-editor strong { font-weight: bold; }
                 table { font-size: 11px; }
             `;
             
             const employeePhotoHtml = employee.avatar 
-                ? `<img src="${employee.avatar}" style="position: absolute; top: 50pt; left: 50pt; width: 80px; height: 100px; border: 2px solid #ccc;"/>`
+                ? `<img src="${employee.avatar}" style="position: absolute; top: 100px; left: 50px; width: 90px; height: 110px; border: 1px solid #ccc;"/>`
                 : '';
+            
+            const toWhomItMayConcern = `<h4 style="text-align: center; font-weight: bold; text-decoration: underline; margin-top: 20px; margin-bottom: 20px;">TO WHOM IT MAY CONCERN</h4>`;
 
             const finalHtml = `
                 <html>
@@ -451,7 +441,9 @@ export default function ProfilePage() {
                     <body>
                          ${masterData.letterhead?.applyToLetters && masterData.letterhead.image ? `<img src="${masterData.letterhead.image}" style="width: 100%; position: absolute; top: 0; left: 0; z-index: -1;" />` : ''}
                          ${employeePhotoHtml}
-                        <div style="padding: 70pt 50pt 50pt 150pt;">
+                        <div style="padding: 50pt 50pt 50pt 50pt;">
+                            <p style="text-align: right; margin-bottom: 40px;">${format(today, "MMMM dd, yyyy")}</p>
+                            ${toWhomItMayConcern}
                             <div class="ql-container ql-snow" style="border: none;">
                               <div class="ql-editor">
                                 ${content}
@@ -729,6 +721,7 @@ export default function ProfilePage() {
         </div>
     )
 }
+
 
 
 
