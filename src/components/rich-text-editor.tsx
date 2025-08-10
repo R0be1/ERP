@@ -36,7 +36,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
 
                 // Add Font Size
                 const sizeStyle = Quill.import('attributors/style/size');
-                sizeStyle.whitelist = ['8px', '10px', '12px', '14px', '16px', '18px', '24px', '36px', 'small', 'large', 'huge'];
+                sizeStyle.whitelist = ['2px', '4px', '6px', '8px', '10px', '12px', '14px', '16px', '18px', '24px', '36px', 'small', 'large', 'huge'];
                 Quill.register(sizeStyle, true);
                 
                 // Add Font Family
@@ -58,7 +58,7 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
                          toolbar: [
                           [{ 'font': ['arial', 'times-new-roman', 'verdana', 'courier-new', 'georgia', 'comic-sans-ms'] }],
                           [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-                          [{ 'size': ['8px', '10px', '12px', '14px', '16px', '18px', '24px', '36px', 'small', false, 'large', 'huge'] }],
+                          [{ 'size': ['2px', '4px', '6px', '8px', '10px', '12px', '14px', '16px', '18px', '24px', '36px', 'small', false, 'large', 'huge'] }],
                           ['bold', 'italic', 'underline', 'strike'],
                           [{ 'color': [] }, { 'background': [] }],
                           [{ 'script': 'sub'}, { 'script': 'super' }],
@@ -151,6 +151,18 @@ export const RichTextEditor = (props: RichTextEditorProps) => {
                 .ql-snow .ql-picker.ql-font .ql-picker-item[data-value="comic-sans-ms"]::before {
                     content: 'Comic Sans MS';
                     font-family: 'Comic Sans MS', cursive;
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="2px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="2px"]::before {
+                  content: "2";
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="4px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="4px"]::before {
+                  content: "4";
+                }
+                .ql-picker.ql-size .ql-picker-label[data-value="6px"]::before,
+                .ql-picker.ql-size .ql-picker-item[data-value="6px"]::before {
+                  content: "6";
                 }
                 .ql-picker.ql-size .ql-picker-label[data-value="8px"]::before,
                 .ql-picker.ql-size .ql-picker-item[data-value="8px"]::before {
