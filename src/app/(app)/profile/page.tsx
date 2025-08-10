@@ -425,7 +425,7 @@ export default function ProfilePage() {
             `;
             
             const employeePhotoHtml = employee.avatar 
-                ? `<img src="${employee.avatar}" style="position: absolute; top: 75px; left: 50px; width: 90px; height: 110px; border: 1px solid #ccc;"/>`
+                ? `<img src="${employee.avatar}" style="position: absolute; top: 85px; left: 50px; width: 90px; height: 110px; border: 1px solid #ccc;"/>`
                 : '';
 
             const finalHtml = `
