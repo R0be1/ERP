@@ -159,7 +159,7 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
                         ${action.signature ? `
                             <div style="margin-top: 20px; position: relative;">
                                 ${action.signature.signatureImage ? `<img src="${action.signature.signatureImage}" style="width: 150px; height: auto;" />` : ''}
-                                ${action.signature.stampImage ? `<img src="${action.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 110px; top: -10px; opacity: 0.8;" />` : ''}
+                                ${action.signature.stampImage ? `<img src="${action.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
                                 <p style="margin: 0; font-weight: bold;">${action.signature.signatoryName || ''}</p>
                                 <p style="margin: 0;">${action.signature.signatoryTitle || ''}</p>
                             </div>` : '<p style="margin-top: 20px;">Nib International Bank</p>'}
@@ -372,7 +372,7 @@ export default function ProfilePage() {
                 </tr>`).join('');
 
             const tableHtml = `
-                <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+                <table style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr>
                             <th style="padding: 5px; border: 1px solid #ddd; background-color: #E0E0E0; font-size: 12px; text-align: left;">Start Date</th>
@@ -402,14 +402,22 @@ export default function ProfilePage() {
                 content = content.replace(`{{internalExperienceTable}}`, tableHtml);
             }
 
-            const signatureBlockHtml = rule 
+            const signatureBlockHtml = rule
                 ? `
-                    <div style="margin-top: 20px; position: relative;">
-                        ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
-                        ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 110px; top: -10px; opacity: 0.8;" />` : ''}
-                        <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
-                        <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
-                    </div>`
+                    <table style="border-collapse: collapse; margin-top: 20px;">
+                        <tbody>
+                            <tr>
+                                <td style="vertical-align: bottom;">
+                                    ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
+                                    <p style="margin: 0; font-weight: bold; font-size: 14px;">${rule.signatoryName || ''}</p>
+                                    <p style="margin: 0; font-size: 14px;">${rule.signatoryTitle || ''}</p>
+                                </td>
+                                <td style="padding-left: 40px; vertical-align: bottom;">
+                                    ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px;" />` : ''}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>`
                 : '<p style="margin-top: 20px;">Nib International Bank</p>';
 
 
