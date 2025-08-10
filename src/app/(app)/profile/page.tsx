@@ -158,7 +158,7 @@ const ActivityItem = ({ action, masterData, allEmployees }: { action: any, maste
                         ${action.signature ? `
                             <div style="margin-top: 20px; position: relative;">
                                 ${action.signature.signatureImage ? `<img src="${action.signature.signatureImage}" style="width: 150px; height: auto;" />` : ''}
-                                ${action.signature.stampImage ? `<img src="${action.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 120px; top: -10px; opacity: 0.8;" />` : ''}
+                                ${action.signature.stampImage ? `<img src="${action.signature.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 110px; top: -10px; opacity: 0.8;" />` : ''}
                                 <p style="margin: 0; font-weight: bold;">${action.signature.signatoryName || ''}</p>
                                 <p style="margin: 0;">${action.signature.signatoryTitle || ''}</p>
                             </div>` : '<p style="margin-top: 20px;">Nib International Bank</p>'}
@@ -346,7 +346,6 @@ export default function ProfilePage() {
         }
 
         try {
-            const doc = new jsPDF() as jsPDFWithAutoTable;
             
             const signatureRules = masterData.signatureRules || [];
             const today = new Date();
@@ -404,18 +403,12 @@ export default function ProfilePage() {
 
             const signatureBlockHtml = rule 
                 ? `
-                    <table style="width: 100%; margin-top: 20px;">
-                        <tr>
-                            <td style="width: 50%; vertical-align: top;">
-                                ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
-                                <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
-                                <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
-                            </td>
-                            <td style="width: 50%; vertical-align: top; text-align: left;">
-                                ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 120px; height: auto;" />` : ''}
-                            </td>
-                        </tr>
-                    </table>`
+                    <div style="margin-top: 20px; position: relative;">
+                        ${rule.signatureImage ? `<img src="${rule.signatureImage}" style="width: 150px; height: auto;" />` : ''}
+                        ${rule.stampImage ? `<img src="${rule.stampImage}" style="width: 100px; height: 100px; position: absolute; left: 110px; top: -10px; opacity: 0.8;" />` : ''}
+                        <p style="margin: 0; font-weight: bold;">${rule.signatoryName || ''}</p>
+                        <p style="margin: 0;">${rule.signatoryTitle || ''}</p>
+                    </div>`
                 : '<p style="margin-top: 20px;">Nib International Bank</p>';
 
 
@@ -431,7 +424,7 @@ export default function ProfilePage() {
             `;
             
             const employeePhotoHtml = employee.avatar 
-                ? `<img src="${employee.avatar}" style="position: absolute; top: 50px; left: 50px; width: 90px; height: 110px; border: 1px solid #ccc;"/>`
+                ? `<img src="${employee.avatar}" style="position: absolute; top: 65px; left: 50px; width: 90px; height: 110px; border: 1px solid #ccc;"/>`
                 : '';
 
             const finalHtml = `
