@@ -588,7 +588,7 @@ export default function PersonnelActionsPage() {
             .ql-editor ul, .ql-editor ol { padding-left: 1.5em; margin-bottom: 1em; }
             .ql-editor li { padding-left: 0.5em; }
             .ql-editor p, .ql-editor li, .ql-editor h1, .ql-editor h2, .ql-editor h3 { line-height: 1.5; }
-            .ql-editor [data-line-height] { line-height: attr(data-line-height); }
+            .ql-editor span[data-line-height] { line-height: attr(data-line-height); }
             .ql-editor .ql-line-height-1 { line-height: 1; }
             .ql-editor .ql-line-height-1-5 { line-height: 1.5; }
             .ql-editor .ql-line-height-2 { line-height: 2; }
@@ -618,21 +618,9 @@ export default function PersonnelActionsPage() {
         `;
 
         doc.html(finalHtml, {
+            autoPaging: 'text',
             callback: function (doc) {
-                // Check if the last page is empty and delete it
-                const pageCount = doc.getNumberOfPages();
-                if (pageCount > 1) {
-                    doc.setPage(pageCount);
-                    const pageContent = doc.internal.pages[pageCount].join(' ');
-                    // A simple check for an empty page. You may need to refine this.
-                    // This checks for the basic page setup without any drawn content.
-                    if (pageContent.trim().length <= 150) { 
-                        doc.deletePage(pageCount);
-                    }
-                }
-
                 doc.save(`Memo_${selectedAction?.type.replace(' ','_')}_${employeeName.replace(/ /g, '_')}.pdf`);
-                setMemoDialogOpen(false);
             },
             x: 0,
             y: 0,
@@ -882,6 +870,7 @@ export default function PersonnelActionsPage() {
 
     
     
+
 
 
 
