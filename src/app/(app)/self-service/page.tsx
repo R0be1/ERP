@@ -2,7 +2,7 @@
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { UserCircle, CalendarOff, Clock, Receipt, ArrowRight, Edit, Mail, Phone, MapPin, BadgeInfo } from "lucide-react";
+import { UserCircle, CalendarOff, Clock, Receipt, ArrowRight, Edit, Mail, Phone, MapPin, BadgeInfo, CheckCircle } from "lucide-react";
 import Link from "next/link";
 import { employees } from "@/lib/data";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
