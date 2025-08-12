@@ -1,0 +1,444 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ENUMS
+
+enum Title {
+  Ato
+  Woy
+  Dr
+  Eng
+  Prof
+}
+
+enum Gender {
+  Male
+  Female
+  Other
+}
+
+enum MaritalStatus {
+  Single
+  Married
+  Divorced
+  Widowed
+}
+
+enum EmploymentStatus {
+  Active
+  OnLeave
+  Terminated
+}
+
+enum ProgramType {
+  Regular
+  Weekend
+  Distance
+  Extension
+}
+
+enum InstitutionType {
+  Government
+  Private
+}
+
+enum AllowanceBasis {
+  Fixed
+  Quantity
+  Percentage
+}
+
+enum ActionStatus {
+  Pending
+  Completed
+  Rejected
+}
+
+// MODELS
+
+model Employee {
+  id                  String               @id @default(cuid())
+  employeeId          String               @unique
+  title               Title
+  firstName           String
+  middleName          String?
+  lastName            String
+  avatar              String?
+  dob                 DateTime
+  gender              Gender
+  maritalStatus       MaritalStatus
+  spouseFullName      String?
+  nationality         String
+  nationalId          String?
+  kebeleId            String?
+  drivingLicense      String?
+  passportNo          String?
+  workEmail           String               @unique
+  personalEmail       String?
+  mobileNumber        String
+  joinDate            DateTime
+  probationEndDate    DateTime?
+  status              EmploymentStatus     @default(Active)
+  managerId           String?
+  manager             Employee?            @relation("ManagerSubordinates", fields: [managerId], references: [id])
+  subordinates        Employee[]           @relation("ManagerSubordinates")
+  departmentId        String
+  department          Department           @relation(fields: [departmentId], references: [id])
+  jobTitleId          String
+  jobTitle            JobTitle             @relation(fields: [jobTitleId], references: [id])
+  employmentTypeId    String
+  employmentType      EmploymentType       @relation(fields: [employmentTypeId], references: [id])
+  jobGradeId          String
+  jobGrade            JobGrade             @relation(fields: [jobGradeId], references: [id])
+  jobCategoryId       String
+  jobCategory         JobCategory          @relation(fields: [jobCategoryId], references: [id])
+  workLocationId      String
+  workLocation        WorkLocation         @relation(fields: [workLocationId], references: [id])
+  contractStartDate   DateTime?
+  contractEndDate     DateTime?
+  basicSalary         Decimal
+  currency            String               @default("ETB")
+  bankName            String?
+  accountNumber       String?
+  taxId               String?
+  pensionNumber       String?
+  address             Address?
+  emergencyContacts   EmergencyContact[]
+  dependents          Dependent[]
+  internalExperience  InternalExperience[]
+  externalExperience  ExternalExperience[]
+  education           Education[]
+  training            Training[]
+  incomingGuarantees  IncomingGuarantee[]
+  outgoingGuarantees  OutgoingGuarantee[]
+  personnelActions    PersonnelAction[]
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+}
+
+model Address {
+  employeeId String   @id
+  employee   Employee @relation(fields: [employeeId], references: [id])
+  country    String
+  regionId   String
+  region     Region   @relation(fields: [regionId], references: [id])
+  city       String
+  subcity    String?
+  woreda     String?
+  kebele     String?
+  houseNo    String?
+}
+
+model EmergencyContact {
+  id           String   @id @default(cuid())
+  name         String
+  relationship String
+  phone        String
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model Dependent {
+  id           String        @id @default(cuid())
+  name         String
+  relationship String
+  dob          DateTime
+  employeeId   String
+  employee     Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model InternalExperience {
+  id             String   @id @default(cuid())
+  title          String
+  department     String
+  startDate      DateTime
+  endDate        DateTime?
+  managerialRole Boolean  @default(false)
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model ExternalExperience {
+  id             String   @id @default(cuid())
+  company        String
+  title          String
+  startDate      DateTime
+  endDate        DateTime
+  managerialRole Boolean  @default(false)
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model Education {
+  id                 String          @id @default(cuid())
+  awardId            String
+  award              EducationAward  @relation(fields: [awardId], references: [id])
+  institutionId      String
+  institution        Institution     @relation(fields: [institutionId], references: [id])
+  fieldOfStudyId     String
+  fieldOfStudy       FieldOfStudy    @relation(fields: [fieldOfStudyId], references: [id])
+  completionDate     DateTime
+  programType        ProgramType
+  cgpa               Float?
+  result             String?
+  employeeId         String
+  employee           Employee        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model Training {
+  id             String   @id @default(cuid())
+  name           String
+  provider       String
+  completionDate DateTime
+  fileUrl        String?
+  employeeId     String
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model IncomingGuarantee {
+  id                String   @id @default(cuid())
+  guarantorName     String
+  relationship      String
+  organization      String
+  organizationPhone String
+  guarantorPhone    String
+  issueDate         DateTime
+  documentUrl       String?
+  employeeId        String
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model OutgoingGuarantee {
+  id                String   @id @default(cuid())
+  recipientName     String
+  recipientPhone    String
+  relationship      String
+  organization      String
+  organizationPhone String
+  poBox             String?
+  amount            Decimal
+  issueDate         DateTime
+  expiryDate        DateTime
+  documentUrl       String?
+  employeeId        String
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+}
+
+model PersonnelAction {
+  id            String       @id @default(cuid())
+  employeeId    String
+  employee      Employee     @relation(fields: [employeeId], references: [id])
+  type          String
+  effectiveDate DateTime
+  status        ActionStatus @default(Pending)
+  details       Json
+  memoContent   String?
+  memoCcList    String?
+  signature     Json?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+}
+
+// MASTER DATA MODELS
+
+model Region {
+  id      String    @id @default(cuid())
+  label   String    @unique
+  Address Address[]
+}
+
+model Department {
+  id              String       @id @default(cuid())
+  label           String       @unique
+  typeId          String
+  type            DepartmentType @relation(fields: [typeId], references: [id])
+  parentId        String?
+  parent          Department?  @relation("DepartmentHierarchy", fields: [parentId], references: [id])
+  children        Department[] @relation("DepartmentHierarchy")
+  capacity        Int?
+  branchGradeId   String?
+  branchGrade     BranchGrade? @relation(fields: [branchGradeId], references: [id])
+  workLocationId  String?
+  workLocation    WorkLocation? @relation(fields: [workLocationId], references: [id])
+  employees       Employee[]
+  managedByTitles JobTitle[]
+}
+
+model DepartmentType {
+  id          String       @id @default(cuid())
+  label       String       @unique
+  departments Department[]
+  jobTitles   JobTitle[]
+}
+
+model WorkLocation {
+  id          String       @id @default(cuid())
+  label       String       @unique
+  departments Department[]
+  employees   Employee[]
+}
+
+model BranchGrade {
+  id          String       @id @default(cuid())
+  label       String       @unique
+  departments Department[]
+}
+
+model JobTitle {
+  id                    String         @id @default(cuid())
+  label                 String         @unique
+  categoryId            String
+  category              JobCategory    @relation(fields: [categoryId], references: [id])
+  gradeId               String
+  grade                 JobGrade       @relation(fields: [gradeId], references: [id])
+  isHeadOfDepartment    Boolean        @default(false)
+  managesDepartmentTypeId String?
+  managesDepartmentType DepartmentType? @relation(fields: [managesDepartmentTypeId], references: [id])
+  managedDepartments    Department[]
+  employees             Employee[]
+  allowanceRules        AllowanceRule[]
+}
+
+model JobCategory {
+  id        String     @id @default(cuid())
+  label     String     @unique
+  jobTitles JobTitle[]
+  employees Employee[]
+}
+
+model JobGrade {
+  id               String           @id @default(cuid())
+  label            String           @unique
+  jobTitles        JobTitle[]
+  employees        Employee[]
+  salaryStructures SalaryStructure[]
+  allowanceRules   AllowanceRule[]
+}
+
+model EmploymentType {
+  id        String     @id @default(cuid())
+  label     String     @unique
+  employees Employee[]
+}
+
+model FieldOfStudy {
+  id        String      @id @default(cuid())
+  label     String      @unique
+  education Education[]
+}
+
+model Institution {
+  id              String          @id @default(cuid())
+  label           String          @unique
+  institutionType InstitutionType
+  education       Education[]
+}
+
+model EducationAward {
+  id        String      @id @default(cuid())
+  label     String      @unique
+  education Education[]
+}
+
+model AllowanceType {
+  id             String          @id @default(cuid())
+  label          String          @unique
+  description    String?
+  isTaxable      Boolean         @default(false)
+  allowanceRules AllowanceRule[]
+}
+
+model AllowanceRule {
+  id              String         @id @default(cuid())
+  allowanceTypeId String
+  allowanceType   AllowanceType  @relation(fields: [allowanceTypeId], references: [id])
+  ruleType        String // "grade" or "department"
+  basis           AllowanceBasis
+  value           String
+  isTaxable       Boolean
+  effectiveDate   DateTime
+  description     String?
+  jobGradeId      String?
+  jobGrade        JobGrade?      @relation(fields: [jobGradeId], references: [id])
+  departments     String[] // Array of department IDs
+  jobTitles       JobTitle[]     @relation()
+  positions       Json? // For specific values per position { jobTitleId: string, value: string }[]
+}
+
+model DisciplinaryActionType {
+  id    String @id @default(cuid())
+  label String @unique
+}
+
+model SalaryStructure {
+  id            String   @id @default(cuid())
+  jobGradeId    String
+  jobGrade      JobGrade @relation(fields: [jobGradeId], references: [id])
+  effectiveDate DateTime
+  status        String // "active" or "inactive"
+  steps         Json // { step: string, salary: string }[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([jobGradeId, effectiveDate, status])
+}
+
+// Document Management
+
+model MemoTemplate {
+  id          String @id @default(cuid())
+  name        String
+  actionType  String
+  content     String
+  status      String // "active" or "inactive"
+}
+
+model LetterTemplate {
+  id      String @id @default(cuid())
+  name    String
+  content String
+  status  String // "active" or "inactive"
+}
+
+model CarbonCopyRule {
+  id            String   @id @default(cuid())
+  name          String
+  actionTypes   String[]
+  jobCategories String[]
+  jobTitles     String[]
+  ccDepartments String[]
+  ccFreeText    String?
+  status        String   // "active" or "inactive"
+  startDate     DateTime
+  endDate       DateTime?
+}
+
+model Letterhead {
+  id              Int      @id @default(1)
+  image           String?
+  applyToMemos    Boolean
+  applyToLetters  Boolean
+}
+
+model SignatureRule {
+  id              String @id @default(cuid())
+  documentType    String // "memo" or "letter"
+  actionTypes     String[]
+  jobCategories   String[]
+  signatoryName   String
+  signatoryTitle  String
+  signatureImage  String?
+  stampImage      String?
+  status          String // "active" or "inactive"
+  startDate       DateTime
+  endDate         DateTime?
+}
