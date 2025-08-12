@@ -46,22 +46,19 @@ const navItems = [
   { href: "/employees", icon: Users, label: "Employees" },
   { href: "/organization", icon: Network, label: "Organization" },
   { href: "/recruitment", icon: Briefcase, label: "Recruitment" },
-  { href: "/attendance", icon: Clock, label: "Attendance" },
-  { href: "/leave", icon: CalendarOff, label: "Leave" },
-  { href: "/performance", icon: TrendingUp, label: "Performance" },
-  { href: "/benefits", icon: Heart, label: "Benefits" },
-  { href: "/payslips", icon: Receipt, label: "Payslips" },
   { href: "/personnel-actions", icon: ClipboardEdit, label: "Personnel Actions" },
   { href: "/self-service", icon: UserRound, label: "Self-Service" },
   { href: "/manager-service", icon: UserCog, label: "Manager Service" },
 ]
 
 const bottomNavItems = [
-  { href: "/notifications", icon: Bell, label: "Notifications" },
-  { href: "/profile", icon: UserCircle, label: "My Profile" },
+  { href: "/attendance", icon: Clock, label: "Attendance" },
+  { href: "/leave", icon: CalendarOff, label: "Leave" },
+  { href: "/performance", icon: TrendingUp, label: "Performance" },
+  { href: "/benefits", icon: Heart, label: "Benefits" },
+  { href: "/payslips", icon: Receipt, label: "Payslips" },
   { href: "/feedback", icon: MessageSquare, label: "Feedback" },
   { href: "/configuration", icon: Settings, label: "Configuration" },
-  { href: "/offboarding", icon: LogOut, label: "Exit/Offboarding" },
 ]
 
 const NavLink = ({ href, icon: Icon, label }: { href: string; icon: React.ElementType; label: string; }) => {
