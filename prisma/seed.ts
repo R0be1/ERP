@@ -8,130 +8,130 @@ async function main() {
 
   // Seed simple master data
   const regions = [
-    { id: 'addis-ababa', name: 'Addis Ababa' },
-    { id: 'afar', name: 'Afar' },
-    { id: 'amhara', name: 'Amhara' },
-    { id: 'benishangul-gumuz', name: 'Benishangul-Gumuz' },
-    { id: 'dire-dawa', name: 'Dire Dawa' },
-    { id: 'gambela', name: 'Gambela' },
-    { id: 'harari', name: 'Harari' },
-    { id: 'oromia', name: 'Oromia' },
-    { id: 'somali', name: 'Somali' },
-    { id: 'snnp', name: 'Southern Nations, Nationalities, and Peoples\'' },
-    { id: 'tigray', name: 'Tigray' },
+    { id: 'addis-ababa', name: 'Addis Ababa', label: 'Addis Ababa' },
+    { id: 'afar', name: 'Afar', label: 'Afar' },
+    { id: 'amhara', name: 'Amhara', label: 'Amhara' },
+    { id: 'benishangul-gumuz', name: 'Benishangul-Gumuz', label: 'Benishangul-Gumuz' },
+    { id: 'dire-dawa', name: 'Dire Dawa', label: 'Dire Dawa' },
+    { id: 'gambela', name: 'Gambela', label: 'Gambela' },
+    { id: 'harari', name: 'Harari', label: 'Harari' },
+    { id: 'oromia', name: 'Oromia', label: 'Oromia' },
+    { id: 'somali', name: 'Somali', label: 'Somali' },
+    { id: 'snnp', name: 'Southern Nations, Nationalities, and Peoples\'', label: 'Southern Nations, Nationalities, and Peoples\'' },
+    { id: 'tigray', name: 'Tigray', label: 'Tigray' },
   ];
   await prisma.region.createMany({ data: regions, skipDuplicates: true });
 
   const departmentTypes = [
-    { id: 'ceo-office', name: 'Office of Chief Executive Officer' },
-    { id: 'co-office', name: 'Office of Chief Officer' },
-    { id: 'dco-office', name: 'Office of Deputy Chief Officer' },
-    { id: 'department', name: 'Department' },
-    { id: 'division', name: 'Division' },
-    { id: 'branch', name: 'Branch' },
-    { id: 'district', name: 'District' },
+    { id: 'ceo-office', name: 'Office of Chief Executive Officer', label: 'Office of Chief Executive Officer' },
+    { id: 'co-office', name: 'Office of Chief Officer', label: 'Office of Chief Officer' },
+    { id: 'dco-office', name: 'Office of Deputy Chief Officer', label: 'Office of Deputy Chief Officer' },
+    { id: 'department', name: 'Department', label: 'Department' },
+    { id: 'division', name: 'Division', label: 'Division' },
+    { id: 'branch', name: 'Branch', label: 'Branch' },
+    { id: 'district', name: 'District', label: 'District' },
   ];
   await prisma.departmentType.createMany({ data: departmentTypes, skipDuplicates: true });
 
   const workLocations = [
-    { id: 'head-office', name: 'Head Office' },
-    { id: 'district', name: 'District' },
-    { id: 'city-branch', name: 'City Branch' },
-    { id: 'outline-branch', name: 'Outline Branch' },
+    { id: 'head-office', name: 'Head Office', label: 'Head Office' },
+    { id: 'district', name: 'District', label: 'District' },
+    { id: 'city-branch', name: 'City Branch', label: 'City Branch' },
+    { id: 'outline-branch', name: 'Outline Branch', label: 'Outline Branch' },
   ];
   await prisma.workLocation.createMany({ data: workLocations, skipDuplicates: true });
   
   const branchGrades = [
-    { id: 'premium-branch', name: 'Premium Branch' },
-    { id: 'special-branch', name: 'Special Branch' },
-    { id: 'i', name: 'I' },
-    { id: 'ii', name: 'II' },
-    { id: 'iii', name: 'III' },
-    { id: 'iv', name: 'IV' },
-    { id: 'v', name: 'V' }
+    { id: 'premium-branch', name: 'Premium Branch', label: 'Premium Branch' },
+    { id: 'special-branch', name: 'Special Branch', label: 'Special Branch' },
+    { id: 'i', name: 'I', label: 'I' },
+    { id: 'ii', name: 'II', label: 'II' },
+    { id: 'iii', name: 'III', label: 'III' },
+    { id: 'iv', name: 'IV', label: 'IV' },
+    { id: 'v', name: 'V', label: 'V' }
   ];
   await prisma.branchGrade.createMany({ data: branchGrades, skipDuplicates: true });
 
-  const jobGradesData = Array.from({ length: 22 }, (_, i) => ({ id: `Grade ${i + 1}`, name: `Grade ${i + 1}` }));
+  const jobGradesData = Array.from({ length: 22 }, (_, i) => ({ id: `Grade ${i + 1}`, name: `Grade ${i + 1}`, label: `Grade ${i + 1}` }));
   await prisma.jobGrade.createMany({ data: jobGradesData, skipDuplicates: true });
 
   const jobCategoriesData = [
-    { id: 'managerial', name: 'Managerial' },
-    { id: 'professional', name: 'Professional' },
-    { id: 'clerical', name: 'Clerical' },
-    { id: 'non-clerical', name: 'Non-Clerical' },
+    { id: 'managerial', name: 'Managerial', label: 'Managerial' },
+    { id: 'professional', name: 'Professional', label: 'Professional' },
+    { id: 'clerical', name: 'Clerical', label: 'Clerical' },
+    { id: 'non-clerical', name: 'Non-Clerical', label: 'Non-Clerical' },
   ];
   await prisma.jobCategory.createMany({ data: jobCategoriesData, skipDuplicates: true });
 
   const employmentTypesData = [
-    { id: 'permanent', name: 'Permanent' },
-    { id: 'contract', name: 'Contract' },
-    { id: 'temporary', name: 'Temporary' },
-    { id: 'internship', name: 'Internship' },
+    { id: 'permanent', name: 'Permanent', label: 'Permanent' },
+    { id: 'contract', name: 'Contract', label: 'Contract' },
+    { id: 'temporary', name: 'Temporary', label: 'Temporary' },
+    { id: 'internship', name: 'Internship', label: 'Internship' },
   ];
   await prisma.employmentType.createMany({ data: employmentTypesData, skipDuplicates: true });
 
   const educationAwardsData = [
-    { id: 'certificate', name: 'Certificate' },
-    { id: 'diploma', name: 'Diploma' },
-    { id: 'bachelors-degree', name: 'Bachelor\'s Degree' },
-    { id: 'masters-degree', name: 'Master\'s Degree' },
-    { id: 'phd', name: 'PhD' },
+    { id: 'certificate', name: 'Certificate', label: 'Certificate' },
+    { id: 'diploma', name: 'Diploma', label: 'Diploma' },
+    { id: 'bachelors-degree', name: 'Bachelor\'s Degree', label: 'Bachelor\'s Degree' },
+    { id: 'masters-degree', name: 'Master\'s Degree', label: 'Master\'s Degree' },
+    { id: 'phd', name: 'PhD', label: 'PhD' },
   ];
   await prisma.educationAward.createMany({ data: educationAwardsData, skipDuplicates: true });
 
   const fieldsOfStudyData = [
-    { id: 'accounting', name: 'Accounting' },
-    { id: 'management', name: 'Management' },
-    { id: 'economics', name: 'Economics' },
-    { id: 'law', name: 'Law' },
-    { id: 'computer-science', name: 'Computer Science' },
-    { id: 'business-administration', name: 'Business Administration' },
+    { id: 'accounting', name: 'Accounting', label: 'Accounting' },
+    { id: 'management', name: 'Management', label: 'Management' },
+    { id: 'economics', name: 'Economics', label: 'Economics' },
+    { id: 'law', name: 'Law', label: 'Law' },
+    { id: 'computer-science', name: 'Computer Science', label: 'Computer Science' },
+    { id: 'business-administration', name: 'Business Administration', label: 'Business Administration' },
   ];
   await prisma.fieldOfStudy.createMany({ data: fieldsOfStudyData, skipDuplicates: true });
 
   const institutionsData = [
-    { id: 'addis-ababa-university', name: 'Addis Ababa University', type: 'Government' },
-    { id: 'mekelle-university', name: 'Mekelle University', type: 'Government' },
-    { id: 'unity-university', name: 'Unity University', type: 'Private' },
-    { id: 'admas-university', name: 'Admas University', type: 'Private' },
+    { id: 'addis-ababa-university', name: 'Addis Ababa University', label: 'Addis Ababa University', type: 'Government' },
+    { id: 'mekelle-university', name: 'Mekelle University', label: 'Mekelle University', type: 'Government' },
+    { id: 'unity-university', name: 'Unity University', label: 'Unity University', type: 'Private' },
+    { id: 'admas-university', name: 'Admas University', label: 'Admas University', type: 'Private' },
   ];
   await prisma.institution.createMany({ data: institutionsData, skipDuplicates: true });
 
   const programTypesData = [
-    { id: 'regular', name: 'Regular' },
-    { id: 'distance', name: 'Distance' },
-    { id: 'extension', name: 'Extension' },
-    { id: 'weekend', name: 'Weekend' },
+    { id: 'regular', name: 'Regular', label: 'Regular' },
+    { id: 'distance', name: 'Distance', label: 'Distance' },
+    { id: 'extension', name: 'Extension', label: 'Extension' },
+    { id: 'weekend', name: 'Weekend', label: 'Weekend' },
   ];
   await prisma.programType.createMany({ data: programTypesData, skipDuplicates: true });
 
   const allowanceTypesData = [
-    { id: 'housing-allowance', name: 'Housing Allowance', description: 'Allowance for housing expenses.', isTaxable: true },
-    { id: 'transport-allowance', name: 'Transport Allowance', description: 'Allowance for commuting expenses.', isTaxable: false },
-    { id: 'communication-allowance', name: 'Communication Allowance', description: 'Allowance for mobile and internet bills.', isTaxable: false },
-    { id: 'representation-allowance', name: 'Representation Allowance', description: 'Allowance for representation duties.', isTaxable: true },
-    { id: 'hardship-allowance', name: 'Hardship Allowance', description: 'Allowance for working in difficult locations.', isTaxable: false },
+    { id: 'housing-allowance', name: 'Housing Allowance', label: 'Housing Allowance', description: 'Allowance for housing expenses.', isTaxable: true },
+    { id: 'transport-allowance', name: 'Transport Allowance', label: 'Transport Allowance', description: 'Allowance for commuting expenses.', isTaxable: false },
+    { id: 'communication-allowance', name: 'Communication Allowance', label: 'Communication Allowance', description: 'Allowance for mobile and internet bills.', isTaxable: false },
+    { id: 'representation-allowance', name: 'Representation Allowance', label: 'Representation Allowance', description: 'Allowance for representation duties.', isTaxable: true },
+    { id: 'hardship-allowance', name: 'Hardship Allowance', label: 'Hardship Allowance', description: 'Allowance for working in difficult locations.', isTaxable: false },
   ];
   await prisma.allowanceType.createMany({ data: allowanceTypesData, skipDuplicates: true });
 
   const disciplinaryActionTypesData = [
-    { id: 'first-warning', name: 'First Warning' },
-    { id: 'second-warning', name: 'Second Warning' },
-    { id: 'final-warning', name: 'Final Warning' },
-    { id: 'suspension', name: 'Suspension' },
+    { id: 'first-warning', name: 'First Warning', label: 'First Warning' },
+    { id: 'second-warning', name: 'Second Warning', label: 'Second Warning' },
+    { id: 'final-warning', name: 'Final Warning', label: 'Final Warning' },
+    { id: 'suspension', name: 'Suspension', label: 'Suspension' },
   ];
   await prisma.disciplinaryActionType.createMany({ data: disciplinaryActionTypesData, skipDuplicates: true });
 
   // Seed departments (handle parent relationship)
   const departmentsData = [
-      { id: '001', name: 'Engineering', departmentTypeId: 'department', parentId: null, capacity: 50, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '002', name: 'Marketing', departmentTypeId: 'department', parentId: null, capacity: 20, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '003', name: 'Sales', departmentTypeId: 'department', parentId: null, capacity: 30, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '004', name: 'Human Resources', departmentTypeId: 'department', parentId: null, capacity: 15, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '005', name: 'Product', departmentTypeId: 'department', parentId: null, capacity: 25, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '006', name: 'Finance', departmentTypeId: 'department', parentId: null, capacity: 10, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '007', name: 'Operations', departmentTypeId: 'department', parentId: null, capacity: 40, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '001', name: 'Engineering', label: 'Engineering', departmentTypeId: 'department', parentId: null, capacity: 50, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '002', name: 'Marketing', label: 'Marketing', departmentTypeId: 'department', parentId: null, capacity: 20, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '003', name: 'Sales', label: 'Sales', departmentTypeId: 'department', parentId: null, capacity: 30, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '004', name: 'Human Resources', label: 'Human Resources', departmentTypeId: 'department', parentId: null, capacity: 15, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '005', name: 'Product', label: 'Product', departmentTypeId: 'department', parentId: null, capacity: 25, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '006', name: 'Finance', label: 'Finance', departmentTypeId: 'department', parentId: null, capacity: 10, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '007', name: 'Operations', label: 'Operations', departmentTypeId: 'department', parentId: null, capacity: 40, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
   ];
   for (const dept of departmentsData) {
       await prisma.department.upsert({
@@ -143,12 +143,12 @@ async function main() {
 
   // Seed Job Titles
   const jobTitlesData = [
-    { id: 'software-engineer', name: 'Software Engineer', jobCategoryId: 'professional', jobGradeId: 'Grade 10', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
-    { id: 'senior-software-engineer', name: 'Senior Software Engineer', jobCategoryId: 'professional', jobGradeId: 'Grade 12', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
-    { id: 'product-manager', name: 'Product Manager', jobCategoryId: 'managerial', jobGradeId: 'Grade 15', isHeadOfDepartment: true, managesDepartmentTypeId: null, managedDepartments: { connect: [{ id: '005' }] } },
-    { id: 'marketing-manager', name: 'Marketing Manager', jobCategoryId: 'managerial', jobGradeId: 'Grade 14', isHeadOfDepartment: true, managesDepartmentTypeId: null, managedDepartments: { connect: [{ id: '002' }] } },
-    { id: 'sales-representative', name: 'Sales Representative', jobCategoryId: 'clerical', jobGradeId: 'Grade 8', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
-    { id: 'hr-specialist', name: 'HR Specialist', jobCategoryId: 'professional', jobGradeId: 'Grade 9', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
+    { id: 'software-engineer', name: 'Software Engineer', label: 'Software Engineer', jobCategoryId: 'professional', jobGradeId: 'Grade 10', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
+    { id: 'senior-software-engineer', name: 'Senior Software Engineer', label: 'Senior Software Engineer', jobCategoryId: 'professional', jobGradeId: 'Grade 12', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
+    { id: 'product-manager', name: 'Product Manager', label: 'Product Manager', jobCategoryId: 'managerial', jobGradeId: 'Grade 15', isHeadOfDepartment: true, managesDepartmentTypeId: null, managedDepartments: { connect: [{ id: '005' }] } },
+    { id: 'marketing-manager', name: 'Marketing Manager', label: 'Marketing Manager', jobCategoryId: 'managerial', jobGradeId: 'Grade 14', isHeadOfDepartment: true, managesDepartmentTypeId: null, managedDepartments: { connect: [{ id: '002' }] } },
+    { id: 'sales-representative', name: 'Sales Representative', label: 'Sales Representative', jobCategoryId: 'clerical', jobGradeId: 'Grade 8', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
+    { id: 'hr-specialist', name: 'HR Specialist', label: 'HR Specialist', jobCategoryId: 'professional', jobGradeId: 'Grade 9', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
   ];
   for (const jt of jobTitlesData) {
     await prisma.jobTitle.upsert({
@@ -162,6 +162,7 @@ async function main() {
   const salaryStructuresData = [
     { 
         id: 'SS001',
+        label: 'Grade 15 Structure',
         jobGradeId: 'Grade 15', 
         effectiveDate: new Date('2024-01-01'),
         status: 'ACTIVE',
@@ -175,6 +176,7 @@ async function main() {
     },
     { 
         id: 'SS002', 
+        label: 'Grade 10 Structure',
         jobGradeId: 'Grade 10', 
         effectiveDate: new Date('2024-01-01'),
         status: 'ACTIVE',
@@ -287,10 +289,10 @@ async function main() {
 
   // Other employees with basic info
   const otherEmployees = [
-    { id: "EMP002", fullName: "Bob Williams", departmentId: "002", jobTitleId: "marketing-manager", status: 'ACTIVE', contact: { create: { email: "bob.w@example.com" } }, avatar: "https://placehold.co/40x40.png", joinDate: new Date() },
-    { id: "EMP003", fullName: "Charlie Brown", departmentId: "003", jobTitleId: "sales-representative", status: 'ON_LEAVE', contact: { create: { email: "charlie.b@example.com" } }, avatar: "https://placehold.co/40x40.png", joinDate: new Date() },
-    { id: "EMP004", fullName: "Diana Miller", departmentId: "004", jobTitleId: "hr-specialist", status: 'ACTIVE', contact: { create: { email: "diana.m@example.com" } }, avatar: "https://placehold.co/40x40.png", joinDate: new Date() },
-    { id: "EMP005", fullName: "Ethan Davis", departmentId: "001", jobTitleId: "software-engineer", status: 'TERMINATED', contact: { create: { email: "ethan.d@example.com" } }, avatar: "https://placehold.co/40x40.png", joinDate: new Date() },
+    { id: "EMP002", fullName: "Bob Williams", departmentId: "002", jobTitleId: "marketing-manager", status: 'ACTIVE', contact: { create: { workEmail: "bob.w@example.com" } }, avatar: "https://placehold.co/40x40.png", joinDate: new Date() },
+    { id: "EMP003", fullName: "Charlie Brown", departmentId: "003", jobTitleId: "sales-representative", status: 'ON_LEAVE', contact: { create: { workEmail: "charlie.b@example.com" } }, avatar: "https://placehold.co/40x40.png", joinDate: new Date() },
+    { id: "EMP004", fullName: "Diana Miller", departmentId: "004", jobTitleId: "hr-specialist", status: 'ACTIVE', contact: { create: { workEmail: "diana.m@example.com" } }, avatar: "https://placehold.co/40x40.png", joinDate: new Date() },
+    { id: "EMP005", fullName: "Ethan Davis", departmentId: "001", jobTitleId: "software-engineer", status: 'TERMINATED', contact: { create: { workEmail: "ethan.d@example.com" } }, avatar: "https://placehold.co/40x40.png", joinDate: new Date() },
   ];
 
   for (const emp of otherEmployees) {
