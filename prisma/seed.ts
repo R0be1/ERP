@@ -20,7 +20,13 @@ async function main() {
     { id: 'snnp', label: 'Southern Nations, Nationalities, and Peoples\'' },
     { id: 'tigray', label: 'Tigray' },
   ];
-  await prisma.region.createMany({ data: regions, skipDuplicates: true });
+  for (const region of regions) {
+    await prisma.region.upsert({
+      where: { id: region.id },
+      update: {},
+      create: region,
+    });
+  }
 
   const departmentTypes = [
     { id: 'ceo-office', label: 'Office of Chief Executive Officer' },
@@ -31,7 +37,13 @@ async function main() {
     { id: 'branch', label: 'Branch' },
     { id: 'district', label: 'District' },
   ];
-  await prisma.departmentType.createMany({ data: departmentTypes, skipDuplicates: true });
+  for (const type of departmentTypes) {
+    await prisma.departmentType.upsert({
+      where: { id: type.id },
+      update: {},
+      create: type,
+    });
+  }
 
   const workLocations = [
     { id: 'head-office', label: 'Head Office' },
@@ -39,7 +51,13 @@ async function main() {
     { id: 'city-branch', label: 'City Branch' },
     { id: 'outline-branch', label: 'Outline Branch' },
   ];
-  await prisma.workLocation.createMany({ data: workLocations, skipDuplicates: true });
+  for (const location of workLocations) {
+    await prisma.workLocation.upsert({
+      where: { id: location.id },
+      update: {},
+      create: location,
+    });
+  }
   
   const branchGrades = [
     { id: 'premium-branch', label: 'Premium Branch' },
@@ -50,10 +68,22 @@ async function main() {
     { id: 'iv', label: 'IV' },
     { id: 'v', label: 'V' }
   ];
-  await prisma.branchGrade.createMany({ data: branchGrades, skipDuplicates: true });
+  for (const grade of branchGrades) {
+    await prisma.branchGrade.upsert({
+      where: { id: grade.id },
+      update: {},
+      create: grade,
+    });
+  }
 
   const jobGradesData = Array.from({ length: 22 }, (_, i) => ({ id: `Grade ${i + 1}`, label: `Grade ${i + 1}` }));
-  await prisma.jobGrade.createMany({ data: jobGradesData, skipDuplicates: true });
+  for (const grade of jobGradesData) {
+    await prisma.jobGrade.upsert({
+      where: { id: grade.id },
+      update: {},
+      create: grade,
+    });
+  }
 
   const jobCategoriesData = [
     { id: 'managerial', label: 'Managerial' },
@@ -61,7 +91,13 @@ async function main() {
     { id: 'clerical', label: 'Clerical' },
     { id: 'non-clerical', label: 'Non-Clerical' },
   ];
-  await prisma.jobCategory.createMany({ data: jobCategoriesData, skipDuplicates: true });
+  for (const category of jobCategoriesData) {
+    await prisma.jobCategory.upsert({
+      where: { id: category.id },
+      update: {},
+      create: category,
+    });
+  }
 
   const employmentTypesData = [
     { id: 'permanent', label: 'Permanent' },
@@ -69,7 +105,13 @@ async function main() {
     { id: 'temporary', label: 'Temporary' },
     { id: 'internship', label: 'Internship' },
   ];
-  await prisma.employmentType.createMany({ data: employmentTypesData, skipDuplicates: true });
+  for (const type of employmentTypesData) {
+    await prisma.employmentType.upsert({
+      where: { id: type.id },
+      update: {},
+      create: type,
+    });
+  }
 
   const educationAwardsData = [
     { id: 'certificate', label: 'Certificate' },
@@ -78,7 +120,13 @@ async function main() {
     { id: 'masters-degree', label: 'Master\'s Degree' },
     { id: 'phd', label: 'PhD' },
   ];
-  await prisma.educationAward.createMany({ data: educationAwardsData, skipDuplicates: true });
+  for (const award of educationAwardsData) {
+    await prisma.educationAward.upsert({
+      where: { id: award.id },
+      update: {},
+      create: award,
+    });
+  }
 
   const fieldsOfStudyData = [
     { id: 'accounting', label: 'Accounting' },
@@ -88,7 +136,13 @@ async function main() {
     { id: 'computer-science', label: 'Computer Science' },
     { id: 'business-administration', label: 'Business Administration' },
   ];
-  await prisma.fieldOfStudy.createMany({ data: fieldsOfStudyData, skipDuplicates: true });
+  for (const field of fieldsOfStudyData) {
+    await prisma.fieldOfStudy.upsert({
+      where: { id: field.id },
+      update: {},
+      create: field,
+    });
+  }
 
   const institutionsData = [
     { id: 'addis-ababa-university', label: 'Addis Ababa University', institutionType: 'Government' },
@@ -96,7 +150,13 @@ async function main() {
     { id: 'unity-university', label: 'Unity University', institutionType: 'Private' },
     { id: 'admas-university', label: 'Admas University', institutionType: 'Private' },
   ];
-  await prisma.institution.createMany({ data: institutionsData, skipDuplicates: true });
+  for (const institution of institutionsData) {
+    await prisma.institution.upsert({
+      where: { id: institution.id },
+      update: {},
+      create: institution,
+    });
+  }
 
   const programTypesData = [
     { id: 'regular', label: 'Regular' },
@@ -104,7 +164,13 @@ async function main() {
     { id: 'extension', label: 'Extension' },
     { id: 'weekend', label: 'Weekend' },
   ];
-  await prisma.programType.createMany({ data: programTypesData, skipDuplicates: true });
+  for (const type of programTypesData) {
+    await prisma.programType.upsert({
+      where: { id: type.id },
+      update: {},
+      create: type,
+    });
+  }
 
   const allowanceTypesData = [
     { id: 'housing-allowance', label: 'Housing Allowance', description: 'Allowance for housing expenses.', isTaxable: true },
@@ -113,7 +179,13 @@ async function main() {
     { id: 'representation-allowance', label: 'Representation Allowance', description: 'Allowance for representation duties.', isTaxable: true },
     { id: 'hardship-allowance', label: 'Hardship Allowance', description: 'Allowance for working in difficult locations.', isTaxable: false },
   ];
-  await prisma.allowanceType.createMany({ data: allowanceTypesData, skipDuplicates: true });
+  for (const type of allowanceTypesData) {
+    await prisma.allowanceType.upsert({
+      where: { id: type.id },
+      update: {},
+      create: type,
+    });
+  }
 
   const disciplinaryActionTypesData = [
     { id: 'first-warning', label: 'First Warning' },
@@ -121,7 +193,13 @@ async function main() {
     { id: 'final-warning', label: 'Final Warning' },
     { id: 'suspension', label: 'Suspension' },
   ];
-  await prisma.disciplinaryActionType.createMany({ data: disciplinaryActionTypesData, skipDuplicates: true });
+  for (const type of disciplinaryActionTypesData) {
+    await prisma.disciplinaryActionType.upsert({
+      where: { id: type.id },
+      update: {},
+      create: type,
+    });
+  }
 
   // Seed departments (handle parent relationship)
   const departmentsData = [
