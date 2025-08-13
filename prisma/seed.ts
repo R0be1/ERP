@@ -91,10 +91,10 @@ async function main() {
   await prisma.fieldOfStudy.createMany({ data: fieldsOfStudyData, skipDuplicates: true });
 
   const institutionsData = [
-    { id: 'addis-ababa-university', label: 'Addis Ababa University', type: 'Government' },
-    { id: 'mekelle-university', label: 'Mekelle University', type: 'Government' },
-    { id: 'unity-university', label: 'Unity University', type: 'Private' },
-    { id: 'admas-university', label: 'Admas University', type: 'Private' },
+    { id: 'addis-ababa-university', label: 'Addis Ababa University', institutionType: 'Government' },
+    { id: 'mekelle-university', label: 'Mekelle University', institutionType: 'Government' },
+    { id: 'unity-university', label: 'Unity University', institutionType: 'Private' },
+    { id: 'admas-university', label: 'Admas University', institutionType: 'Private' },
   ];
   await prisma.institution.createMany({ data: institutionsData, skipDuplicates: true });
 
@@ -125,13 +125,13 @@ async function main() {
 
   // Seed departments (handle parent relationship)
   const departmentsData = [
-      { id: '001', name: 'Engineering', label: 'Engineering', departmentTypeId: 'department', parentId: null, capacity: 50, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '002', name: 'Marketing', label: 'Marketing', departmentTypeId: 'department', parentId: null, capacity: 20, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '003', name: 'Sales', label: 'Sales', departmentTypeId: 'department', parentId: null, capacity: 30, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '004', name: 'Human Resources', label: 'Human Resources', departmentTypeId: 'department', parentId: null, capacity: 15, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '005', name: 'Product', label: 'Product', departmentTypeId: 'department', parentId: null, capacity: 25, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '006', name: 'Finance', label: 'Finance', departmentTypeId: 'department', parentId: null, capacity: 10, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
-      { id: '007', name: 'Operations', label: 'Operations', departmentTypeId: 'department', parentId: null, capacity: 40, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '001', label: 'Engineering', departmentTypeId: 'department', parentId: null, capacity: 50, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '002', label: 'Marketing', departmentTypeId: 'department', parentId: null, capacity: 20, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '003', label: 'Sales', departmentTypeId: 'department', parentId: null, capacity: 30, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '004', label: 'Human Resources', departmentTypeId: 'department', parentId: null, capacity: 15, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '005', label: 'Product', departmentTypeId: 'department', parentId: null, capacity: 25, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '006', label: 'Finance', departmentTypeId: 'department', parentId: null, capacity: 10, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
+      { id: '007', label: 'Operations', departmentTypeId: 'department', parentId: null, capacity: 40, regionId: 'addis-ababa', workLocationId: 'head-office', branchGradeId: null },
   ];
   for (const dept of departmentsData) {
       await prisma.department.upsert({
@@ -143,12 +143,12 @@ async function main() {
 
   // Seed Job Titles
   const jobTitlesData = [
-    { id: 'software-engineer', name: 'Software Engineer', label: 'Software Engineer', jobCategoryId: 'professional', jobGradeId: 'Grade 10', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
-    { id: 'senior-software-engineer', name: 'Senior Software Engineer', label: 'Senior Software Engineer', jobCategoryId: 'professional', jobGradeId: 'Grade 12', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
-    { id: 'product-manager', name: 'Product Manager', label: 'Product Manager', jobCategoryId: 'managerial', jobGradeId: 'Grade 15', isHeadOfDepartment: true, managesDepartmentTypeId: null, managedDepartments: { connect: [{ id: '005' }] } },
-    { id: 'marketing-manager', name: 'Marketing Manager', label: 'Marketing Manager', jobCategoryId: 'managerial', jobGradeId: 'Grade 14', isHeadOfDepartment: true, managesDepartmentTypeId: null, managedDepartments: { connect: [{ id: '002' }] } },
-    { id: 'sales-representative', name: 'Sales Representative', label: 'Sales Representative', jobCategoryId: 'clerical', jobGradeId: 'Grade 8', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
-    { id: 'hr-specialist', name: 'HR Specialist', label: 'HR Specialist', jobCategoryId: 'professional', jobGradeId: 'Grade 9', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
+    { id: 'software-engineer', label: 'Software Engineer', jobCategoryId: 'professional', jobGradeId: 'Grade 10', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
+    { id: 'senior-software-engineer', label: 'Senior Software Engineer', jobCategoryId: 'professional', jobGradeId: 'Grade 12', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
+    { id: 'product-manager', label: 'Product Manager', jobCategoryId: 'managerial', jobGradeId: 'Grade 15', isHeadOfDepartment: true, managesDepartmentTypeId: null, managedDepartments: { connect: [{ id: '005' }] } },
+    { id: 'marketing-manager', label: 'Marketing Manager', jobCategoryId: 'managerial', jobGradeId: 'Grade 14', isHeadOfDepartment: true, managesDepartmentTypeId: null, managedDepartments: { connect: [{ id: '002' }] } },
+    { id: 'sales-representative', label: 'Sales Representative', jobCategoryId: 'clerical', jobGradeId: 'Grade 8', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
+    { id: 'hr-specialist', label: 'HR Specialist', jobCategoryId: 'professional', jobGradeId: 'Grade 9', isHeadOfDepartment: false, managesDepartmentTypeId: null, managedDepartments: { connect: [] } },
   ];
   for (const jt of jobTitlesData) {
     await prisma.jobTitle.upsert({
@@ -314,7 +314,5 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
-
-    
 
     
