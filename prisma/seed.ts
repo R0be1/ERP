@@ -8,118 +8,118 @@ async function main() {
 
   // Seed simple master data
   const regions = [
-    { id: 'addis-ababa', name: 'Addis Ababa', label: 'Addis Ababa' },
-    { id: 'afar', name: 'Afar', label: 'Afar' },
-    { id: 'amhara', name: 'Amhara', label: 'Amhara' },
-    { id: 'benishangul-gumuz', name: 'Benishangul-Gumuz', label: 'Benishangul-Gumuz' },
-    { id: 'dire-dawa', name: 'Dire Dawa', label: 'Dire Dawa' },
-    { id: 'gambela', name: 'Gambela', label: 'Gambela' },
-    { id: 'harari', name: 'Harari', label: 'Harari' },
-    { id: 'oromia', name: 'Oromia', label: 'Oromia' },
-    { id: 'somali', name: 'Somali', label: 'Somali' },
-    { id: 'snnp', name: 'Southern Nations, Nationalities, and Peoples\'', label: 'Southern Nations, Nationalities, and Peoples\'' },
-    { id: 'tigray', name: 'Tigray', label: 'Tigray' },
+    { id: 'addis-ababa', label: 'Addis Ababa' },
+    { id: 'afar', label: 'Afar' },
+    { id: 'amhara', label: 'Amhara' },
+    { id: 'benishangul-gumuz', label: 'Benishangul-Gumuz' },
+    { id: 'dire-dawa', label: 'Dire Dawa' },
+    { id: 'gambela', label: 'Gambela' },
+    { id: 'harari', label: 'Harari' },
+    { id: 'oromia', label: 'Oromia' },
+    { id: 'somali', label: 'Somali' },
+    { id: 'snnp', label: 'Southern Nations, Nationalities, and Peoples\'' },
+    { id: 'tigray', label: 'Tigray' },
   ];
   await prisma.region.createMany({ data: regions, skipDuplicates: true });
 
   const departmentTypes = [
-    { id: 'ceo-office', name: 'Office of Chief Executive Officer', label: 'Office of Chief Executive Officer' },
-    { id: 'co-office', name: 'Office of Chief Officer', label: 'Office of Chief Officer' },
-    { id: 'dco-office', name: 'Office of Deputy Chief Officer', label: 'Office of Deputy Chief Officer' },
-    { id: 'department', name: 'Department', label: 'Department' },
-    { id: 'division', name: 'Division', label: 'Division' },
-    { id: 'branch', name: 'Branch', label: 'Branch' },
-    { id: 'district', name: 'District', label: 'District' },
+    { id: 'ceo-office', label: 'Office of Chief Executive Officer' },
+    { id: 'co-office', label: 'Office of Chief Officer' },
+    { id: 'dco-office', label: 'Office of Deputy Chief Officer' },
+    { id: 'department', label: 'Department' },
+    { id: 'division', label: 'Division' },
+    { id: 'branch', label: 'Branch' },
+    { id: 'district', label: 'District' },
   ];
   await prisma.departmentType.createMany({ data: departmentTypes, skipDuplicates: true });
 
   const workLocations = [
-    { id: 'head-office', name: 'Head Office', label: 'Head Office' },
-    { id: 'district', name: 'District', label: 'District' },
-    { id: 'city-branch', name: 'City Branch', label: 'City Branch' },
-    { id: 'outline-branch', name: 'Outline Branch', label: 'Outline Branch' },
+    { id: 'head-office', label: 'Head Office' },
+    { id: 'district', label: 'District' },
+    { id: 'city-branch', label: 'City Branch' },
+    { id: 'outline-branch', label: 'Outline Branch' },
   ];
   await prisma.workLocation.createMany({ data: workLocations, skipDuplicates: true });
   
   const branchGrades = [
-    { id: 'premium-branch', name: 'Premium Branch', label: 'Premium Branch' },
-    { id: 'special-branch', name: 'Special Branch', label: 'Special Branch' },
-    { id: 'i', name: 'I', label: 'I' },
-    { id: 'ii', name: 'II', label: 'II' },
-    { id: 'iii', name: 'III', label: 'III' },
-    { id: 'iv', name: 'IV', label: 'IV' },
-    { id: 'v', name: 'V', label: 'V' }
+    { id: 'premium-branch', label: 'Premium Branch' },
+    { id: 'special-branch', label: 'Special Branch' },
+    { id: 'i', label: 'I' },
+    { id: 'ii', label: 'II' },
+    { id: 'iii', label: 'III' },
+    { id: 'iv', label: 'IV' },
+    { id: 'v', label: 'V' }
   ];
   await prisma.branchGrade.createMany({ data: branchGrades, skipDuplicates: true });
 
-  const jobGradesData = Array.from({ length: 22 }, (_, i) => ({ id: `Grade ${i + 1}`, name: `Grade ${i + 1}`, label: `Grade ${i + 1}` }));
+  const jobGradesData = Array.from({ length: 22 }, (_, i) => ({ id: `Grade ${i + 1}`, label: `Grade ${i + 1}` }));
   await prisma.jobGrade.createMany({ data: jobGradesData, skipDuplicates: true });
 
   const jobCategoriesData = [
-    { id: 'managerial', name: 'Managerial', label: 'Managerial' },
-    { id: 'professional', name: 'Professional', label: 'Professional' },
-    { id: 'clerical', name: 'Clerical', label: 'Clerical' },
-    { id: 'non-clerical', name: 'Non-Clerical', label: 'Non-Clerical' },
+    { id: 'managerial', label: 'Managerial' },
+    { id: 'professional', label: 'Professional' },
+    { id: 'clerical', label: 'Clerical' },
+    { id: 'non-clerical', label: 'Non-Clerical' },
   ];
   await prisma.jobCategory.createMany({ data: jobCategoriesData, skipDuplicates: true });
 
   const employmentTypesData = [
-    { id: 'permanent', name: 'Permanent', label: 'Permanent' },
-    { id: 'contract', name: 'Contract', label: 'Contract' },
-    { id: 'temporary', name: 'Temporary', label: 'Temporary' },
-    { id: 'internship', name: 'Internship', label: 'Internship' },
+    { id: 'permanent', label: 'Permanent' },
+    { id: 'contract', label: 'Contract' },
+    { id: 'temporary', label: 'Temporary' },
+    { id: 'internship', label: 'Internship' },
   ];
   await prisma.employmentType.createMany({ data: employmentTypesData, skipDuplicates: true });
 
   const educationAwardsData = [
-    { id: 'certificate', name: 'Certificate', label: 'Certificate' },
-    { id: 'diploma', name: 'Diploma', label: 'Diploma' },
-    { id: 'bachelors-degree', name: 'Bachelor\'s Degree', label: 'Bachelor\'s Degree' },
-    { id: 'masters-degree', name: 'Master\'s Degree', label: 'Master\'s Degree' },
-    { id: 'phd', name: 'PhD', label: 'PhD' },
+    { id: 'certificate', label: 'Certificate' },
+    { id: 'diploma', label: 'Diploma' },
+    { id: 'bachelors-degree', label: 'Bachelor\'s Degree' },
+    { id: 'masters-degree', label: 'Master\'s Degree' },
+    { id: 'phd', label: 'PhD' },
   ];
   await prisma.educationAward.createMany({ data: educationAwardsData, skipDuplicates: true });
 
   const fieldsOfStudyData = [
-    { id: 'accounting', name: 'Accounting', label: 'Accounting' },
-    { id: 'management', name: 'Management', label: 'Management' },
-    { id: 'economics', name: 'Economics', label: 'Economics' },
-    { id: 'law', name: 'Law', label: 'Law' },
-    { id: 'computer-science', name: 'Computer Science', label: 'Computer Science' },
-    { id: 'business-administration', name: 'Business Administration', label: 'Business Administration' },
+    { id: 'accounting', label: 'Accounting' },
+    { id: 'management', label: 'Management' },
+    { id: 'economics', label: 'Economics' },
+    { id: 'law', label: 'Law' },
+    { id: 'computer-science', label: 'Computer Science' },
+    { id: 'business-administration', label: 'Business Administration' },
   ];
   await prisma.fieldOfStudy.createMany({ data: fieldsOfStudyData, skipDuplicates: true });
 
   const institutionsData = [
-    { id: 'addis-ababa-university', name: 'Addis Ababa University', label: 'Addis Ababa University', type: 'Government' },
-    { id: 'mekelle-university', name: 'Mekelle University', label: 'Mekelle University', type: 'Government' },
-    { id: 'unity-university', name: 'Unity University', label: 'Unity University', type: 'Private' },
-    { id: 'admas-university', name: 'Admas University', label: 'Admas University', type: 'Private' },
+    { id: 'addis-ababa-university', label: 'Addis Ababa University', type: 'Government' },
+    { id: 'mekelle-university', label: 'Mekelle University', type: 'Government' },
+    { id: 'unity-university', label: 'Unity University', type: 'Private' },
+    { id: 'admas-university', label: 'Admas University', type: 'Private' },
   ];
   await prisma.institution.createMany({ data: institutionsData, skipDuplicates: true });
 
   const programTypesData = [
-    { id: 'regular', name: 'Regular', label: 'Regular' },
-    { id: 'distance', name: 'Distance', label: 'Distance' },
-    { id: 'extension', name: 'Extension', label: 'Extension' },
-    { id: 'weekend', name: 'Weekend', label: 'Weekend' },
+    { id: 'regular', label: 'Regular' },
+    { id: 'distance', label: 'Distance' },
+    { id: 'extension', label: 'Extension' },
+    { id: 'weekend', label: 'Weekend' },
   ];
   await prisma.programType.createMany({ data: programTypesData, skipDuplicates: true });
 
   const allowanceTypesData = [
-    { id: 'housing-allowance', name: 'Housing Allowance', label: 'Housing Allowance', description: 'Allowance for housing expenses.', isTaxable: true },
-    { id: 'transport-allowance', name: 'Transport Allowance', label: 'Transport Allowance', description: 'Allowance for commuting expenses.', isTaxable: false },
-    { id: 'communication-allowance', name: 'Communication Allowance', label: 'Communication Allowance', description: 'Allowance for mobile and internet bills.', isTaxable: false },
-    { id: 'representation-allowance', name: 'Representation Allowance', label: 'Representation Allowance', description: 'Allowance for representation duties.', isTaxable: true },
-    { id: 'hardship-allowance', name: 'Hardship Allowance', label: 'Hardship Allowance', description: 'Allowance for working in difficult locations.', isTaxable: false },
+    { id: 'housing-allowance', label: 'Housing Allowance', description: 'Allowance for housing expenses.', isTaxable: true },
+    { id: 'transport-allowance', label: 'Transport Allowance', description: 'Allowance for commuting expenses.', isTaxable: false },
+    { id: 'communication-allowance', label: 'Communication Allowance', description: 'Allowance for mobile and internet bills.', isTaxable: false },
+    { id: 'representation-allowance', label: 'Representation Allowance', description: 'Allowance for representation duties.', isTaxable: true },
+    { id: 'hardship-allowance', label: 'Hardship Allowance', description: 'Allowance for working in difficult locations.', isTaxable: false },
   ];
   await prisma.allowanceType.createMany({ data: allowanceTypesData, skipDuplicates: true });
 
   const disciplinaryActionTypesData = [
-    { id: 'first-warning', name: 'First Warning', label: 'First Warning' },
-    { id: 'second-warning', name: 'Second Warning', label: 'Second Warning' },
-    { id: 'final-warning', name: 'Final Warning', label: 'Final Warning' },
-    { id: 'suspension', name: 'Suspension', label: 'Suspension' },
+    { id: 'first-warning', label: 'First Warning' },
+    { id: 'second-warning', label: 'Second Warning' },
+    { id: 'final-warning', label: 'Final Warning' },
+    { id: 'suspension', label: 'Suspension' },
   ];
   await prisma.disciplinaryActionType.createMany({ data: disciplinaryActionTypesData, skipDuplicates: true });
 
